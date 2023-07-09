@@ -1,0 +1,157 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:CyberPlayer.Player.ViewModels"
+		xmlns:local="using:CyberPlayer.Player"
+		xmlns:controls="using:CyberPlayer.Player.Controls"
+		xmlns:sys="using:System"
+        xmlns:converters="using:CyberPlayer.Player.ValueConverters"
+        xmlns:mpv="using:LibMpv.Client"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="CyberPlayer.Player.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        x:CompileBindings="True"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="{Binding MediaName}">
+	<!--<Window.Resources>
+		<converters:DoublePercentConverter x:Key="PercentConverter" />
+	</Window.Resources>-->
+	<Window.KeyBindings>
+		<KeyBinding Gesture="Space" Command="{Binding PlayPause}" />
+		<!-- Seek 5 seconds forward -->
+		<!-- Seek 5 seconds backward -->
+		<KeyBinding Gesture="Ctrl+Right" Command="{Binding FrameStepCommand}" CommandParameter="{x:Static mpv:MpvCommands.StepForward}" />
+		<KeyBinding Gesture="Ctrl+Left" Command="{Binding FrameStepCommand}" CommandParameter="{x:Static mpv:MpvCommands.StepBackward}" />
+		<KeyBinding Gesture="M" Command="{Binding Mute}" />
+		<!-- Increase Volume -->
+		<!-- Decrease Volume -->
+		
+		<!-- WARNING Keybindings below require compile-time bindings -->
+		<KeyBinding Gesture="I" Command="{Binding set_TrimStartTime}" CommandParameter="{Binding SeekValue}" />
+		<KeyBinding Gesture="O" Command="{Binding set_TrimEndTime}" CommandParameter="{Binding SeekValue}" />
+	</Window.KeyBindings>
+
+	<Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel />
+    </Design.DataContext>
+
+	<Grid Name="MainGrid" ColumnDefinitions="*" RowDefinitions="33, *, 50, 40, 20"><!-- 33,*,50,40/35 -->
+		<Menu Background="DimGray" Grid.Row="0" Height="33" Margin="0, 0, 0, 0">
+			<MenuItem Header="_File">
+				<MenuItem Header="_Open" />
+				<MenuItem Header="_Close" />
+			</MenuItem>
+			<MenuItem Header="_Edit">
+				<MenuItem Header="_Trim" Command="{Binding Trim}"/>
+				<MenuItem Header="_Audio Track Selection" />
+				<MenuItem Header="_Remux" />
+				<MenuItem Header="_Export "/>
+			</MenuItem>
+			<MenuItem Header="_Help">
+				<MenuItem Header="_Licenses" />
+				<MenuItem Header="Check for Updates" Command="{Binding CheckForUpdatesCommand}" />
+			</MenuItem>
+		</Menu>
+		
+		<Panel PointerPressed="VideoPanel_OnPointerPressed" Grid.Row="1" DragDrop.AllowDrop="True" Background="Black">
+			<!--Set background in order for contextmenu to interactable
+				*this doesn't work for nativevideoview-->
+			<Panel.ContextMenu>
+				<ContextMenu>
+					<MenuItem Name="AudioTracks" Header="Audio Tracks" ItemsSource="">
+						<MenuItem Header="test" />
+					</MenuItem>
+				</ContextMenu>
+			</Panel.ContextMenu>
+			<ContentControl Content="{Binding VideoContent}" />
+		</Panel>
+		
+		<Border Grid.Row="2" Grid.RowSpan="2" Background="DimGray" />
+		
+		<ContentControl Grid.Row="2" Content="{Binding SeekContent}" />
+		
+		<DockPanel Name="ControlsPanel" LastChildFill="False" Margin="5, 0" Grid.Row="3">
+			<Button
+				Name="PlayButton"
+				Height="32"
+				Width="32"
+				Focusable="False"
+				Command="{Binding PlayPause}">
+				<Panel>
+					<Image IsVisible="{Binding IsPlaying}" Source="{SvgImage /Assets/Images/Controls_Pause.svg}" />
+					<Image IsVisible="{Binding !IsPlaying}" Source="{SvgImage /Assets/Images/Controls_Play.svg}" />
+				</Panel>
+			</Button>
+			<Button
+				Height="32"
+				Width="32"
+				Focusable="False"
+				Command="{Binding FrameStepCommand}"
+				CommandParameter="{x:Static mpv:MpvCommands.StepBackward}">
+				<Image Source="{SvgImage /Assets/Images/Controls_FrameStep.svg}">
+					<Image.RenderTransform>
+						<ScaleTransform ScaleX="-1" />
+					</Image.RenderTransform>
+				</Image>
+			</Button>
+			<Button
+				Height="32"
+				Width="32"
+				Focusable="False"
+				Command="{Binding FrameStepCommand}"
+				CommandParameter="{x:Static mpv:MpvCommands.StepForward}">
+				<Image Source="{SvgImage /Assets/Images/Controls_FrameStep.svg}" />
+			</Button>
+			<!--height: 30, width: 100-->
+			<Label
+				VerticalAlignment="Center"
+				VerticalContentAlignment="Center"
+				Width="41"
+				DockPanel.Dock="Right"
+				Content="{Binding VolumeValue, StringFormat='{}{0:0}%'}" />
+			<Slider
+				Name="VolumeSlider"
+				Classes="Volume"
+				Foreground="LimeGreen"
+				Background="Transparent"
+				DockPanel.Dock="Right"
+				Maximum="100"
+				LargeChange="20"
+				SmallChange="5"
+				Value="{Binding VolumeValue}"
+				Height="20"
+				Width="60"
+				IsVisible="True"
+				Focusable="False"/>
+			<Button
+				Name="MuteButton"
+				Background="Transparent"
+				Height="32"
+				Margin="0, 0, 0, 0"
+				DockPanel.Dock="Right"
+				Focusable="False"
+				Command="{Binding Mute}">
+				<Panel>
+					<Image Source="{SvgImage /Assets/Images/Controls_Mute_Speaker.svg}" />
+					<Image IsVisible="{Binding !IsMuted}" Source="{SvgImage /Assets/Images/Controls_Mute_Waves.svg}" />
+				</Panel>
+			</Button>
+		</DockPanel>
+		
+		<DockPanel Grid.Row="4" Margin="3, 0" LastChildFill="False">
+			<TextBlock
+				DockPanel.Dock="Right">
+				<TextBlock.Text>
+					<MultiBinding StringFormat="{}{0} / {1}">
+						<Binding Path="SeekTimeCodeString" />
+						<Binding Path="DurationTimeCodeString" />
+					</MultiBinding>
+				</TextBlock.Text>
+			</TextBlock>
+		</DockPanel>
+	</Grid>
+	
+</Window>

@@ -1,0 +1,25 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:CyberPlayer.Player"
+             x:Class="CyberPlayer.Player.App"
+			 RequestedThemeVariant="Default">
+    <!-- TODO Change RequestedThemeVariant above (Default, Light, Dark) -->
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="/Themes/CustomSlider.axaml" />
+                <ResourceInclude Source="/Themes/TimelineControl.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+    
+    <Application.Styles>
+        <FluentTheme />
+		<StyleInclude Source="/Styles/VolumeSlider.axaml"/>
+    </Application.Styles>
+    
+</Application>

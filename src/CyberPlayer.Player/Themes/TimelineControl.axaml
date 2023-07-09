@@ -1,0 +1,289 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="using:CyberPlayer.Player.ValueConverters"
+                    xmlns:controls1="clr-namespace:CyberPlayer.Player.Controls">
+	<Design.PreviewWith>
+		<StackPanel>
+			<Border Width="500">
+				<controls1:TimelineControl />
+			</Border>
+			<Border Width="500">
+				<controls1:TimelineControl SeekValue="0" LowerValue="0.5" UpperValue="0.5" />
+			</Border>
+			<Border Width="500">
+				<controls1:TimelineControl SeekValue="0.5" LowerValue="0.5" UpperValue="1" />
+			</Border>
+		</StackPanel>
+	</Design.PreviewWith>
+	
+	<ControlTheme x:Key="TimelineControlLower" TargetType="controls1:CustomSlider">
+		<Setter Property="Template">
+			<ControlTemplate>
+			  <DataValidationErrors>
+				  <Border
+					  BorderBrush="{TemplateBinding BorderBrush}"
+					  BorderThickness="5"
+					  CornerRadius="0">
+					  <Grid x:Name="SliderContainer"
+							Background="{DynamicResource SliderContainerBackground}">
+						  <Grid.Styles>
+							  <Style Selector="TickBar">
+								  <Setter Property="ReservedSpace" Value="{Binding #PART_Track.Thumb.Bounds}" />
+							  </Style>
+						  </Grid.Styles>
+						  <Grid x:Name="HorizontalTemplate"
+							  ColumnDefinitions="Auto,Auto,*">
+							  <Grid.RowDefinitions>
+								  <RowDefinition Height="{DynamicResource SliderPreContentMargin}" />
+								  <RowDefinition Height="Auto" />
+								  <RowDefinition Height="{DynamicResource SliderPostContentMargin}" />
+							  </Grid.RowDefinitions>
+							  <Border
+								  Grid.ColumnSpan="3"
+								  Grid.Row="1"
+								  Height="26"
+								  Background="Gray"
+								  CornerRadius="0"
+								  Margin="10, 0, 10, 0"/>
+							  <RepeatButton
+								  x:Name="SelectionPart"
+								  Grid.ColumnSpan="3"
+								  Grid.Row="1"
+								  HorizontalAlignment="Stretch"
+								  Theme="{StaticResource TimelineControlRepeatButton}"/>
+							  <Track
+								  Name="PART_Track"
+								  Grid.Row="1"
+								  Grid.ColumnSpan="3"
+								  Minimum="{TemplateBinding Minimum}"
+								  Maximum="{TemplateBinding Maximum}"
+								  Value="{TemplateBinding Value, Mode=TwoWay}"
+								  IsDirectionReversed="{TemplateBinding IsDirectionReversed}"
+								  Orientation="Horizontal">
+								  <Thumb
+									  Name="thumb"
+									  Width="{DynamicResource SliderHorizontalThumbWidth}"
+									  Height="26"
+									  Margin="-4, 0, 0, 0"
+									  Padding="0"
+									  BorderThickness="0"
+									  Cursor="SizeWestEast"
+									  DataContext="{TemplateBinding Value}">
+									  <Thumb.Template>
+										  <ControlTemplate>
+											  <Grid>
+												  <Border Background="Black" Opacity="0"></Border>
+												  <Image Source="{SvgImage /Assets/Images/Controls_TrimStart.svg}"></Image>
+											  </Grid>
+										  </ControlTemplate>
+									  </Thumb.Template>
+								  </Thumb>
+							  </Track>
+						  </Grid>
+					  </Grid>
+				  </Border>
+			  </DataValidationErrors>
+	      </ControlTemplate>
+		</Setter>
+	</ControlTheme>
+    
+	<ControlTheme x:Key="TimelineControlUpper" TargetType="controls1:CustomSlider">
+		<Setter Property="Template">
+			<ControlTemplate>
+				<DataValidationErrors>
+					<Border
+					  BorderBrush="{TemplateBinding BorderBrush}"
+					  BorderThickness="5"
+					  CornerRadius="0">
+							<Grid x:Name="SliderContainer"
+						        Margin="{TemplateBinding Padding}">
+							  <Grid.Styles>
+								  <Style Selector="TickBar">
+									  <Setter Property="ReservedSpace" Value="{Binding #PART_Track.Thumb.Bounds}" />
+								  </Style>
+							  </Grid.Styles>
+							  <Grid x:Name="HorizontalTemplate"
+							        MinHeight="{DynamicResource SliderHorizontalHeight}"
+							        ColumnDefinitions="Auto,Auto,*">
+								  <Grid.RowDefinitions>
+									  <RowDefinition Height="{DynamicResource SliderPreContentMargin}" />
+									  <RowDefinition Height="Auto" />
+									  <RowDefinition Height="{DynamicResource SliderPostContentMargin}" />
+								  </Grid.RowDefinitions>
+								  <Track
+									  Grid.Row="1" Grid.ColumnSpan="3"
+									  Name="PART_Track"
+									  Minimum="{TemplateBinding Minimum}"
+									  Maximum="{TemplateBinding Maximum}"
+									  Value="{TemplateBinding Value, Mode=TwoWay}"
+									  IsDirectionReversed="{TemplateBinding IsDirectionReversed}"
+									  Orientation="Horizontal">
+									  <Thumb
+										  Name="thumb"
+										  Width="{DynamicResource SliderHorizontalThumbWidth}"
+										  Height="26"
+										  Margin="0, 0, -4, 0"
+										  Padding="0"
+										  BorderThickness="0"
+										  Cursor="SizeWestEast"
+										  DataContext="{TemplateBinding Value}">
+										  <Thumb.Template>
+											  <ControlTemplate>
+												  <Grid>
+													  <Border Background="Black" Opacity="0"></Border>
+													  <Image Source="{SvgImage /Assets/Images/Controls_TrimEnd.svg}"></Image>
+												  </Grid>
+											  </ControlTemplate>
+										  </Thumb.Template>
+									  </Thumb>
+								  </Track>
+							  </Grid>
+						</Grid>
+					</Border>
+				</DataValidationErrors>
+		    </ControlTemplate>
+		</Setter>
+	</ControlTheme>
+	
+	<ControlTheme x:Key="TimelineControlSeek" TargetType="controls1:CustomSlider">
+		<Setter Property="Template">
+			<ControlTemplate>
+				<DataValidationErrors>
+					<Border
+						BorderBrush="{TemplateBinding BorderBrush}"
+						BorderThickness="5"
+						CornerRadius="0">
+						<Grid x:Name="SliderContainer"
+						      Margin="{TemplateBinding Padding}">
+							<Grid.Styles>
+								<Style Selector="TickBar">
+									<Setter Property="ReservedSpace" Value="{Binding #PART_Track.Thumb.Bounds}" />
+								</Style>
+							</Grid.Styles>
+							<Grid x:Name="HorizontalTemplate"
+							      MinHeight="{DynamicResource SliderHorizontalHeight}"
+							      ColumnDefinitions="Auto,Auto,*">
+								<Grid.RowDefinitions>
+									<RowDefinition Height="{DynamicResource SliderPreContentMargin}" />
+									<RowDefinition Height="Auto" />
+									<RowDefinition Height="{DynamicResource SliderPostContentMargin}" />
+								</Grid.RowDefinitions>
+								<Track
+									Name="PART_Track"
+									Grid.Row="1"
+									Grid.ColumnSpan="3"
+									Minimum="{TemplateBinding Minimum}"
+									Maximum="{TemplateBinding Maximum}"
+									Value="{TemplateBinding Value, Mode=TwoWay}"
+									IsDirectionReversed="{TemplateBinding IsDirectionReversed}"
+									Orientation="Horizontal">
+									<Thumb
+										Name="thumb"
+										Width="{DynamicResource SliderHorizontalThumbWidth}"
+										Height="40"
+										Margin="0, -14, 0, 0"
+										Padding="0"
+										BorderThickness="0"
+										Cursor="SizeWestEast"
+										Background="Black"
+										DataContext="{TemplateBinding Value}">
+										<Thumb.Template>
+											<ControlTemplate>
+												<Grid ShowGridLines="False" RowDefinitions="14, *">
+													<Border Grid.Row="0" Background="Black" Opacity="0"></Border>
+													<Image Grid.RowSpan="3" Source="{SvgImage /Assets/Images/SliderThumb2-01.svg}"></Image>
+												</Grid>
+											</ControlTemplate>
+										</Thumb.Template>
+									</Thumb>
+								</Track>
+							</Grid>
+						</Grid>
+					</Border>
+				</DataValidationErrors>
+			</ControlTemplate>
+		</Setter>
+	</ControlTheme>
+	
+    <!-- TODO Look at the second/third preview - the start and end should not be overlapping -->
+    <ControlTheme x:Key="TimelineControlRepeatButton" TargetType="RepeatButton">
+        <Setter Property="Background" Value="DarkOrange" />
+        <Setter Property="Height" Value="26" />
+        <Setter Property="Margin" Value="3, 0" />
+        <Setter Property="Opacity" Value="0.5" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        
+        <Setter Property="BorderThickness" Value="{DynamicResource ButtonBorderThemeThickness}" />
+        <Setter Property="Padding" Value="{DynamicResource ButtonPadding}" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="RenderTransform" Value="none" />
+
+        <Setter Property="Template">
+          <ControlTemplate>
+            <ContentPresenter x:Name="PART_ContentPresenter"
+                              Background="{TemplateBinding Background}"
+                              BorderBrush="{TemplateBinding BorderBrush}"
+                              BorderThickness="{TemplateBinding BorderThickness}"
+                              CornerRadius="{TemplateBinding CornerRadius}"
+                              Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                              Padding="{TemplateBinding Padding}"
+                              RecognizesAccessKey="True"
+                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+          </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+          <Setter Property="Opacity" Value="1.5" />
+        </Style>
+
+        <Style Selector="^:pressed  /template/ ContentPresenter#PART_ContentPresenter">
+          <Setter Property="Opacity" Value="0.5" />
+        </Style>
+
+        <Style Selector="^:disabled /template/ ContentPresenter#PART_ContentPresenter">
+          <Setter Property="Background" Value="{DynamicResource ButtonBackgroundDisabled}" />
+          <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrushDisabled}" />
+          <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
+        </Style>
+    </ControlTheme>
+    
+    <ControlTheme x:Key="{x:Type controls1:TimelineControl}" TargetType="controls1:TimelineControl">
+	    <Setter Property="Focusable" Value="False" />
+	    <Setter Property="Template">
+			<ControlTemplate>
+					<Grid RowDefinitions="*, 2">
+						<controls1:CustomSlider
+	                        x:Name="SliderLower"
+	                        Maximum="{TemplateBinding Maximum}"
+	                        Minimum="{TemplateBinding Minimum}"
+	                        Value="{TemplateBinding Property=LowerValue, Mode=TwoWay}"
+							ToCoerceValue="{TemplateBinding UpperValue}"
+							ToCoerceValueIsMax="True"
+	                        IsDragging="{TemplateBinding Property=IsLowerDragging, Mode=OneWayToSource}"
+	                        Theme="{StaticResource TimelineControlLower}"/>
+						<controls1:CustomSlider
+							x:Name="SliderUpper"
+							Minimum="{TemplateBinding Minimum}"
+							Maximum="{TemplateBinding Maximum}"
+							Value="{TemplateBinding Property=UpperValue, Mode=TwoWay}"
+							ToCoerceValue="{TemplateBinding	LowerValue}"
+							ToCoerceValueIsMax="False"
+							IsDragging="{TemplateBinding Property=IsUpperDragging, Mode=OneWayToSource}"
+							Theme="{StaticResource TimelineControlUpper}"/>
+						<controls1:CustomSlider
+							x:Name="SliderSeek"
+							Minimum="{TemplateBinding Minimum}"
+							Maximum="{TemplateBinding Maximum}"
+							Value="{TemplateBinding Property=SeekValue, Mode=TwoWay}"
+							IsDragging="{TemplateBinding Property=IsSeekDragging, Mode=OneWayToSource}"
+							Theme="{StaticResource TimelineControlSeek}"/>
+					</Grid>
+			</ControlTemplate>
+		</Setter>
+	</ControlTheme>
+    
+</ResourceDictionary>

@@ -1,0 +1,101 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:system="using:System"
+        xmlns:converters="using:CyberPlayer.Player.ValueConverters">
+    <Styles.Resources>
+        <converters:BoundsToPathConverter x:Key="BoundsToPathDataConverter"/>
+    </Styles.Resources>
+    
+    <Design.PreviewWith>
+        <Border Padding="20">
+            <Slider Classes="Volume" Width="200" Maximum="100" Height="50" />
+        </Border>
+    </Design.PreviewWith>
+
+    <Style Selector="Slider:horizontal.Volume">
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Grid>
+	                    <Path Fill="{TemplateBinding Background}" StrokeThickness="1">
+		                    <Path.Data>
+			                    <MultiBinding Converter="{StaticResource BoundsToPathDataConverter}" ConverterParameter="0">
+				                    <Binding Path="Bounds" RelativeSource="{RelativeSource TemplatedParent}" />
+				                    <Binding>
+					                    <Binding.Source>
+						                    <system:Double>100</system:Double>
+					                    </Binding.Source>
+				                    </Binding>
+			                    </MultiBinding>
+		                    </Path.Data>
+	                    </Path>
+                        <Grid Cursor="SizeWestEast">
+                            <Track Name="PART_Track" Value="{TemplateBinding Value}" Orientation="Horizontal">
+                                <Track.Thumb>
+                                    <Thumb Width="0" />
+                                </Track.Thumb>
+                                <Track.DecreaseButton>
+                                    <RepeatButton Name="PART_DecreaseButton" IsTabStop="False" Focusable="False"
+                                                  Height="{TemplateBinding Height}" Width="{TemplateBinding Width}" Padding="0">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate>
+                                                <Grid>
+                                                    <Path>
+	                                                    <Path.Fill>
+		                                                    <Binding Path="Foreground" RelativeSource="{RelativeSource FindAncestor, AncestorType=Slider}"/>
+	                                                    </Path.Fill>
+	                                                    <Path.Data>
+		                                                    <MultiBinding Converter="{StaticResource BoundsToPathDataConverter}"
+		                                                                  ConverterParameter="0">
+                                                                <Binding Path="Bounds" RelativeSource="{RelativeSource TemplatedParent}" />
+                                                                <Binding Path="Value"
+                                                                         RelativeSource="{RelativeSource FindAncestor, AncestorType=Slider}" />
+                                                            </MultiBinding>
+                                                        </Path.Data>
+                                                    </Path>
+                                                </Grid>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseButton>
+                                <Track.IncreaseButton>
+                                    <RepeatButton Name="PART_IncreaseButton" IsTabStop="False" Focusable="False"
+                                                  Height="{TemplateBinding Height}" Width="{TemplateBinding Width}" Padding="0"
+                                                  Background="LightGray" HorizontalAlignment="Right">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate>
+                                                <Grid>
+                                                    <Path Fill="Transparent">
+                                                        <Path.Data>
+                                                            <MultiBinding Converter="{StaticResource BoundsToPathDataConverter}"
+                                                                          ConverterParameter="1">
+                                                                <Binding Path="Bounds" RelativeSource="{RelativeSource TemplatedParent}" />
+                                                                <Binding Path="Value"
+                                                                         RelativeSource="{RelativeSource FindAncestor, AncestorType=Slider}" />
+                                                            </MultiBinding>
+                                                        </Path.Data>
+                                                    </Path>
+                                                </Grid>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.IncreaseButton>
+                            </Track>
+                        </Grid>
+                        <Path Stroke="Black" StrokeThickness="1">
+                            <Path.Data>
+                                <MultiBinding Converter="{StaticResource BoundsToPathDataConverter}" ConverterParameter="0">
+                                    <Binding Path="Bounds" RelativeSource="{RelativeSource TemplatedParent}" />
+                                    <Binding>
+                                        <Binding.Source>
+                                            <system:Double>100</system:Double>
+                                        </Binding.Source>
+                                    </Binding>
+                                </MultiBinding>
+                            </Path.Data>
+                        </Path>
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+  </Style>
+</Styles>

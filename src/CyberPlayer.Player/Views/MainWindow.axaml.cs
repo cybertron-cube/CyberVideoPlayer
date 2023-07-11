@@ -14,6 +14,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Platform.Storage;
 using AvaloniaMessageBox;
 using CyberPlayer.Player.Controls;
 using CyberPlayer.Player.DecoderVideoViews;
@@ -279,6 +280,17 @@ namespace CyberPlayer.Player.Views
             {
                 ViewModel!.PlayPause();
             }
+        }
+
+        private async void MenuItem_OnClick(object? sender, RoutedEventArgs e)
+        {
+            var result = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+                { AllowMultiple = false, Title = "Pick a video file" });
+            
+            var mediaPath = result.SingleOrDefault()?.Path.LocalPath;
+            if (mediaPath == null) return;
+            
+            ViewModel!.LoadFile(mediaPath);
         }
     }
 }

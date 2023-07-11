@@ -86,12 +86,6 @@
     <ProjectReference Include="..\..\..\Cyber-lib\Common Libraries\Cybertron.csproj" />
     <ProjectReference Include="..\LibMpv.Context\LibMpv.Context.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <None Update="libmpv-2.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
   
   <ItemGroup>
     <Folder Include="Models\" />

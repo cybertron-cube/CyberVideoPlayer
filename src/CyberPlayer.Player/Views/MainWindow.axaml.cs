@@ -128,13 +128,11 @@ namespace CyberPlayer.Player.Views
             if (!e.Data.Contains(DataFormats.Files)) return;
             
             var files = e.Data.GetFiles();
-            if (files == null) return;
-                
-            if (files.Count() == 1)
-            {
-                var mediaPath = files.Single().Path.LocalPath;
-                ViewModel!.LoadFile(mediaPath);
-            }
+
+            var mediaPath = files?.FirstOrDefault()?.Path.LocalPath;
+            if (mediaPath == null) return;
+            
+            ViewModel!.LoadFile(mediaPath);
         }
 
         private void MainWindow_Opened(object? sender, EventArgs e)

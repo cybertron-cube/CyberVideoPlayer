@@ -87,14 +87,25 @@ def SetVersion(version: str):
     for target in CompileTargets:
         CompileTargets[target] = CompileTargets[target].replace("-p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0", f"-p:AssemblyVersion={version} -p:Version={version}")
 
-def Compile(chosenTarget: str):
-    if chosenTarget == "all":
+def Compile(chosenTargets: str):
+    if chosenTargets == "all":
         for compileTarget in CompileTargets:
             if compileTarget == "sc" or compileTarget == "all":
                 continue
             subprocess.call(f"dotnet publish \"{os.path.join('src', 'cyberplayer.player', 'cyberplayer.player.csproj')}\" {CompileTargets[compileTarget]}")
+    elif ";" in chosenTargets:
+        chosenTargets = chosenTargets.split(";")
+        if "all" in chosenTargets:
+            raise Exception("All is not valid when using multiple compile targets")
+        if "sc" in chosenTargets:
+            chosenTargets.remove("sc")
+            for target in CompileTargets:
+                if "--sc true" in CompileTargets[target] and target not in chosenTargets:
+                    chosenTargets.append(target)
+        for target in chosenTargets:
+            subprocess.call(f"dotnet publish \"{os.path.join('src', 'cyberplayer.player', 'cyberplayer.player.csproj')}\" {CompileTargets[target]}")
     else:
-        subprocess.call(f"dotnet publish \"{os.path.join('src', 'cyberplayer.player', 'cyberplayer.player.csproj')}\" {CompileTargets[chosenTarget]}")
+        subprocess.call(f"dotnet publish \"{os.path.join('src', 'cyberplayer.player', 'cyberplayer.player.csproj')}\" {CompileTargets[chosenTargets]}")
 
 def CopyFFmpeg():
     for build in ListDirs(BuildDirPath):
@@ -123,8 +134,18 @@ def RemovePDBs():
 
 #Make lib dir courtesy of https://github.com/nulastudio/NetBeauty2
 def MakeLibraryDir(chosenTargets: str):
-    if ";" in chosenTargets:
+    if chosenTargets == "all":
+        for compileTarget in CompileTargets:
+            if compileTarget == "sc" or compileTarget == "all":
+                continue
+            if "--sc true" in CompileTargets[compileTarget]:
+                    subprocess.call(f"nbeauty2 --usepatch --loglevel Detail --hiddens \"hostfxr;hostpolicy;*.deps.json;*.runtimeconfig*.json\" {os.path.join(BuildDirPath, compileTarget)} lib \"libmpv-2.dll;\"")
+            else:
+                subprocess.call(f"nbeauty2 --loglevel Detail {os.path.join(BuildDirPath, compileTarget)} lib \"libmpv-2.dll;\"")
+    elif ";" in chosenTargets:
         chosenTargets = chosenTargets.split(";")
+        if "all" in chosenTargets:
+            raise Exception("All is not valid when using multiple compile targets")
         if "sc" in chosenTargets:
             chosenTargets.remove("sc")
             for target in CompileTargets:
@@ -173,18 +194,37 @@ def DeleteBinReleaseDirs():
         if "release" in os.path.basename(dir):
             shutil.rmtree(dir)
 
+def DeleteBuildDirs():
+    for build in ListDirs(BuildDirPath):
+        shutil.rmtree(build)
+
+def CopyMpvLib():
+    for build in ListDirs(BuildDirPath):
+        if "win" in os.path.basename(build):
+            CopyFilesProgress(os.path.join(os.getcwd(), "mpv", "mpv-dev-x86_64", "libmpv-2.dll"), build)
+        elif "linux" in os.path.basename(build):
+            CopyFilesProgress(os.path.join(os.getcwd(), "mpv", "linux-2.1.0", "libmpv.so.2"), build)
+        #elif "osx" in os.path.basename(build):
+            #CopyFilesProgress(ListFiles(os.path.join(os.getcwd(), "mpv", "osx")), build)
+        elif "portable" in os.path.basename(build):
+            CopyFilesProgress(os.path.join(os.getcwd(), "mpv", "mpv-dev-x86_64", "libmpv-2.dll"), build)
+            CopyFilesProgress(os.path.join(os.getcwd(), "mpv", "linux-2.1.0", "libmpv.so.2"), build)
+            #CopyFilesProgress(ListFiles(os.path.join(os.getcwd(), "mpv", "osx")), build)
+
 Command = collections.namedtuple('Command', ['description', 'function', 'hasParam'])
 
 Commands = {
     "del": Command("Deletes the build directory", DeleteBuildDir, False),
     "delbinrel": Command("Deletes the dirs with 'release' in them in the bin folder", DeleteBinReleaseDirs, False),
+    "delbuilddirs": Command("Deletes the dirs in the build folder", DeleteBuildDirs, False),
     "version": Command("Set the version number when compiling", SetVersion, "Enter version number: "), #version arg
     "compile": Command("Compiles for the target platform", Compile, "Enter a compile target: "), #compiletarget arg
     "rmpdbs": Command("Remove all pdb files", RemovePDBs, False),
     "lib": Command("Makes a library directory for dlls", MakeLibraryDir, "Enter a compile target: "), #compiletarget/s arg
     "cpymds": Command("Copy all markdown files from working directory", CopyMDs, False),
     "cpyupdater": Command("Copy updater to each build", CopyUpdater, "Enter the path to the build dir of updater: "), #updaterbuildpath arg
-    "cpyffmpeg": Command("Make FFmpeg dir lowercase", CopyFFmpeg, False),
+    "cpyffmpeg": Command("Copy ffmpeg executables to builds", CopyFFmpeg, False),
+    "cpympv": Command("Copy libmpv to builds", CopyMpvLib, False),
     "zip": Command("Zip each build", ZipBuilds, False)
 }
 
@@ -214,10 +254,10 @@ def Main(args: list[str]):
                 callCommand.function(callCommand.hasParam)
         return
 
-    userInput = ""
-    for command in Commands:
-        print(f"{command}: {Commands[command].description}")
+    userInput = None
     while(userInput != "exit"):
+        for command in Commands:
+            print(f"{command}: {Commands[command].description}")
         userInput = input()
         if userInput in Commands:
             if Commands[userInput].hasParam == False:
@@ -225,7 +265,7 @@ def Main(args: list[str]):
             else:
                 if userInput == "compile" or userInput == "lib":
                     PrintTargetOptions()
-                userInput = input(Commands[userInput].hasParam)
-                Commands[userInput].function(userInput)
+                param = input(Commands[userInput].hasParam)
+                Commands[userInput].function(param)
 
 Main(sys.argv[1:])

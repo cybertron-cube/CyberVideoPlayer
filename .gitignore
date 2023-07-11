@@ -388,3 +388,7 @@ mpv/android
 build/
 ffmpeg/
 avalonia version changes.txt
+/mpv/android
+/build/
+/ffmpeg/
+/avalonia version changes.txt

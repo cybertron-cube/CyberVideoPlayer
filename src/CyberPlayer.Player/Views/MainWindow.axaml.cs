@@ -269,7 +269,7 @@ namespace CyberPlayer.Player.Views
         {
             ViewModel!.UpdateSliderTaskCTS.Cancel();
             ViewModel!.MpvContext.Dispose();
-            XmlConvert.Export(ViewModel!.Settings, BuildConfig.SettingsPath);
+            ViewModel!.Settings.Export(BuildConfig.SettingsPath);
         }
 
         private void VideoPanel_OnPointerPressed(object? sender, PointerPressedEventArgs e)

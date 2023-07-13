@@ -1,19 +1,40 @@
-﻿using System.Reflection;
-using System.Xml.Serialization;
+﻿using System;
+using System.IO;
+using System.Text.Json;
+using Cybertron;
 
 namespace CyberPlayer.Player.AppSettings;
 
 public class Settings
 {
-    [XmlAttribute(AttributeName = "AppVersion")]
-    public string Version { get; set; } = Assembly.GetEntryAssembly().GetName().Version.ToString();
-    
-    [XmlElement]
     public bool UpdaterIncludePreReleases { get; set; } = false;
 
-    [XmlElement]
     public int SeekRefreshRate { get; set; } = 100;
 
-    [XmlElement]
     public int TimeCodeLength { get; set; } = 8;
+
+    public static Settings Import(string settingsPath)
+    {
+        settingsPath = GenStatic.GetFullPathFromRelative(settingsPath);
+        
+        Settings? settings = null;
+        try
+        {
+            var settingsJson = File.ReadAllText(settingsPath);
+            settings = JsonSerializer.Deserialize(settingsJson, SettingsJsonContext.Default.Settings);
+        }
+        catch (Exception e)
+        {
+            //TODO Log exception
+        }
+
+        return settings ?? new Settings();
+    }
+
+    public void Export(string settingsPath)
+    {
+        settingsPath = GenStatic.GetFullPathFromRelative(settingsPath);
+        var settingsJson = JsonSerializer.Serialize(this, SettingsJsonContext.Default.Settings);
+        File.WriteAllText(settingsPath, settingsJson);
+    }
 }

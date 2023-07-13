@@ -1,10 +1,11 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 
 namespace CyberPlayer.Player;
 
 public static class BuildConfig
 {
-    public const string SettingsPath = "settings.xml";
+    public const string SettingsPath = "settings.json";
     
     //RELATIVE PATHS ONLY
     public static readonly string[] Preservables = new[]

@@ -5,7 +5,6 @@ using Avalonia.Markup.Xaml;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.ViewModels;
 using CyberPlayer.Player.Views;
-using Cybertron;
 
 namespace CyberPlayer.Player
 {
@@ -18,7 +17,7 @@ namespace CyberPlayer.Player
 
         public override void OnFrameworkInitializationCompleted()
         {
-            var settings = XmlConvert.Import<Settings>(BuildConfig.SettingsPath);
+            var settings = Settings.Import(BuildConfig.SettingsPath);
             
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {

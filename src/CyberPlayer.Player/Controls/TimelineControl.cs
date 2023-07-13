@@ -109,10 +109,6 @@ namespace CyberPlayer.Player.Controls
 
         static TimelineControl()
         {
-            /*Thumb.DragStartedEvent.AddClassHandler<TimelineControl>((x, e) => x.OnThumbDragStarted(e),
-                RoutingStrategies.Bubble);
-            Thumb.DragCompletedEvent.AddClassHandler<TimelineControl>((x, e) => x.OnThumbDragCompleted(e),
-                RoutingStrategies.Bubble);*/
             Thumb.DragDeltaEvent.AddClassHandler<TimelineControl>((x, e) => x.OnThumbDelta(e),
                 RoutingStrategies.Bubble);
         }
@@ -154,12 +150,6 @@ namespace CyberPlayer.Player.Controls
             _pointerMovedDispose =
                 this.AddDisposableHandler(PointerMovedEvent, PointerSelectionMoved, RoutingStrategies.Tunnel);
         }
-
-        /*private void OnThumbDragStarted(VectorEventArgs e)
-        {
-            //this will be called on main seek slider as well as trim points since it uses static declaration///////////////////////////////////////////////////////////////////////////////
-            Debug.WriteLine("START");
-        }*/
 
         private void OnThumbDragCompleted(object? sender, PointerReleasedEventArgs e)
         {

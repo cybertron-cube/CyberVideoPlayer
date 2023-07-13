@@ -66,26 +66,12 @@ namespace CyberPlayer.Player.Views
             };
             testButton.Click += (object? sender, RoutedEventArgs e) =>
             {
-                //Debug.WriteLine(SeekSlider.Height);
-                //Debug.WriteLine(SeekSlider.IsDragging);
-                //this.WindowState = this.WindowState != WindowState.FullScreen ? WindowState.FullScreen : WindowState.Normal;
-
-                /*var test = new Settings();
-                var text = XmlConvert.SerializeObject(test);
-                var newObject = XmlConvert.DeserializeObject<Settings>(text);
-                Debug.WriteLine(text);*/
-                
-                //XmlConvert.Export(ViewModel!.Settings, App.SettingsPath);
-
                 var ffmpegPath = GenStatic.GetFullPathFromRelative(Path.Combine("ffmpeg", "ffmpeg"));
                 Debug.WriteLine(ffmpegPath);
                 Debug.WriteLine(GenStatic.GetOSRespectiveExecutablePath(ffmpegPath));
 
                 ViewModel!.TrimStartTime = 12;
                 ViewModel!.TrimEndTime = 22;
-
-                //SetVideoDecoder(Renderer.Software);
-                //Key.rig
             };
 
             Button loadButton = new()
@@ -165,24 +151,7 @@ namespace CyberPlayer.Player.Views
             {
                 ViewModel!.IsPlaying = false;
                 _mpvContextBinding?.Dispose();
-                
-                //ViewModel!.MpvContext.Dispose();
-                //Thread.Sleep(1000);
-                //ViewModel!.MpvContext = new();
-                //Thread.Sleep(1000);
-
-                
-                
-                //ViewModel!.VideoContent = null;
-                
-                //Native will call dispose later (don't want to cause object disposed exception)
-                //if (ViewModel!.VideoContent is not NativeVideoView)
-                //{
-                //    ViewModel!.MpvContext.Dispose();
-                //}
                 ViewModel!.MpvContext = new MpvContext();
-                
-                //<local:OpenGlVideoView Name="VideoView" MpvContext="{Binding MpvContext}"/>
             }
             else
             {
@@ -226,7 +195,6 @@ namespace CyberPlayer.Player.Views
                 case SeekControlTypes.Normal:
                     newSlider = new CustomSlider();
                     newSlider.Margin = new Thickness(10, 0);
-                    //newSlider.Classes.Add("Fluent");
                     _currentSeekControlBindings.Add(newSlider.Bind(CustomSlider.ValueProperty, new Binding(nameof(ViewModel.SeekValue))));
                     _currentSeekControlBindings.Add(newSlider.Bind(CustomSlider.MaximumProperty, new Binding(nameof(ViewModel.Duration))));
                     _currentSeekControlBindings.Add(newSlider.Bind(CustomSlider.IsDraggingProperty, new Binding(nameof(ViewModel.IsSeeking))));

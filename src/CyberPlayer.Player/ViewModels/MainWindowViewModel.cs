@@ -7,7 +7,6 @@ using System.IO;
 using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -429,7 +428,7 @@ namespace CyberPlayer.Player.ViewModels
             var result = await Updater.GithubCheckForUpdatesAsync("CyberVideoPlayer",
                 new[] { BuildConfig.AssetIdentifierInstance, BuildConfig.AssetIdentifierPlatform },
                 "https://api.github.com/repos/cybertron-cube/CyberVideoPlayer",
-                Assembly.GetExecutingAssembly().GetName().Version.ToString(),
+                BuildConfig.Version.ToString(),
                 httpClient,
                 Settings.UpdaterIncludePreReleases);
 

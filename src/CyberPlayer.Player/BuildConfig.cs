@@ -12,6 +12,8 @@ public static class BuildConfig
         SettingsPath
     };
 
+    public static readonly Version Version = new(1, 0, 0, 0);
+
 #if WINX64
     public const string UpdaterPath = @"updater\CybertronUpdater";
 #elif PORTABLE

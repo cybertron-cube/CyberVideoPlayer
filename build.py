@@ -5,6 +5,7 @@ import shutil
 import zipfile
 import collections
 import tqdm
+import re
 
 CompileTargets = {
     "win-x64-multi": f"-o \"{os.path.join('build', 'win-x64-multi')}\" -r win-x64 -c release-win-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
@@ -86,6 +87,31 @@ def DeleteBuildDir():
 def SetVersion(version: str):
     for target in CompileTargets:
         CompileTargets[target] = CompileTargets[target].replace("-p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0", f"-p:AssemblyVersion={version} -p:Version={version}")
+    versionArray = version.split('.')
+    if len(versionArray) < 2 or len(versionArray) > 4:
+        raise Exception("Version must contain 2-4 place (major, minor, build, revision)")
+    newVersion = ""
+    versionLine = "public static readonly Version Version = new(1, 0, 0, 0);"
+    for v in versionArray:
+        newVersion += v + ', '
+    newVersion = newVersion[:-2]
+    newVersionLine = f"public static readonly Version Version = new({newVersion});"
+    with cd(os.path.join(os.getcwd(), "src", "CyberPlayer.Player")):
+        with open("BuildConfig.cs", 'r') as file:
+            data = file.read()
+            data = data.replace(versionLine, newVersionLine)
+        with open("BuildConfig.cs", 'w') as file:
+            file.write(data)
+
+def ResetVersion():
+    for target in CompileTargets:
+        CompileTargets[target] = re.sub(r'-p:AssemblyVersion=.*', '-p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0', CompileTargets[target])
+    with cd(os.path.join(os.getcwd(), "src", "CyberPlayer.Player")):
+        with open("BuildConfig.cs", 'r') as file:
+            data = file.read()
+            data = re.sub(r'public static readonly Version Version = new[^;]*', 'public static readonly Version Version = new(1, 0, 0, 0)', data)
+        with open("BuildConfig.cs", 'w') as file:
+            file.write(data)
 
 def Compile(chosenTargets: str):
     if chosenTargets == "all":
@@ -218,6 +244,7 @@ Commands = {
     "delbinrel": Command("Deletes the dirs with 'release' in them in the bin folder", DeleteBinReleaseDirs, False),
     "delbuilddirs": Command("Deletes the dirs in the build folder", DeleteBuildDirs, False),
     "version": Command("Set the version number when compiling", SetVersion, "Enter version number: "), #version arg
+    "resetversion": Command("Resets the version to 1.0.0.0", ResetVersion, False),
     "compile": Command("Compiles for the target platform", Compile, "Enter a compile target: "), #compiletarget arg
     "rmpdbs": Command("Remove all pdb files", RemovePDBs, False),
     "lib": Command("Makes a library directory for dlls", MakeLibraryDir, "Enter a compile target: "), #compiletarget/s arg

@@ -1,19 +1,18 @@
 ﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="using:System"
-                    xmlns:controls="using:CyberPlayer.Player.ValueConverters"
-                    xmlns:controls1="clr-namespace:CyberPlayer.Player.Controls">
+                    xmlns:controls="clr-namespace:CyberPlayer.Player.Controls">
   <Design.PreviewWith>
     <Border Margin="20" Width="400" Height="600">
       <DockPanel LastChildFill="True">
         <StackPanel Spacing="10" DockPanel.Dock="Top">
-          <controls1:CustomSlider Value="50" />
-          <controls1:CustomSlider IsDirectionReversed="True" Value="50" />
-          <controls1:CustomSlider Value="50" TickPlacement="TopLeft" TickFrequency="10"/>
-          <controls1:CustomSlider Value="50" TickPlacement="BottomRight" TickFrequency="10"/>
-          <controls1:CustomSlider Value="50" TickPlacement="Outside" TickFrequency="10"/>
-          <controls1:CustomSlider IsEnabled="False" Value="50" />
-          <controls1:CustomSlider Value="50">
+          <controls:CustomSlider Value="50" />
+          <controls:CustomSlider IsDirectionReversed="True" Value="50" />
+          <controls:CustomSlider Value="50" TickPlacement="TopLeft" TickFrequency="10"/>
+          <controls:CustomSlider Value="50" TickPlacement="BottomRight" TickFrequency="10"/>
+          <controls:CustomSlider Value="50" TickPlacement="Outside" TickFrequency="10"/>
+          <controls:CustomSlider IsEnabled="False" Value="50" />
+          <controls:CustomSlider Value="50">
             <DataValidationErrors.Error>
               <sys:Exception>
                 <x:Arguments>
@@ -21,15 +20,15 @@
                 </x:Arguments>
               </sys:Exception>
             </DataValidationErrors.Error>
-          </controls1:CustomSlider>
+          </controls:CustomSlider>
         </StackPanel>
         <StackPanel Spacing="10" Orientation="Horizontal">
-          <controls1:CustomSlider Value="50" Orientation="Vertical" />
-          <controls1:CustomSlider IsDirectionReversed="True" Value="50" Orientation="Vertical" />
-          <controls1:CustomSlider IsEnabled="False" Orientation="Vertical" Value="50" />
-          <controls1:CustomSlider Value="50" TickPlacement="TopLeft" TickFrequency="10" Orientation="Vertical" />
-          <controls1:CustomSlider Value="50" TickPlacement="BottomRight" TickFrequency="10" Orientation="Vertical" />
-          <controls1:CustomSlider Value="50" TickPlacement="Outside" TickFrequency="10" Orientation="Vertical" />
+          <controls:CustomSlider Value="50" Orientation="Vertical" />
+          <controls:CustomSlider IsDirectionReversed="True" Value="50" Orientation="Vertical" />
+          <controls:CustomSlider IsEnabled="False" Orientation="Vertical" Value="50" />
+          <controls:CustomSlider Value="50" TickPlacement="TopLeft" TickFrequency="10" Orientation="Vertical" />
+          <controls:CustomSlider Value="50" TickPlacement="BottomRight" TickFrequency="10" Orientation="Vertical" />
+          <controls:CustomSlider Value="50" TickPlacement="Outside" TickFrequency="10" Orientation="Vertical" />
         </StackPanel>
       </DockPanel>
     </Border>
@@ -88,7 +87,7 @@
     </Setter>
   </ControlTheme>
 
-  <ControlTheme x:Key="{x:Type controls1:CustomSlider}" TargetType="controls1:CustomSlider">
+  <ControlTheme x:Key="{x:Type controls:CustomSlider}" TargetType="controls:CustomSlider">
     <Setter Property="Background" Value="{DynamicResource SliderTrackFill}" />
     <Setter Property="BorderThickness" Value="{DynamicResource SliderBorderThemeThickness}" />
     <Setter Property="Foreground" Value="{DynamicResource SliderTrackValueFill}" />

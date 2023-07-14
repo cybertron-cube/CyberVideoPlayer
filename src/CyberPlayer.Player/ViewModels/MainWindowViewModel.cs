@@ -17,6 +17,7 @@ using CyberPlayer.Player.AppSettings;
 using Cybertron;
 using Cybertron.CUpdater;
 using static Cybertron.TimeCode;
+using CyberPlayer.Player.Business;
 
 namespace CyberPlayer.Player.ViewModels
 {
@@ -468,7 +469,7 @@ namespace CyberPlayer.Player.ViewModels
 
         public async void Trim()
         {
-            FFmpeg.FFmpeg.FFmpegResult result;
+            FFmpeg.FFmpegResult result;
             CancellationToken ct = new();
             
             using (var ffmpeg = new FFmpeg.FFmpeg(MediaPath))

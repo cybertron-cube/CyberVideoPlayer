@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Cybertron;
 using static Cybertron.TimeCode;
 
-namespace CyberPlayer.Player.FFmpeg;
+namespace CyberPlayer.Player.Business;
 
 public class FFmpeg : IDisposable
 {

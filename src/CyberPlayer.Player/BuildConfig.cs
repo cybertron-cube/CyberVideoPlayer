@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Runtime.InteropServices;
+using System.IO;
 
 namespace CyberPlayer.Player;
 
@@ -18,9 +18,7 @@ public static class BuildConfig
 #if WINX64
     public const string UpdaterPath = @"updater\CybertronUpdater";
 #elif PORTABLE
-    public static readonly string UpdaterPath =
-        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-        @"updater\CybertronUpdater" : @"updater/CybertronUpdater";
+    public static readonly string UpdaterPath = $"updater{Path.DirectorySeparatorChar}CybertronUpdater";
 #else
     public const string UpdaterPath = @"updater/CybertronUpdater";
 #endif

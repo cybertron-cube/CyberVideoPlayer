@@ -1,33 +1,9 @@
-using Avalonia.Controls;
-using Avalonia.Controls.Templates;
-using CyberPlayer.Player.ViewModels;
-using System;
+﻿using HanumanInstitute.MvvmDialogs.Avalonia;
 
-namespace CyberPlayer.Player
+namespace CyberPlayer.Player;
+
+public class ViewLocator : ViewLocatorBase
 {
-    public class ViewLocator : IDataTemplate
-    {
-        public Control? Build(object? data)
-        {
-            if (data is null)
-                return null;
-
-            var name = data.GetType().FullName!.Replace("ViewModel", "View");
-            var type = Type.GetType(name);
-
-            if (type != null)
-            {
-                return (Control)Activator.CreateInstance(type)!;
-            }
-            else
-            {
-                return new TextBlock { Text = name };
-            }
-        }
-
-        public bool Match(object? data)
-        {
-            return data is ViewModelBase;
-        }
-    }
+    protected override string GetViewName(object viewModel) =>
+        viewModel.GetType().FullName!.Replace("ViewModel", "View");
 }

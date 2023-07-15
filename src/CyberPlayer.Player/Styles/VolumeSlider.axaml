@@ -1,7 +1,8 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:system="using:System"
-        xmlns:converters="using:CyberPlayer.Player.ValueConverters">
+        xmlns:converters="using:CyberPlayer.Player.ValueConverters"
+        x:CompileBindings="False">
     <Styles.Resources>
         <converters:BoundsToPathConverter x:Key="BoundsToPathDataConverter"/>
     </Styles.Resources>

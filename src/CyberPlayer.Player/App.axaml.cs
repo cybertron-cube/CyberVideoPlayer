@@ -17,14 +17,12 @@ namespace CyberPlayer.Player
 
         public override void OnFrameworkInitializationCompleted()
         {
-            var settings = Settings.Import(BuildConfig.SettingsPath);
-            
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                var mainWindowVm = new MainWindowViewModel(settings);
+                var mainWindowVm = ViewModelLocator.Main;
                 if (desktop.Args!.Length != 0 && File.Exists(desktop.Args[0]))
                 {
-                    mainWindowVm.MediaPath = desktop.Args[0];
+                    mainWindowVm.MpvPlayer.MediaPath = desktop.Args[0];
                 }
                 desktop.MainWindow = new MainWindow
                 {

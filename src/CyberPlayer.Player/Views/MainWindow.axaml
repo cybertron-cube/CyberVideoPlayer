@@ -6,27 +6,25 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        d:DataContext="{x:Static local:ViewModelLocator.Main}"
         x:Class="CyberPlayer.Player.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         x:CompileBindings="True"
         Icon="/Assets/avalonia-logo.ico"
-        Title="{Binding MediaName}">
-	<!--<Window.Resources>
-		<converters:DoublePercentConverter x:Key="PercentConverter" />
-	</Window.Resources>-->
+        Title="{Binding MpvPlayer.MediaName}">
 	<Window.KeyBindings>
-		<KeyBinding Gesture="Space" Command="{Binding PlayPause}" />
+		<KeyBinding Gesture="Space" Command="{Binding MpvPlayer.PlayPause}" />
 		<!-- Seek 5 seconds forward -->
 		<!-- Seek 5 seconds backward -->
-		<KeyBinding Gesture="Ctrl+Right" Command="{Binding FrameStepCommand}" CommandParameter="{x:Static mpv:MpvCommands.StepForward}" />
-		<KeyBinding Gesture="Ctrl+Left" Command="{Binding FrameStepCommand}" CommandParameter="{x:Static mpv:MpvCommands.StepBackward}" />
-		<KeyBinding Gesture="M" Command="{Binding Mute}" />
+		<KeyBinding Gesture="Ctrl+Right" Command="{Binding MpvPlayer.FrameStepCommand}" CommandParameter="{x:Static mpv:MpvCommands.StepForward}" />
+		<KeyBinding Gesture="Ctrl+Left" Command="{Binding MpvPlayer.FrameStepCommand}" CommandParameter="{x:Static mpv:MpvCommands.StepBackward}" />
+		<KeyBinding Gesture="M" Command="{Binding MpvPlayer.Mute}" />
 		<!-- Increase Volume -->
 		<!-- Decrease Volume -->
 		
 		<!-- WARNING Keybindings below require compile-time bindings -->
-		<KeyBinding Gesture="I" Command="{Binding set_TrimStartTime}" CommandParameter="{Binding SeekValue}" />
-		<KeyBinding Gesture="O" Command="{Binding set_TrimEndTime}" CommandParameter="{Binding SeekValue}" />
+		<KeyBinding Gesture="I" Command="{Binding MpvPlayer.set_TrimStartTime}" CommandParameter="{Binding MpvPlayer.SeekValue}" />
+		<KeyBinding Gesture="O" Command="{Binding MpvPlayer.set_TrimEndTime}" CommandParameter="{Binding MpvPlayer.SeekValue}" />
 	</Window.KeyBindings>
 
 	<Design.DataContext>
@@ -76,17 +74,17 @@
 				Height="32"
 				Width="32"
 				Focusable="False"
-				Command="{Binding PlayPause}">
+				Command="{Binding MpvPlayer.PlayPause}">
 				<Panel>
-					<Image IsVisible="{Binding IsPlaying}" Source="{SvgImage /Assets/Images/Controls_Pause.svg}" />
-					<Image IsVisible="{Binding !IsPlaying}" Source="{SvgImage /Assets/Images/Controls_Play.svg}" />
+					<Image IsVisible="{Binding MpvPlayer.IsPlaying}" Source="{SvgImage /Assets/Images/Controls_Pause.svg}" />
+					<Image IsVisible="{Binding !MpvPlayer.IsPlaying}" Source="{SvgImage /Assets/Images/Controls_Play.svg}" />
 				</Panel>
 			</Button>
 			<Button
 				Height="32"
 				Width="32"
 				Focusable="False"
-				Command="{Binding FrameStepCommand}"
+				Command="{Binding MpvPlayer.FrameStepCommand}"
 				CommandParameter="{x:Static mpv:MpvCommands.StepBackward}">
 				<Image Source="{SvgImage /Assets/Images/Controls_FrameStep.svg}">
 					<Image.RenderTransform>
@@ -98,7 +96,7 @@
 				Height="32"
 				Width="32"
 				Focusable="False"
-				Command="{Binding FrameStepCommand}"
+				Command="{Binding MpvPlayer.FrameStepCommand}"
 				CommandParameter="{x:Static mpv:MpvCommands.StepForward}">
 				<Image Source="{SvgImage /Assets/Images/Controls_FrameStep.svg}" />
 			</Button>
@@ -108,7 +106,7 @@
 				VerticalContentAlignment="Center"
 				Width="41"
 				DockPanel.Dock="Right"
-				Content="{Binding VolumeValue, StringFormat='{}{0:0}%'}" />
+				Content="{Binding MpvPlayer.VolumeValue, StringFormat='{}{0:0}%'}" />
 			<Slider
 				Name="VolumeSlider"
 				Classes="Volume"
@@ -118,7 +116,7 @@
 				Maximum="100"
 				LargeChange="20"
 				SmallChange="5"
-				Value="{Binding VolumeValue}"
+				Value="{Binding MpvPlayer.VolumeValue}"
 				Height="20"
 				Width="60"
 				IsVisible="True"
@@ -130,10 +128,10 @@
 				Margin="0, 0, 0, 0"
 				DockPanel.Dock="Right"
 				Focusable="False"
-				Command="{Binding Mute}">
+				Command="{Binding MpvPlayer.Mute}">
 				<Panel>
 					<Image Source="{SvgImage /Assets/Images/Controls_Mute_Speaker.svg}" />
-					<Image IsVisible="{Binding !IsMuted}" Source="{SvgImage /Assets/Images/Controls_Mute_Waves.svg}" />
+					<Image IsVisible="{Binding !MpvPlayer.IsMuted}" Source="{SvgImage /Assets/Images/Controls_Mute_Waves.svg}" />
 				</Panel>
 			</Button>
 		</DockPanel>
@@ -143,8 +141,8 @@
 				DockPanel.Dock="Right">
 				<TextBlock.Text>
 					<MultiBinding StringFormat="{}{0} / {1}">
-						<Binding Path="SeekTimeCodeString" />
-						<Binding Path="DurationTimeCodeString" />
+						<Binding Path="MpvPlayer.SeekTimeCodeString" />
+						<Binding Path="MpvPlayer.DurationTimeCodeString" />
 					</MultiBinding>
 				</TextBlock.Text>
 			</TextBlock>

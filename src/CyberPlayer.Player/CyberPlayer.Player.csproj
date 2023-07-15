@@ -83,6 +83,8 @@
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.0.999-cibuild0037568-beta" />
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.999-cibuild0037568-beta" />
+    <PackageReference Include="HanumanInstitute.MvvmDialogs.Avalonia" Version="2.0.0-rc1" />
+    <PackageReference Include="Splat.DependencyInjection.SourceGenerator" Version="1.1.93" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

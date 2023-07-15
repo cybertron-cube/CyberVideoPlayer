@@ -237,6 +237,9 @@ def CopyMpvLib():
             CopyFilesProgress(os.path.join(os.getcwd(), "mpv", "linux-2.1.0", "libmpv.so.2"), build)
             #CopyFilesProgress(ListFiles(os.path.join(os.getcwd(), "mpv", "osx")), build)
 
+def BuildUpdater():
+    subprocess.call(f"py {os.path.join(os.getcwd(), 'cyber-lib', 'build.py')}")
+
 Command = collections.namedtuple('Command', ['description', 'function', 'hasParam'])
 
 Commands = {
@@ -246,6 +249,7 @@ Commands = {
     "version": Command("Set the version number when compiling", SetVersion, "Enter version number: "), #version arg
     "resetversion": Command("Resets the version to 1.0.0.0", ResetVersion, False),
     "compile": Command("Compiles for the target platform", Compile, "Enter a compile target: "), #compiletarget arg
+    "buildupdater" : Command("Calls the updater build script", BuildUpdater, False),
     "rmpdbs": Command("Remove all pdb files", RemovePDBs, False),
     "lib": Command("Makes a library directory for dlls", MakeLibraryDir, "Enter a compile target: "), #compiletarget/s arg
     "cpymds": Command("Copy all markdown files from working directory", CopyMDs, False),

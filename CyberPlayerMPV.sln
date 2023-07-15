@@ -19,11 +19,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "App", "App", "{EFF03960-74B
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CyberPlayer.Player", "src\CyberPlayer.Player\CyberPlayer.Player.csproj", "{5D66E0AC-09AC-44F9-89F7-FCB11CEA8CB3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cybertron", "..\Cyber-lib\Common Libraries\Cybertron.csproj", "{F0C00198-F113-4348-83CC-411579C3A06F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cybertron", "cyber-lib\Common Libraries\Cybertron.csproj", "{D7816A2C-F061-4CCD-A4D0-0A477F056DE3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaMessageBox", "..\Cyber-lib\AvaloniaMessageBox\AvaloniaMessageBox.csproj", "{6270020C-6ACE-46D8-89CC-C70B77EBD819}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvaloniaMessageBox", "cyber-lib\AvaloniaMessageBox\AvaloniaMessageBox.csproj", "{DC3978E8-D4C8-4D8E-A20F-C05866BEC331}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UpdaterAvalonia", "..\Cyber-lib\UpdaterAvalonia\UpdaterAvalonia.csproj", "{D5EEB34F-2251-4462-A16E-C088EE265A9B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UpdaterAvalonia", "cyber-lib\UpdaterAvalonia\UpdaterAvalonia.csproj", "{52840DB4-A910-4C1B-AC98-06DAB154DB0B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,18 +51,18 @@ Global
 		{5D66E0AC-09AC-44F9-89F7-FCB11CEA8CB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5D66E0AC-09AC-44F9-89F7-FCB11CEA8CB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5D66E0AC-09AC-44F9-89F7-FCB11CEA8CB3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F0C00198-F113-4348-83CC-411579C3A06F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F0C00198-F113-4348-83CC-411579C3A06F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F0C00198-F113-4348-83CC-411579C3A06F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F0C00198-F113-4348-83CC-411579C3A06F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6270020C-6ACE-46D8-89CC-C70B77EBD819}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6270020C-6ACE-46D8-89CC-C70B77EBD819}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6270020C-6ACE-46D8-89CC-C70B77EBD819}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6270020C-6ACE-46D8-89CC-C70B77EBD819}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D5EEB34F-2251-4462-A16E-C088EE265A9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D5EEB34F-2251-4462-A16E-C088EE265A9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D5EEB34F-2251-4462-A16E-C088EE265A9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D5EEB34F-2251-4462-A16E-C088EE265A9B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7816A2C-F061-4CCD-A4D0-0A477F056DE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7816A2C-F061-4CCD-A4D0-0A477F056DE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7816A2C-F061-4CCD-A4D0-0A477F056DE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7816A2C-F061-4CCD-A4D0-0A477F056DE3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC3978E8-D4C8-4D8E-A20F-C05866BEC331}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC3978E8-D4C8-4D8E-A20F-C05866BEC331}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC3978E8-D4C8-4D8E-A20F-C05866BEC331}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC3978E8-D4C8-4D8E-A20F-C05866BEC331}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52840DB4-A910-4C1B-AC98-06DAB154DB0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52840DB4-A910-4C1B-AC98-06DAB154DB0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52840DB4-A910-4C1B-AC98-06DAB154DB0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52840DB4-A910-4C1B-AC98-06DAB154DB0B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

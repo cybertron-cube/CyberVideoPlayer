@@ -208,10 +208,10 @@ def CopyUpdater(updaterBuildPath: str):
 
 #Zip
 def ZipBuilds():
-    for build in ListDirs(BuildDirPath):
-        print(f"Zipping {build}")
-        with zipfile.ZipFile(os.path.join(BuildDirPath, os.path.basename(build) + ".zip"), 'w', zipfile.ZIP_DEFLATED) as ziph:
-            ZipDirProgress(build, ziph)
+    with cd(BuildDirPath):
+        for build in ListDirs(BuildDirPath):
+            print(f"Zipping {build}")
+            subprocess.call(f"7z a -tzip {os.path.abspath(build)}.zip {build}")
 
 def DeleteBinReleaseDirs():
     #A:\CyberPlayerMPV\src\CyberPlayer.Player\bin

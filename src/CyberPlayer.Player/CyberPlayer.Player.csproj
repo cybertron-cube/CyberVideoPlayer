@@ -60,6 +60,10 @@
     <DefineConstants>$(DefineConstants);SINGLE;PORTABLE</DefineConstants>
     <Optimize>true</Optimize>
   </PropertyGroup>
+  
+  <PropertyGroup Condition=" !$(DefineConstants.Contains(PORTABLE)) ">
+    <PublishAot>true</PublishAot>
+  </PropertyGroup>
 
   <ItemGroup>
     
@@ -84,6 +88,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Cyber-lib\AvaloniaMessageBox\AvaloniaMessageBox.csproj" />
     <ProjectReference Include="..\..\..\Cyber-lib\Common Libraries\Cybertron.csproj" />
+    <TrimmerRootAssembly Include="Cybertron" />
     <ProjectReference Include="..\LibMpv.Context\LibMpv.Context.csproj" />
   </ItemGroup>
   

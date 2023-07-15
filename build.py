@@ -16,7 +16,7 @@ CompileTargets = {
     "osx-x64-single": f"-o \"{os.path.join('build', 'osx-x64-single')}\" -r osx-x64 -c release-osx-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
     "portable-multi": f"-o \"{os.path.join('build', 'portable-multi')}\" -c release-portable-multi --sc false -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
     "portable-single": f"-o \"{os.path.join('build', 'portable-single')}\" -c release-portable-single --sc false -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "win-x64-installer": f"-o \"{os.path.join('build', 'win-x64-installer')}\" -r win-x64 -c release --sc false -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "win-x64-installer": f"-o \"{os.path.join('build', 'win-x64-installer')}\" -r win-x64 -c release-win-x64-single --sc false -p:PublishReadyToRun=true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
     "sc": "all self contained (first 6)",
     "all": "all of the above"
 }

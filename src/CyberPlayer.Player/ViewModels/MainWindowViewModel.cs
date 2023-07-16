@@ -120,7 +120,11 @@ namespace CyberPlayer.Player.ViewModels
                 
                 var updaterPath = GenStatic.GetFullPathFromRelative(BuildConfig.UpdaterPath);
                 GenStatic.GetOSRespectiveExecutablePath(ref updaterPath);
-                Updater.StartUpdater(updaterPath, result.DownloadLink, GenStatic.GetFullPathFromRelative(), BuildConfig.Preservables);
+                Updater.StartUpdater(updaterPath,
+                    result.DownloadLink, 
+                    GenStatic.GetFullPathFromRelative(),
+                    BuildConfig.WildCardPreservables,
+                    BuildConfig.Preservables);
 
                 ExitApp();
             }

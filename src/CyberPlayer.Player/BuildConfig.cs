@@ -7,6 +7,8 @@ public static class BuildConfig
 {
     public const string SettingsPath = "settings.json";
     
+    public const string WildCardPreservables = "*.log";
+    
     //RELATIVE PATHS ONLY
     public static readonly string[] Preservables = new[]
     {

@@ -1,9 +1,6 @@
-﻿using Avalonia.Threading;
-using LibMpv.Client;
-using ReactiveUI;
+﻿using ReactiveUI;
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -17,13 +14,14 @@ using CyberPlayer.Player.AppSettings;
 using Cybertron;
 using Cybertron.CUpdater;
 using Splat;
-using static Cybertron.TimeCode;
 using CyberPlayer.Player.Business;
+using ILogger = Serilog.ILogger;
 
 namespace CyberPlayer.Player.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
+        private readonly ILogger _log;
         public readonly Settings Settings;
         
         private MpvPlayer _mpvPlayer;
@@ -49,8 +47,9 @@ namespace CyberPlayer.Player.ViewModels
 #endif
         
         [DependencyInjectionConstructor]
-        public MainWindowViewModel(Settings settings, MpvPlayer mpvPlayer)
+        public MainWindowViewModel(ILogger logger, Settings settings, MpvPlayer mpvPlayer)
         {
+            _log = logger.ForContext<MainWindowViewModel>();
             Settings = settings;
             _mpvPlayer = mpvPlayer;
             

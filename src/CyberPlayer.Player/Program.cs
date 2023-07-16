@@ -2,6 +2,7 @@
 using Avalonia.ReactiveUI;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using CyberPlayer.Player.Helpers;
 using CyberPlayer.Player.ViewModels;
 
 namespace CyberPlayer.Player
@@ -15,7 +16,11 @@ namespace CyberPlayer.Player
         [STAThread]
         public static void Main(string[] args)
         {
-            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+            LogHelper.SetupSerilog();
+            Setup.Register();
+            
+            BuildAvaloniaApp()
+                .StartWithClassicDesktopLifetime(args);
         }
 
         // Avalonia configuration, don't remove; also used by visual designer.

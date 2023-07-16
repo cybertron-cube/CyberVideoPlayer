@@ -4,6 +4,8 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Cybertron;
+using Serilog;
+using CyberPlayer.Player.Helpers;
 using static Cybertron.TimeCode;
 
 namespace CyberPlayer.Player.Business;
@@ -11,40 +13,29 @@ namespace CyberPlayer.Player.Business;
 public class FFmpeg : IDisposable
 {
     public event Action<double>? ProgressChanged;
-    
+
+    private readonly ILogger _log;
     private readonly string _videoPath;
     private string? _lastStdErrLine;
     private readonly Process _ffmpegProcess;
     private double _startTimeMs = double.NaN;
     private double _endTimeMs = double.NaN;
-    
-    public FFmpeg(string ffmpegPath, string videoPath)
-    {
-        _videoPath = videoPath;
-        
-        _ffmpegProcess = new Process
-        {
-            EnableRaisingEvents = true,
-            StartInfo = new ProcessStartInfo(ffmpegPath)
-            {
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardError = true,
-                RedirectStandardInput = false,
-                RedirectStandardOutput = true
-            }
-        };
-        
-        _ffmpegProcess.OutputDataReceived += FFmpegProcessOnOutputDataReceived;
-        _ffmpegProcess.ErrorDataReceived += FFmpegProcessOnErrorDataReceived;
-    }
 
     public FFmpeg(string videoPath)
     {
+        _videoPath = videoPath;
+        
+        var timeStamp = DateTime.Now.ToString(LogHelper.DateTimeFormat);
+        var filePath = GenStatic.GetFullPathFromRelative(Path.Combine("logs", $"ffmpeg_output_{timeStamp}.log"));
+        _log = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.Async(s => s.File(filePath))
+            .CreateLogger();
+        _log.CleanupLogFiles(GenStatic.GetFullPathFromRelative("logs"), "ffmpeg_output*.log", 10);
+        
         var ffmpegPath = GenStatic.GetFullPathFromRelative(Path.Combine("ffmpeg", "ffmpeg"));
         GenStatic.GetOSRespectiveExecutablePath(ref ffmpegPath);
-        
-        _videoPath = videoPath;
+        _log.Information("Using ffmpeg path {Path}", ffmpegPath);
         
         _ffmpegProcess = new Process
         {
@@ -79,23 +70,6 @@ public class FFmpeg : IDisposable
             ExitCode = exitCode;
         }
     }
-
-    public FFmpegResult Trim(TimeCode startTime, TimeCode endTime)
-    {
-        _startTimeMs = startTime.GetExactUnits(TimeUnit.Millisecond);
-        _endTimeMs = endTime.GetExactUnits(TimeUnit.Millisecond);
-
-        SetTrimArgs(startTime.FormattedString, endTime.FormattedString,
-            GenStatic.AppendFileName(_videoPath, "-trim"));
-        Debug.WriteLine(_ffmpegProcess.StartInfo.Arguments);
-
-        _ffmpegProcess.Start();
-        _ffmpegProcess.BeginOutputReadLine();
-        _ffmpegProcess.BeginErrorReadLine();
-        _ffmpegProcess.WaitForExit();
-        
-        return new FFmpegResult(_ffmpegProcess.ExitCode, _lastStdErrLine);
-    }
     
     public async Task<FFmpegResult> TrimAsync(TimeCode startTime, TimeCode endTime, CancellationToken ct)
     {
@@ -104,6 +78,9 @@ public class FFmpeg : IDisposable
 
         SetTrimArgs(startTime.FormattedString, endTime.FormattedString,
             GenStatic.AppendFileName(_videoPath, "-trim"));
+        
+        _log.Information("Starting trim of video {VideoPath} from {StartTime} to {EndTime}",
+            _videoPath, startTime.FormattedString, endTime.FormattedString);
         
         _ffmpegProcess.Start();
         _ffmpegProcess.BeginOutputReadLine();
@@ -132,6 +109,8 @@ public class FFmpeg : IDisposable
         {
             ProgressChanged?.Invoke(1);
         }
+        
+        _log.Information(e.Data);
     }
 
     private void FFmpegProcessOnErrorDataReceived(object sender, DataReceivedEventArgs e)
@@ -139,6 +118,7 @@ public class FFmpeg : IDisposable
         if (e.Data == null) return;
 
         _lastStdErrLine = e.Data;
+        _log.Error(_lastStdErrLine);
     }
 
     public void Dispose()
@@ -151,6 +131,6 @@ public class FFmpeg : IDisposable
     {
         _ffmpegProcess.StartInfo.Arguments =
             $"-progress pipe:1 -y -ss {startTimeCode} -to {endTimeCode} -i \"{_videoPath}\" -map 0 -codec copy -avoid_negative_ts make_zero \"{videoDestination}\"";
-        Debug.WriteLine(_ffmpegProcess.StartInfo.Arguments);
+        _log.Information("FFmpeg arguments: {Args}", _ffmpegProcess.StartInfo.Arguments);
     }
 }

@@ -89,7 +89,7 @@ def SetVersion(version: str):
         CompileTargets[target] = CompileTargets[target].replace("-p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0", f"-p:AssemblyVersion={version} -p:Version={version}")
     versionArray = version.split('.')
     if len(versionArray) < 2 or len(versionArray) > 4:
-        raise Exception("Version must contain 2-4 place (major, minor, build, revision)")
+        raise Exception("Version must contain 2-4 places (major, minor, build, revision)")
     newVersion = ""
     versionLine = "public static readonly Version Version = new(1, 0, 0, 0);"
     for v in versionArray:
@@ -238,7 +238,8 @@ def CopyMpvLib():
             #CopyFilesProgress(ListFiles(os.path.join(os.getcwd(), "mpv", "osx")), build)
 
 def BuildUpdater():
-    subprocess.call(f"py {os.path.join(os.getcwd(), 'cyber-lib', 'build.py')}")
+    with cd(os.path.join(os.getcwd(), 'cyber-lib')):
+        subprocess.call("py build.py")
 
 Command = collections.namedtuple('Command', ['description', 'function', 'hasParam'])
 

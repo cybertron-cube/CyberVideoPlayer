@@ -23,7 +23,17 @@ public static class LogHelper
             .WriteTo.Async(s => s.File(filePath, shared: true))
             .CreateLogger();
 
-        AppDomain.CurrentDomain.ProcessExit += (s, e) => { Log.Information("Exiting"); Log.CloseAndFlush(); };
+        AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+        {
+            Log.Information("Exiting");
+            Log.CloseAndFlush();
+        };
+        
+        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+        {
+            Log.Fatal((Exception)e.ExceptionObject, "");
+            Log.CloseAndFlush();
+        };
         
         Log.Logger.CleanupLogFiles(GenStatic.GetFullPathFromRelative("logs"), "debug*.log", 3);
         

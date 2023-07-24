@@ -20,6 +20,7 @@ public class FFmpeg : IDisposable
     private readonly Process _ffmpegProcess;
     private double _startTimeMs = double.NaN;
     private double _endTimeMs = double.NaN;
+    private double _spanTimeMs = double.NaN;
 
     public FFmpeg(string videoPath)
     {
@@ -75,6 +76,7 @@ public class FFmpeg : IDisposable
     {
         _startTimeMs = startTime.GetExactUnits(TimeUnit.Millisecond);
         _endTimeMs = endTime.GetExactUnits(TimeUnit.Millisecond);
+        _spanTimeMs = _endTimeMs - _startTimeMs;
 
         SetTrimArgs(startTime.FormattedString, endTime.FormattedString,
             GenStatic.AppendFileName(_videoPath, "-trim"));
@@ -99,10 +101,11 @@ public class FFmpeg : IDisposable
     {
         if (e.Data == null) return;
         
-        if (e.Data.Contains("out_time_ms="))
+        if (e.Data.Contains("out_time="))
         {
-            var currentTimeMs = double.Parse(e.Data.Substring(12, 5));
-            var progress = (currentTimeMs - _startTimeMs) / _endTimeMs;
+            var currentTimeMs = TimeCode.GetExactUnits(TimeUnit.Millisecond, e.Data.Split('=')[1].Replace("-", ""));
+            
+            var progress = currentTimeMs / _spanTimeMs;
             ProgressChanged?.Invoke(progress);
         }
         else if (e.Data.Contains("progress=end"))
@@ -123,6 +126,8 @@ public class FFmpeg : IDisposable
 
     public void Dispose()
     {
+        if (!_ffmpegProcess.HasExited)
+            _ffmpegProcess.StandardInput.Write('q');
         _ffmpegProcess.Dispose();
         GC.SuppressFinalize(this);
     }

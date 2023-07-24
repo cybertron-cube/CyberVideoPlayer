@@ -10,6 +10,8 @@
         x:Class="CyberPlayer.Player.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         x:CompileBindings="True"
+        MinHeight="503"
+        MinWidth="640"
         Icon="/Assets/avalonia-logo.ico"
         Title="{Binding MpvPlayer.MediaName}">
 	<Window.KeyBindings>
@@ -22,14 +24,11 @@
 		<!-- Increase Volume -->
 		<!-- Decrease Volume -->
 		
-		<!-- WARNING Keybindings below require compile-time bindings -->
 		<KeyBinding Gesture="I" Command="{Binding MpvPlayer.set_TrimStartTime}" CommandParameter="{Binding MpvPlayer.SeekValue}" />
 		<KeyBinding Gesture="O" Command="{Binding MpvPlayer.set_TrimEndTime}" CommandParameter="{Binding MpvPlayer.SeekValue}" />
 	</Window.KeyBindings>
 
 	<Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel />
     </Design.DataContext>
 
@@ -51,7 +50,7 @@
 			</MenuItem>
 		</Menu>
 		
-		<Panel PointerPressed="VideoPanel_OnPointerPressed" Grid.Row="1" DragDrop.AllowDrop="True" Background="Black">
+		<Panel Name="VideoPanel" PointerPressed="VideoPanel_OnPointerPressed" Grid.Row="1" DragDrop.AllowDrop="True" Background="Black">
 			<!--Set background in order for contextmenu to interactable
 				*this doesn't work for nativevideoview-->
 			<Panel.ContextMenu>

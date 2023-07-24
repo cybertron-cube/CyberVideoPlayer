@@ -16,6 +16,7 @@
                 <ResourceInclude Source="/Themes/ContentPopup.axaml" />
                 <ResourceInclude Source="/Themes/CircleProgressBar.axaml" />
             </ResourceDictionary.MergedDictionaries>
+            <Geometry x:Key="XGeometry">L 0,0 10,10 M 0,10 10,0</Geometry>
         </ResourceDictionary>
     </Application.Resources>
     

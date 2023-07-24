@@ -16,6 +16,9 @@ public static class Setup
         container.RegisterLazySingleton(() => new HttpClient());
         
         container.RegisterLazySingleton(() => new MainWindow());
+        container.Register(() => new ProgressView());
+        
+        container.Register(() => new ProgressViewModel());
         
         SplatRegistrations.RegisterLazySingleton<MpvPlayer>();
         SplatRegistrations.RegisterLazySingleton<MainWindowViewModel>();

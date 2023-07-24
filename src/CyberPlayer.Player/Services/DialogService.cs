@@ -12,6 +12,14 @@ namespace CyberPlayer.Player.Services;
 
 public static class DialogService
 {
+    public static ProgressPopupHandler GetProgressPopup(this ViewModelBase viewModel, PopupParams popupParams)
+    {
+        var content = Locator.Current.GetService<ProgressView>()!;
+        content.DataContext = Locator.Current.GetService<ProgressViewModel>();
+        var popup = GetPopup(viewModel, content, popupParams);
+        return new ProgressPopupHandler(popup.popup, popup.attachedView);
+    }
+    
     public static PopupHandler ShowPopup<TContent>(this ViewModelBase viewModel, PopupParams popupParams)
         where TContent : Control, new()
     {

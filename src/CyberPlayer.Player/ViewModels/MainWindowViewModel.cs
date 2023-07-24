@@ -15,6 +15,7 @@ using Cybertron;
 using Cybertron.CUpdater;
 using Splat;
 using CyberPlayer.Player.Business;
+using CyberPlayer.Player.Services;
 using ILogger = Serilog.ILogger;
 
 namespace CyberPlayer.Player.ViewModels
@@ -97,7 +98,7 @@ namespace CyberPlayer.Player.ViewModels
 
                 var msgBoxResult = await ShowMessageBox.Handle(new MessageBoxParams
                 {
-                    Title = "Update Available",
+                    Title = $"New Version {result.TagName} Available",
                     Message = "Would you like to update?",
                     Buttons = MessageBoxButtons.YesNo,
                     StartupLocation = WindowStartupLocation.CenterOwner
@@ -143,12 +144,24 @@ namespace CyberPlayer.Player.ViewModels
         {
             FFmpeg.FFmpegResult result;
             CancellationToken ct = new();
+            var dialog = this.GetProgressPopup(new PopupParams());
+            dialog.ProgressLabel = "Trimming...";
             
             using (var ffmpeg = new FFmpeg(MpvPlayer.MediaPath))
             {
+                ffmpeg.ProgressChanged += progress =>
+                {
+                    dialog.ProgressValue = progress;
+                    Debug.WriteLine("PROGRESS: " + progress);
+                };
+
+                await dialog.OpenAsync();
+                
                 result = await ffmpeg.TrimAsync(MpvPlayer.TrimStartTimeCode, MpvPlayer.TrimEndTimeCode, ct);
             }
 
+            await dialog.CloseAsync();
+            
             Debug.WriteLine(result.ExitCode);
             Debug.WriteLine(result.ErrorMessage);
             

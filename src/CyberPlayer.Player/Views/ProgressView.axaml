@@ -1,0 +1,45 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:CyberPlayer.Player"
+             xmlns:vm="clr-namespace:CyberPlayer.Player.ViewModels"
+             xmlns:controls="clr-namespace:CyberPlayer.Player.Controls"
+             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="300"
+             d:DataContext="{x:Static local:ViewModelLocator.Progress}"
+             x:Class="CyberPlayer.Player.Views.ProgressView"
+             x:DataType="vm:ProgressViewModel"
+             x:CompileBindings="True"
+             CornerRadius="20"
+             Background="Gray">
+    
+    <Design.DataContext>
+        <vm:ProgressViewModel />
+    </Design.DataContext>
+    
+    <!-- TODO MAKE BACKGROUND GRADIENT? -->
+    
+    <Grid>
+        <!--<ExperimentalAcrylicBorder>
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial BackgroundSource="Digger" TintOpacity="0.5" TintColor="Black" MaterialOpacity="0.85"></ExperimentalAcrylicMaterial>
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>-->
+        <StackPanel Width="500" Height="300">
+            <Button HorizontalAlignment="Right"
+                    Margin="0, 5, 0, 0"
+                    Background="Transparent"
+                    Command="{Binding set_Close}"
+                    CommandParameter="True">
+                <Path Stroke="Black" StrokeThickness="2" Data="{StaticResource XGeometry}" />
+            </Button>
+            <Label Name="Label" HorizontalContentAlignment="Center" Margin="0, 15, 0, 15">
+                <TextBlock FontSize="25" FontWeight="Bold" Text="{Binding LabelText}" />
+            </Label>
+            <controls:CircleProgressBar StrokeWidth="11" Height="150" Width="150" Maximum="1" Value="{Binding ProgressValue}">
+                <TextBlock FontSize="25" FontWeight="DemiBold" Text="{Binding ProgressValue, StringFormat='{}{0:0%}'}" />
+            </controls:CircleProgressBar>
+        </StackPanel>
+    </Grid>
+    
+</UserControl>

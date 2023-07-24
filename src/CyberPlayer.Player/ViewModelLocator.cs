@@ -12,11 +12,14 @@ namespace CyberPlayer.Player
             var container = Locator.CurrentMutable;
 
             var viewLocator = new StrongViewLocator()
-                .Register<MainWindowViewModel, MainWindow>();
+                .Register<MainWindowViewModel, MainWindow>()
+                .Register<ProgressViewModel, ProgressView>();
             
             container.Register(() => viewLocator);
         }
 
         public static MainWindowViewModel Main => Locator.Current.GetService<MainWindowViewModel>()!;
+        
+        public static ProgressViewModel Progress => Locator.Current.GetService<ProgressViewModel>()!;
     }
 }

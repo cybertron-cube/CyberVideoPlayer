@@ -6,9 +6,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Threading;
 using Avalonia;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
@@ -23,7 +21,6 @@ using DynamicData.Binding;
 using LibMpv.Client;
 using ReactiveUI;
 using System.Diagnostics.CodeAnalysis;
-using System.Reactive.Linq;
 
 namespace CyberPlayer.Player.Views
 {
@@ -48,32 +45,13 @@ namespace CyberPlayer.Player.Views
                 d(ViewModel!.ShowMessageBox.RegisterHandler(DoShowMessageBoxAsync));
             });
             
-            //this.Events
 #if DEBUG
-            /*Task.Run(() =>
-            {
-                while (true)
-                {
-                    Thread.Sleep(500);
-                    //Debug.WriteLine(SeekSlider.IsPointerOver);
-                    //Debug.WriteLine(testimage.IsPointerOver);
-                    Dispatcher.UIThread.Post(() =>
-                    {
-                        Debug.WriteLine(ViewModel!.IsSeeking);
-                    });
-                }
-            });*/
-
             Button testButton = new()
             {
                 Content = "Test",
             };
             testButton.Click += (object? sender, RoutedEventArgs e) =>
             {
-                var ffmpegPath = GenStatic.GetFullPathFromRelative(Path.Combine("ffmpeg", "ffmpeg"));
-                Debug.WriteLine(ffmpegPath);
-                Debug.WriteLine(GenStatic.GetOSRespectiveExecutablePath(ffmpegPath));
-
                 ViewModel!.MpvPlayer.TrimStartTime = 12;
                 ViewModel!.MpvPlayer.TrimEndTime = 22;
             };

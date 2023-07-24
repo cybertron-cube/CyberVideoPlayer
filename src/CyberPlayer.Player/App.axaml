@@ -14,6 +14,7 @@
                 <ResourceInclude Source="/Themes/CustomSlider.axaml" />
                 <ResourceInclude Source="/Themes/TimelineControl.axaml" />
                 <ResourceInclude Source="/Themes/ContentPopup.axaml" />
+                <ResourceInclude Source="/Themes/CircleProgressBar.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

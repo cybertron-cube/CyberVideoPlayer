@@ -1,0 +1,60 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:CyberPlayer.Player.Controls">
+    <Design.PreviewWith>
+        <StackPanel Orientation="Horizontal" Spacing="50">
+            <controls:CircleProgressBar Width="200" Height="200" Maximum="20" Value="5" StrokeWidth="11">
+                <Label HorizontalContentAlignment="Center" VerticalContentAlignment="Center">Yeet</Label>
+            </controls:CircleProgressBar>
+        </StackPanel>
+    </Design.PreviewWith>
+    
+    <ControlTheme x:Key="{x:Type controls:CircleProgressBar}" TargetType="controls:CircleProgressBar">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid>
+                        <Arc
+                            Height="{TemplateBinding Height}"
+                            StartAngle="0"
+                            Stretch="None"
+                            Stroke="#f4f4f4"
+                            StrokeThickness="{TemplateBinding StrokeWidth}"
+                            SweepAngle="360"
+                            Width="{TemplateBinding Width}" />
+                        <Arc
+                            Height="{TemplateBinding Height}"
+                            StartAngle="270"
+                            Stretch="None"
+                            StrokeJoin="Round"
+                            StrokeLineCap="Round"
+                            StrokeThickness="{TemplateBinding StrokeWidth}"
+                            SweepAngle="{TemplateBinding Value}"
+                            Width="{TemplateBinding Width}">
+                            <Arc.Stroke>
+
+
+                                <RadialGradientBrush>
+                                    <GradientStop Color="#2f54eb" Offset="0.1" />
+                                    <GradientStop Color="#597ef7" Offset="0.6" />
+                                </RadialGradientBrush>
+
+                            </Arc.Stroke>
+                            <Arc.Transitions>
+                                <Transitions>
+                                    <DoubleTransition
+                                        Duration="0:0:0.8"
+                                        Easing="CircularEaseOut"
+                                        Property="SweepAngle" />
+                                </Transitions>
+                            </Arc.Transitions>
+                        </Arc>
+                        <ContentControl
+                            Content="{TemplateBinding Content}"
+                            HorizontalContentAlignment="Center"
+                            Margin="{TemplateBinding StrokeWidth}"
+                            VerticalContentAlignment="Center" />
+                    </Grid>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>

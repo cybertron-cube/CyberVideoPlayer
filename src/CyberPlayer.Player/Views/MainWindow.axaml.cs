@@ -27,8 +27,10 @@ using System.Reactive.Linq;
 
 namespace CyberPlayer.Player.Views
 {
-    public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
+    public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPanelView
     {
+        public Panel MainPanel => MainGrid;
+
         public MainWindow()
         {
             

@@ -2,9 +2,6 @@ using System.IO;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using CyberPlayer.Player.AppSettings;
-using CyberPlayer.Player.ViewModels;
-using CyberPlayer.Player.Views;
 
 namespace CyberPlayer.Player
 {
@@ -24,10 +21,11 @@ namespace CyberPlayer.Player
                 {
                     mainWindowVm.MpvPlayer.MediaPath = desktop.Args[0];
                 }
-                desktop.MainWindow = new MainWindow
-                {
-                    DataContext = mainWindowVm,
-                };
+
+                var mainWindow = ViewLocator.Main;
+                mainWindow.DataContext = mainWindowVm;
+                
+                desktop.MainWindow = mainWindow;
             }
 
             base.OnFrameworkInitializationCompleted();

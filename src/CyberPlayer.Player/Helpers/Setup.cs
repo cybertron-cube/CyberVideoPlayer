@@ -1,6 +1,7 @@
 ﻿using System.Net.Http;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.ViewModels;
+using CyberPlayer.Player.Views;
 using Splat;
 
 namespace CyberPlayer.Player.Helpers;
@@ -11,11 +12,13 @@ public static class Setup
     {
         var container = Locator.CurrentMutable;
         
-        container.RegisterLazySingleton(() => Settings.Import(BuildConfig.SettingsPath));
+        container.RegisterConstant(Settings.Import(BuildConfig.SettingsPath));
         container.RegisterLazySingleton(() => new HttpClient());
         
-        SplatRegistrations.Register<MpvPlayer>();
-        SplatRegistrations.Register<MainWindowViewModel>();
+        container.RegisterLazySingleton(() => new MainWindow());
+        
+        SplatRegistrations.RegisterLazySingleton<MpvPlayer>();
+        SplatRegistrations.RegisterLazySingleton<MainWindowViewModel>();
         
         SplatRegistrations.SetupIOC();
     }

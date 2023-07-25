@@ -46,7 +46,7 @@ public class FFmpeg : IDisposable
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardError = true,
-                RedirectStandardInput = false,
+                RedirectStandardInput = true,
                 RedirectStandardOutput = true
             }
         };
@@ -87,8 +87,18 @@ public class FFmpeg : IDisposable
         _ffmpegProcess.Start();
         _ffmpegProcess.BeginOutputReadLine();
         _ffmpegProcess.BeginErrorReadLine();
-        await _ffmpegProcess.WaitForExitAsync(ct);
+        try
+        {
+            await _ffmpegProcess.WaitForExitAsync(ct);
+        }
+        catch (TaskCanceledException)
+        {
+            _log.Information("Trim canceled");
+            await _ffmpegProcess.StandardInput.WriteAsync('q');
+            await _ffmpegProcess.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+        }
 
+        _log.Information("Exit code: {ExitCode}", _ffmpegProcess.ExitCode);
         return new FFmpegResult(_ffmpegProcess.ExitCode, _lastStdErrLine);
     }
 

@@ -1,4 +1,5 @@
-﻿using CyberPlayer.Player.Controls;
+﻿using System;
+using CyberPlayer.Player.Controls;
 using CyberPlayer.Player.ViewModels;
 using CyberPlayer.Player.Views;
 
@@ -19,7 +20,9 @@ public class ProgressPopupHandler : PopupHandler
         get => _content.LabelText;
         set => _content.LabelText = value;
     }
-    
+
+    public IObservable<bool> Closing => _content.CloseDialog;
+
     public ProgressPopupHandler(ContentPopup popup, IParentPanelView view) : base(popup, view)
     {
         _content = (ProgressViewModel)((ProgressView)popup.Content!).DataContext!;

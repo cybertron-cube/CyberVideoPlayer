@@ -125,9 +125,18 @@ namespace CyberPlayer.Player.ViewModels
         public async void Trim()
         {
             FFmpeg.FFmpegResult result;
-            CancellationToken ct = new();
+            CancellationTokenSource cts = new();
             var dialog = this.GetProgressPopup(new PopupParams());
             dialog.ProgressLabel = "Trimming...";
+            var closed = false;
+            dialog.Closing.Subscribe(x =>
+            {
+                if (x)
+                {
+                    cts.Cancel();
+                    closed = true;
+                }
+            });
             
             using (var ffmpeg = new FFmpeg(MpvPlayer.MediaPath))
             {
@@ -139,10 +148,13 @@ namespace CyberPlayer.Player.ViewModels
 
                 await dialog.OpenAsync();
                 
-                result = await ffmpeg.TrimAsync(MpvPlayer.TrimStartTimeCode, MpvPlayer.TrimEndTimeCode, ct);
+                result = await ffmpeg.TrimAsync(MpvPlayer.TrimStartTimeCode, MpvPlayer.TrimEndTimeCode, cts.Token);
             }
 
-            await dialog.CloseAsync();
+            if (!closed)
+            {
+                await dialog.CloseAsync();
+            }
             
             Debug.WriteLine(result.ExitCode);
             Debug.WriteLine(result.ErrorMessage);

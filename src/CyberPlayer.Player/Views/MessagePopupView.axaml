@@ -1,0 +1,58 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:CyberPlayer.Player"
+             xmlns:vm="clr-namespace:CyberPlayer.Player.ViewModels"
+             xmlns:mdxaml="https://github.com/whistyun/Markdown.Avalonia.Tight"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             d:DataContext="{x:Static local:ViewModelLocator.Message}"
+             x:Class="CyberPlayer.Player.Views.MessagePopupView"
+             x:DataType="vm:MessagePopupViewModel"
+             x:CompileBindings="True"
+             CornerRadius="20"
+             Background="{StaticResource BackgroundGradient}"
+             MinHeight="100"
+             MinWidth="200">
+    
+    <Design.DataContext>
+        <vm:MessagePopupViewModel />
+    </Design.DataContext>
+    
+    <Grid RowDefinitions="Auto, *, Auto">
+        <Label Grid.Row="0"
+               HorizontalContentAlignment="Center"
+               VerticalContentAlignment="Center">
+            <TextBlock Text="{Binding Title}"
+                       FontWeight="Bold"
+                       FontSize="15" />
+        </Label>
+        <Button Grid.Row="0"
+                HorizontalAlignment="Right"
+                Margin="0, 10, 5, 5"
+                Background="Transparent"
+                Command="{Binding set_Close}"
+                CommandParameter="True">
+            <Path Stroke="Black"
+                  StrokeThickness="2"
+                  Data="{StaticResource XGeometry}" />
+        </Button>
+        <Border Grid.Row="1" BorderBrush="Black" BorderThickness="0, 2">
+            <mdxaml:MarkdownScrollViewer Markdown="{Binding Message}"
+                                         Margin="10, 0" />
+        </Border>
+        <StackPanel Name="ButtonPanel"
+                    Grid.Row="2"
+                    Margin="0, 5"
+                    Spacing="5"
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal">
+            <StackPanel.Styles>
+                <Style Selector="Button">
+                    <Setter Property="Width" Value="80" />
+                    <Setter Property="HorizontalContentAlignment" Value="Center" />
+                </Style>
+            </StackPanel.Styles>
+        </StackPanel>
+    </Grid>
+</UserControl>

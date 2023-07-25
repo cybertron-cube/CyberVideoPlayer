@@ -9,7 +9,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
-using CyberPlayer.Player.Views;
+using CyberPlayer.Player.ViewModels;
 using DynamicData.Binding;
 
 namespace CyberPlayer.Player.Controls;
@@ -294,7 +294,7 @@ public class ContentPopup : ContentControl
     {
         base.Render(context);
         
-        Debug.WriteLine(DesiredSize);
+        //Debug.WriteLine(DesiredSize);
 
         /*if (_skipFirstRenderPass < 1)
         {

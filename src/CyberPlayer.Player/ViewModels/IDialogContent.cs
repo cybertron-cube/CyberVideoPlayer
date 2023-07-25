@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CyberPlayer.Player.Views;
+namespace CyberPlayer.Player.ViewModels;
 
 public interface IDialogContent
 {

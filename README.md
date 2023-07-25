@@ -14,12 +14,12 @@
 
 ## List of features being worked on
 
-- Ability to change keybindings
-- Ability to change settings without editing xml
-- Being able to change audio tracks
-- Transcoding/Remuxing
-- Show trim progress
-- Speed multiplier for playback
-- Full screen
-- Ability to switch playback renderer
-- And more I have forgotten
+- [ ] Ability to change keybindings
+- [ ] Ability to change settings without editing xml
+- [ ] Being able to change audio tracks
+- [ ] Transcoding/Remuxing
+- [x] Show trim progress
+- [ ] Speed multiplier for playback
+- [ ] Full screen
+- [ ] Ability to switch playback renderer
+- [ ] And more I have forgotten

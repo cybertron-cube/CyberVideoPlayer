@@ -13,7 +13,8 @@ namespace CyberPlayer.Player
 
             var viewLocator = new StrongViewLocator()
                 .Register<MainWindowViewModel, MainWindow>()
-                .Register<ProgressViewModel, ProgressView>();
+                .Register<ProgressViewModel, ProgressView>()
+                .Register<MessagePopupViewModel, MessagePopupView>();
             
             container.Register(() => viewLocator);
         }
@@ -21,5 +22,7 @@ namespace CyberPlayer.Player
         public static MainWindowViewModel Main => Locator.Current.GetService<MainWindowViewModel>()!;
         
         public static ProgressViewModel Progress => Locator.Current.GetService<ProgressViewModel>()!;
+
+        public static MessagePopupViewModel Message => Locator.Current.GetService<MessagePopupViewModel>()!;
     }
 }

@@ -39,11 +39,6 @@ namespace CyberPlayer.Player.Views
             
             AddHandler(DragDrop.DropEvent, Drop!);
             AddHandler(DragDrop.DragOverEvent, DragOver!);
-
-            this.WhenActivated(d =>
-            {
-                d(ViewModel!.ShowMessageBox.RegisterHandler(DoShowMessageBoxAsync));
-            });
             
 #if DEBUG
             Button testButton = new()
@@ -73,13 +68,6 @@ namespace CyberPlayer.Player.Views
             ControlsPanel.Children.Insert(0, loadButton);
             ControlsPanel.Children.Insert(0, testButton);
 #endif
-        }
-
-        private async Task DoShowMessageBoxAsync(InteractionContext<MessageBoxParams, MessageBoxResult> interaction)
-        {
-            var msgBox = MessageBox.GetMessageBox(interaction.Input);
-            var result = await msgBox.ShowDialog(this);
-            interaction.SetOutput(result);
         }
 
         private static void DragOver(object sender, DragEventArgs e)

@@ -42,8 +42,6 @@ namespace CyberPlayer.Player.ViewModels
             
             CheckForUpdatesCommand = ReactiveCommand.CreateFromTask(CheckForUpdates);
             //ExitAppCommand = ReactiveCommand.Create<EventArgs?>(ExitApp);
-
-            ShowMessageBox = new Interaction<MessageBoxParams, MessageBoxResult>();
         }
 #endif
         
@@ -56,15 +54,11 @@ namespace CyberPlayer.Player.ViewModels
             
             CheckForUpdatesCommand = ReactiveCommand.CreateFromTask(CheckForUpdates);
             //ExitAppCommand = ReactiveCommand.Create<EventArgs?>(ExitApp);
-
-            ShowMessageBox = new Interaction<MessageBoxParams, MessageBoxResult>();
         }
         
         public ReactiveCommand<Unit, Unit> CheckForUpdatesCommand { get; }
         
         //public ReactiveCommand<EventArgs?, Unit> ExitAppCommand { get; }
-
-        public Interaction<MessageBoxParams, MessageBoxResult> ShowMessageBox;
         
         private object? _videoContent;
 
@@ -84,7 +78,6 @@ namespace CyberPlayer.Player.ViewModels
 
         private async Task CheckForUpdates()
         {
-            //TODO Get body value from json for markdown show changes
             var result = await Updater.GithubCheckForUpdatesAsync("CyberVideoPlayer",
                 new[] { BuildConfig.AssetIdentifierInstance, BuildConfig.AssetIdentifierPlatform },
                 "https://api.github.com/repos/cybertron-cube/CyberVideoPlayer",
@@ -94,27 +87,19 @@ namespace CyberPlayer.Player.ViewModels
             
             if (result.UpdateAvailable)
             {
-                //TODO Make popup
+                var msgBoxResult = await this.ShowMessagePopup(MessagePopupButtons.YesNo,
+                    "Would you like to update?",
+                    result.Body,
+                    new PopupParams(PopupSize: 0.7));
 
-                var msgBoxResult = await ShowMessageBox.Handle(new MessageBoxParams
-                {
-                    Title = $"New Version {result.TagName} Available",
-                    Message = "Would you like to update?",
-                    Buttons = MessageBoxButtons.YesNo,
-                    StartupLocation = WindowStartupLocation.CenterOwner
-                });
-
-                if (msgBoxResult != MessageBoxResult.Yes) return;
+                if (msgBoxResult != MessagePopupResult.Yes) return;
 
                 if (result.DownloadLink == null)
                 {
-                    await ShowMessageBox.Handle(new MessageBoxParams
-                    {
-                        Title = "An error occurred",
-                        Message = $"This build was not included in release {result.TagName}",
-                        Buttons = MessageBoxButtons.Ok,
-                        StartupLocation = WindowStartupLocation.CenterOwner
-                    });
+                    await this.ShowMessagePopup(MessagePopupButtons.Ok,
+                        "An error occurred",
+                        $"This build was not included in release {result.TagName}",
+                        new PopupParams());
                     return;
                 }
                 
@@ -130,13 +115,10 @@ namespace CyberPlayer.Player.ViewModels
             }
             else
             {
-                await ShowMessageBox.Handle(new MessageBoxParams
-                {
-                    Title = "No updates found",
-                    Message = "No updates were found",
-                    Buttons = MessageBoxButtons.Ok,
-                    StartupLocation = WindowStartupLocation.CenterOwner
-                });
+                await this.ShowMessagePopup(MessagePopupButtons.Ok,
+                    "No updates found",
+                    "No updates found",
+                    new PopupParams());
             }
         }
 

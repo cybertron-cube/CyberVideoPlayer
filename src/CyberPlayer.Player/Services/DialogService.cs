@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -12,6 +13,65 @@ namespace CyberPlayer.Player.Services;
 
 public static class DialogService
 {
+    public static async Task<MessagePopupResult> ShowMessagePopup(this ViewModelBase viewModel, MessagePopupButtons buttons, string title, string message, PopupParams popupParams)
+    {
+        var content = Locator.Current.GetService<MessagePopupView>()!;
+        var dataContext = Locator.Current.GetService<MessagePopupViewModel>()!;
+        dataContext.Message = message;
+        dataContext.Title = title;
+        content.DataContext = dataContext;
+
+        var result = MessagePopupResult.Cancel;
+
+        switch (buttons)
+        {
+            case MessagePopupButtons.YesNo:
+                content.ButtonPanel.Children.Add(new Button
+                {
+                    Content = "Yes"
+                });
+                content.ButtonPanel.Children.Add(new Button
+                {
+                    Content = "No"
+                });
+                break;
+            case MessagePopupButtons.Ok:
+                content.ButtonPanel.Children.Add(new Button
+                {
+                    Content = "Ok"
+                });
+                break;
+            case MessagePopupButtons.OkCancel:
+                content.ButtonPanel.Children.Add(new Button
+                {
+                    Content = "Ok"
+                });
+                content.ButtonPanel.Children.Add(new Button
+                {
+                    Content = "Cancel"
+                });
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(buttons), buttons, null);
+        }
+
+        var popup = GetPopup(viewModel, content, popupParams);
+        
+        foreach (Button button in content.ButtonPanel.Children)
+        {
+            button.Click += (_, _) =>
+            {
+                result = (MessagePopupResult)Enum.Parse(typeof(MessagePopupResult), (string)button.Content!);
+                dataContext.Close = true;
+            };
+        }
+        
+        await popup.popup.OpenAsync();
+        await dataContext.CloseDialog.TakeUntil(x => x);
+        
+        return result;
+    }
+    
     public static ProgressPopupHandler GetProgressPopup(this ViewModelBase viewModel, PopupParams popupParams)
     {
         var content = Locator.Current.GetService<ProgressView>()!;

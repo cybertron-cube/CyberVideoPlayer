@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -77,6 +78,7 @@ namespace CyberPlayer.Player.ViewModels
 
         private async Task CheckForUpdates()
         {
+            _log.Information("Checking for updates...");
             var result = await Updater.GithubCheckForUpdatesAsync("CyberVideoPlayer",
                 new[] { BuildConfig.AssetIdentifierInstance, BuildConfig.AssetIdentifierPlatform },
                 "https://api.github.com/repos/cybertron-cube/CyberVideoPlayer",
@@ -84,11 +86,15 @@ namespace CyberPlayer.Player.ViewModels
                 Locator.Current.GetService<HttpClient>()!,
                 Settings.UpdaterIncludePreReleases);
             
+            _log.Information("Latest github release found\nTagName: {TagName}\nBody:\n{Body}",
+                result.TagName,
+                result.Body);
+            
             if (result.UpdateAvailable)
             {
                 var msgBoxResult = await this.ShowMessagePopup(MessagePopupButtons.YesNo,
                     "Would you like to update?",
-                    result.Body,
+                    TempWebLinkFix(result.Body),
                     new PopupParams(PopupSize: 0.7));
 
                 if (msgBoxResult != MessagePopupResult.Yes) return;
@@ -174,6 +180,20 @@ namespace CyberPlayer.Player.ViewModels
             }
             //TODO save settings
             //TODO Do anything else needed to when shutting down normally 
+        }
+        
+        private string TempWebLinkFix(string markdown)
+        {
+            var regex = new Regex(@"\*\*Full Changelog\*\*: (?<url>https://github\.com/.*)");
+            Match match = regex.Match(markdown);
+            if (match.Success)
+            {
+                var url = match.Groups["url"].Value;
+                var oldValue = match.Groups[0].Value;
+                var newValue = "[%{color:blue}**Full Changelog**%](" + url + ")";
+                markdown = markdown.Replace(oldValue, newValue);
+            }
+            return markdown;
         }
     }
 }

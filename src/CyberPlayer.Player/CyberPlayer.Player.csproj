@@ -61,7 +61,7 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
   
-  <PropertyGroup Condition=" !$(DefineConstants.Contains(PORTABLE)) ">
+  <PropertyGroup Condition=" ($(DefineConstants.Contains(LINUXX64)) And $([MSBuild]::IsOSPlatform('Linux'))) Or ($(DefineConstants.Contains(OSXX64)) And $([MSBuild]::IsOSPlatform('OSX'))) Or $(DefineConstants.Contains(WINX64)) And $([MSBuild]::IsOSPlatform('Windows'))">
     <PublishAot>true</PublishAot>
   </PropertyGroup>
   

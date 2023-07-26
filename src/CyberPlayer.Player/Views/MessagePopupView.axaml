@@ -19,8 +19,9 @@
         <vm:MessagePopupViewModel />
     </Design.DataContext>
     
-    <Grid RowDefinitions="Auto, *, Auto">
-        <Label Grid.Row="0"
+    <Grid Name="MainGrid" RowDefinitions="Auto, *, Auto">
+        <Label Name="Label"
+               Grid.Row="0"
                HorizontalContentAlignment="Center"
                VerticalContentAlignment="Center">
             <TextBlock Text="{Binding Title}"
@@ -37,7 +38,7 @@
                   StrokeThickness="2"
                   Data="{StaticResource XGeometry}" />
         </Button>
-        <Border Grid.Row="1" BorderBrush="Black" BorderThickness="0, 2">
+        <Border Name="MarkdownBorder" Grid.Row="1" BorderBrush="Black" BorderThickness="0, 2">
             <mdxaml:MarkdownScrollViewer Markdown="{Binding Message}"
                                          Margin="10, 0" />
         </Border>

@@ -122,7 +122,7 @@ namespace CyberPlayer.Player.ViewModels
             {
                 await this.ShowMessagePopup(MessagePopupButtons.Ok,
                     "No updates found",
-                    "No updates found",
+                    "",
                     new PopupParams());
             }
         }

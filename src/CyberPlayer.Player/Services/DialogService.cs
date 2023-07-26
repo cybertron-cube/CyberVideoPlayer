@@ -17,7 +17,16 @@ public static class DialogService
     {
         var content = Locator.Current.GetService<MessagePopupView>()!;
         var dataContext = Locator.Current.GetService<MessagePopupViewModel>()!;
-        dataContext.Message = message;
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            content.MainGrid.Children.Remove(content.MarkdownBorder);
+            Grid.SetRow(content.Label, 1);
+            content.Label.Margin = new Thickness(0, -2, 0, 5);
+        }
+        else
+        {
+            dataContext.Message = message;
+        }
         dataContext.Title = title;
         content.DataContext = dataContext;
 

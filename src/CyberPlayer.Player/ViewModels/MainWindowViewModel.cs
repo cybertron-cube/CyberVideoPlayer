@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using AvaloniaMessageBox;
 using CyberPlayer.Player.AppSettings;
 using Cybertron;
 using Cybertron.CUpdater;

@@ -92,7 +92,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\cyber-lib\AvaloniaMessageBox\AvaloniaMessageBox.csproj" />
     <ProjectReference Include="..\..\cyber-lib\Common Libraries\Cybertron.csproj" />
     <TrimmerRootAssembly Include="Cybertron" />
     <ProjectReference Include="..\LibMpv.Context\LibMpv.Context.csproj" />

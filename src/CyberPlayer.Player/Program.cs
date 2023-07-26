@@ -1,9 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.ReactiveUI;
 using System;
-using System.Diagnostics.CodeAnalysis;
 using CyberPlayer.Player.Helpers;
-using CyberPlayer.Player.ViewModels;
 
 namespace CyberPlayer.Player
 {
@@ -12,7 +10,6 @@ namespace CyberPlayer.Player
         // Initialization code. Don't use any Avalonia, third-party APIs or any
         // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
         // yet and stuff might break.
-        [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(MpvPlayer))]
         [STAThread]
         public static void Main(string[] args)
         {

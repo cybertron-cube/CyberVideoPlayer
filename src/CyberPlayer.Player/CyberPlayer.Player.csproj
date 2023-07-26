@@ -64,6 +64,10 @@
   <PropertyGroup Condition=" !$(DefineConstants.Contains(PORTABLE)) ">
     <PublishAot>true</PublishAot>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <TrimmerRootDescriptor Include="Roots.xml" />
+  </ItemGroup>
 
   <ItemGroup>
     

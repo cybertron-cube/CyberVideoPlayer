@@ -13,11 +13,19 @@ namespace CyberPlayer.Player
         [STAThread]
         public static void Main(string[] args)
         {
+#if SINGLE
+            Setup.CheckInstance(args);
+#endif
+            
             LogHelper.SetupSerilog();
             Setup.Register();
             
             BuildAvaloniaApp()
                 .StartWithClassicDesktopLifetime(args);
+            
+#if SINGLE
+            Setup.Mutex.ReleaseMutex();
+#endif
         }
 
         // Avalonia configuration, don't remove; also used by visual designer.

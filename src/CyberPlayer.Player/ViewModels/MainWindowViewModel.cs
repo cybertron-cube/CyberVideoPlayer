@@ -3,12 +3,10 @@ using System;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Reactive;
-using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using CyberPlayer.Player.AppSettings;
 using Cybertron;
@@ -173,7 +171,7 @@ namespace CyberPlayer.Player.ViewModels
         {
             if (e == null)
             {
-                var app = (IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime;
+                var app = (IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!;
                 app.Shutdown();
                 return;
                 //This method will be called again by MainWindow with event args
@@ -182,7 +180,7 @@ namespace CyberPlayer.Player.ViewModels
             //TODO Do anything else needed to when shutting down normally 
         }
         
-        private string TempWebLinkFix(string markdown)
+        private static string TempWebLinkFix(string markdown)
         {
             var regex = new Regex(@"\*\*Full Changelog\*\*: (?<url>https://github\.com/.*)");
             Match match = regex.Match(markdown);

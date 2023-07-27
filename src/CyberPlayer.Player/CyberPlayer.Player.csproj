@@ -80,19 +80,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.0.999-cibuild0037568-beta" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.0.999-cibuild0037568-beta" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.999-cibuild0037568-beta" />
+    <PackageReference Include="Avalonia" Version="11.0.1" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.1" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.1" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.0.999-cibuild0037568-beta" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.999-cibuild0037568-beta" />
-    <PackageReference Include="HanumanInstitute.MvvmDialogs.Avalonia" Version="2.0.0-rc1" />
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.0.1" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.1" />
+    <PackageReference Include="HanumanInstitute.MvvmDialogs.Avalonia" Version="2.0.0" />
     <PackageReference Include="Markdown.Avalonia" Version="11.0.0" />
     <PackageReference Include="Serilog" Version="3.0.1" />
     <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="Splat.DependencyInjection.SourceGenerator" Version="1.1.93" PrivateAssets="all" />
-    <PackageReference Include="Splat.Serilog" Version="14.6.37" />
+    <PackageReference Include="Splat.Serilog" Version="14.7.1" />
   </ItemGroup>
 
   <ItemGroup>

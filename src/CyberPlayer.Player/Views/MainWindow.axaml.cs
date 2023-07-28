@@ -218,13 +218,17 @@ namespace CyberPlayer.Player.Views
             }
         }
 
-        private async void MenuItem_OnClick(object? sender, RoutedEventArgs e)
+        private IStorageFolder? _lastFolderLocation; //TODO maybe setting is useful for linux
+        
+        private async void OpenFileMenuItem_OnClick(object? sender, RoutedEventArgs e)
         {
             var result = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-                { AllowMultiple = false, Title = "Pick a video file" });
+                { AllowMultiple = false, Title = "Pick a video file", SuggestedStartLocation = _lastFolderLocation});
             
             var mediaPath = result.SingleOrDefault()?.Path.LocalPath;
             if (mediaPath == null) return;
+
+            _lastFolderLocation = await result.Single().GetParentAsync();
             
             ViewModel!.MpvPlayer.LoadFile(mediaPath);
         }

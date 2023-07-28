@@ -20,7 +20,7 @@
 		<!-- Seek 5 seconds backward -->
 		<KeyBinding Gesture="Ctrl+Right" Command="{Binding MpvPlayer.FrameStepCommand}" CommandParameter="{x:Static mpv:MpvCommands.StepForward}" />
 		<KeyBinding Gesture="Ctrl+Left" Command="{Binding MpvPlayer.FrameStepCommand}" CommandParameter="{x:Static mpv:MpvCommands.StepBackward}" />
-		<KeyBinding Gesture="M" Command="{Binding MpvPlayer.Mute}" />
+		<KeyBinding Gesture="M" Command="{Binding MpvPlayer.set_IsMuted}" CommandParameter="{Binding !MpvPlayer.IsMuted}" />
 		<!-- Increase Volume -->
 		<!-- Decrease Volume -->
 		
@@ -127,7 +127,8 @@
 				Margin="0, 0, 0, 0"
 				DockPanel.Dock="Right"
 				Focusable="False"
-				Command="{Binding MpvPlayer.Mute}">
+				Command="{Binding MpvPlayer.set_IsMuted}"
+				CommandParameter="{Binding !MpvPlayer.IsMuted}">
 				<Panel>
 					<Image Source="{SvgImage /Assets/Images/Controls_Mute_Speaker.svg}" />
 					<Image IsVisible="{Binding !MpvPlayer.IsMuted}" Source="{SvgImage /Assets/Images/Controls_Mute_Waves.svg}" />

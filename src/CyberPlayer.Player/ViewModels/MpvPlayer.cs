@@ -323,7 +323,13 @@ public class MpvPlayer : ViewModelBase
     public bool IsMuted
     {
         get => _isMuted;
-        set => this.RaiseAndSetIfChanged(ref _isMuted, value);
+        set
+        {
+            if (_isMuted == value) return;
+            _isMuted = value;
+            this.RaisePropertyChanged();
+            MpvContext.SetPropertyFlag(MpvProperties.Muted, value);
+        }
     }
 
     private void FrameStep(string param)
@@ -334,12 +340,6 @@ public class MpvPlayer : ViewModelBase
         }
         MpvContext.CommandAsync(0, param);
         UpdateSliderValue();
-    }
-
-    public void Mute()
-    {
-        MpvContext.SetPropertyFlag(MpvProperties.Muted, !IsMuted);
-        IsMuted = !IsMuted;
     }
     
     public void PlayPause()

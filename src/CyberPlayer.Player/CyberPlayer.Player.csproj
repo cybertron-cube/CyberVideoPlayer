@@ -101,10 +101,6 @@
     <TrimmerRootAssembly Include="Cybertron" />
     <ProjectReference Include="..\LibMpv.Context\LibMpv.Context.csproj" />
   </ItemGroup>
-  
-  <ItemGroup>
-    <Folder Include="Models\" />
-  </ItemGroup>
 
   <Target Name="FFmpegCopy" AfterTargets="CoreCompile">
     <Copy Condition=" $(DefineConstants.Contains(WINX64)) Or $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\ffmpeg\win\ffmpeg.exe;..\..\ffmpeg\win\ffprobe.exe" DestinationFolder="$(OutDir)\ffmpeg" SkipUnchangedFiles="true" />

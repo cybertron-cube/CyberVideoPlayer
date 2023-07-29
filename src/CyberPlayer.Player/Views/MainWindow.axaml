@@ -55,8 +55,7 @@
 				*this doesn't work for nativevideoview-->
 			<Panel.ContextMenu>
 				<ContextMenu>
-					<MenuItem Name="AudioTracks" Header="Audio Tracks" ItemsSource="">
-						<MenuItem Header="test" />
+					<MenuItem Header="Audio Tracks" ItemsSource="{Binding MpvPlayer.AudioTrackInfos}" Click="ChangeAudioTrackButton_OnClick">
 					</MenuItem>
 				</ContextMenu>
 			</Panel.ContextMenu>

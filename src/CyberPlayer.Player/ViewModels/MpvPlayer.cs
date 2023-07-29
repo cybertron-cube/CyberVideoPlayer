@@ -1,11 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reactive;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using CyberPlayer.Player.AppSettings;
+using CyberPlayer.Player.Models;
 using Cybertron;
 using LibMpv.Client;
 using ReactiveUI;
@@ -102,6 +106,8 @@ public class MpvPlayer : ViewModelBase
             this.RaisePropertyChanged(nameof(TrimEndTimeCodeString));
             this.RaisePropertyChanged(nameof(DurationTimeCodeString));
             this.RaisePropertyChanged(nameof(SeekTimeCodeString));
+            
+            GetTracks();
         }
         Debug.WriteLine(Duration);
     }
@@ -332,6 +338,14 @@ public class MpvPlayer : ViewModelBase
         }
     }
 
+    private IEnumerable<TrackInfo> _audioTrackInfos;
+
+    public IEnumerable<TrackInfo> AudioTrackInfos
+    {
+        get => _audioTrackInfos;
+        set => this.RaiseAndSetIfChanged(ref _audioTrackInfos, value);
+    }
+
     private void FrameStep(string param)
     {
         if (IsPlaying)
@@ -340,6 +354,18 @@ public class MpvPlayer : ViewModelBase
         }
         MpvContext.CommandAsync(0, param);
         UpdateSliderValue();
+    }
+
+    private void GetTracks()
+    {
+        var trackInfosJson = MpvContext.GetPropertyString(MpvProperties.TrackList);
+        var trackInfos = JsonSerializer.Deserialize(trackInfosJson, TrackInfoJsonContext.Default.TrackInfoArray);
+        AudioTrackInfos = trackInfos!.Where(x => x.Type == "audio");
+    }
+
+    public void ChangeAudioTrack(string trackId)
+    {
+        MpvContext.SetPropertyString(MpvProperties.AudioTrackId, trackId);
     }
     
     public void PlayPause()

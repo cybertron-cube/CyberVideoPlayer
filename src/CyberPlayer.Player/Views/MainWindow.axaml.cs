@@ -3,7 +3,6 @@ using Avalonia.ReactiveUI;
 using Avalonia.Interactivity;
 using CyberPlayer.Player.ViewModels;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,8 +17,8 @@ using CyberPlayer.Player.DecoderVideoViews;
 using Cybertron;
 using DynamicData.Binding;
 using LibMpv.Client;
-using ReactiveUI;
 using System.Diagnostics.CodeAnalysis;
+using CyberPlayer.Player.Models;
 
 namespace CyberPlayer.Player.Views
 {
@@ -231,6 +230,17 @@ namespace CyberPlayer.Player.Views
             _lastFolderLocation = await result.Single().GetParentAsync();
             
             ViewModel!.MpvPlayer.LoadFile(mediaPath);
+        }
+        
+        private void ChangeAudioTrackButton_OnClick(object? sender, RoutedEventArgs e)
+        {
+            var selectedMenuItem = e.Source as MenuItem;
+            var selectedTrackInfo = selectedMenuItem?.DataContext as TrackInfo;
+            var selectedTrackId = selectedTrackInfo?.Id.ToString();
+            if (selectedTrackId != null)
+            {
+                ViewModel!.MpvPlayer.ChangeAudioTrack(selectedTrackId);
+            }
         }
     }
 }

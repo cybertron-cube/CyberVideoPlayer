@@ -14,6 +14,7 @@ using Cybertron.CUpdater;
 using Splat;
 using CyberPlayer.Player.Business;
 using CyberPlayer.Player.Services;
+using ReactiveUI.Fody.Helpers;
 using ILogger = Serilog.ILogger;
 
 namespace CyberPlayer.Player.ViewModels
@@ -23,20 +24,15 @@ namespace CyberPlayer.Player.ViewModels
         private readonly ILogger _log;
         public readonly Settings Settings;
         
-        private MpvPlayer _mpvPlayer;
-
-        public MpvPlayer MpvPlayer
-        {
-            get => _mpvPlayer;
-            set => this.RaiseAndSetIfChanged(ref _mpvPlayer, value);
-        }
+        [Reactive]
+        public MpvPlayer MpvPlayer { get; set; }
 
 #if DEBUG
         //For previewer
         public MainWindowViewModel()
         {
             Settings = new Settings();
-            _mpvPlayer = new MpvPlayer(Settings);
+            MpvPlayer = new MpvPlayer(Settings);
             
             CheckForUpdatesCommand = ReactiveCommand.CreateFromTask(CheckForUpdates);
             //ExitAppCommand = ReactiveCommand.Create<EventArgs?>(ExitApp);
@@ -48,7 +44,7 @@ namespace CyberPlayer.Player.ViewModels
         {
             _log = logger.ForContext<MainWindowViewModel>();
             Settings = settings;
-            _mpvPlayer = mpvPlayer;
+            MpvPlayer = mpvPlayer;
             
             CheckForUpdatesCommand = ReactiveCommand.CreateFromTask(CheckForUpdates);
             //ExitAppCommand = ReactiveCommand.Create<EventArgs?>(ExitApp);
@@ -58,21 +54,11 @@ namespace CyberPlayer.Player.ViewModels
         
         //public ReactiveCommand<EventArgs?, Unit> ExitAppCommand { get; }
         
-        private object? _videoContent;
+        [Reactive]
+        public object? VideoContent { get; set; }
 
-        public object? VideoContent
-        {
-            get => _videoContent;
-            set => this.RaiseAndSetIfChanged(ref _videoContent, value);
-        }
-
-        private object? _seekContent;
-        
-        public object? SeekContent
-        {
-            get => _seekContent;
-            set => this.RaiseAndSetIfChanged(ref _seekContent, value);
-        }
+        [Reactive]
+        public object? SeekContent { get; set; }
 
         private async Task CheckForUpdates()
         {

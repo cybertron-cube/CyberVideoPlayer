@@ -1,7 +1,7 @@
 ﻿using System;
 using Avalonia.Controls;
 using DynamicData.Binding;
-using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 
 namespace CyberPlayer.Player.ViewModels;
 
@@ -9,29 +9,14 @@ public class MessagePopupViewModel : ViewModelBase, IDialogContent
 {
     public IObservable<bool> CloseDialog { get; }
     
-    private bool _close;
-    
-    public bool Close
-    {
-        get => _close;
-        set => this.RaiseAndSetIfChanged(ref _close, value);
-    }
+    [Reactive]
+    public bool Close { get; set; }
 
-    private string _message = string.Empty;
+    [Reactive]
+    public string? Message { get; set; }
 
-    public string Message
-    {
-        get => _message;
-        set => this.RaiseAndSetIfChanged(ref _message, value);
-    }
-
-    private string _title = string.Empty;
-
-    public string Title
-    {
-        get => _title;
-        set => this.RaiseAndSetIfChanged(ref _title, value);
-    }
+    [Reactive]
+    public string? Title { get; set; }
 
     public MessagePopupViewModel()
     {
@@ -39,8 +24,8 @@ public class MessagePopupViewModel : ViewModelBase, IDialogContent
 
         if (Design.IsDesignMode)
         {
-            _title = "Yeet SKEET!";
-            _message = """
+            Title = "Yeet SKEET!";
+            Message = """
             # Release 1.0.5
             ## Features
             + Add support for OSX

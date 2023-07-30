@@ -1,7 +1,6 @@
 ﻿using System;
-using CyberPlayer.Player.Views;
 using DynamicData.Binding;
-using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 
 namespace CyberPlayer.Player.ViewModels;
 
@@ -9,29 +8,14 @@ public class ProgressViewModel : ViewModelBase, IDialogContent
 {
     public IObservable<bool> CloseDialog { get; }
 
-    private bool _close;
-    
-    public bool Close
-    {
-        get => _close;
-        set => this.RaiseAndSetIfChanged(ref _close, value);
-    }
+    [Reactive]
+    public bool Close { get; set; }
 
-    private string _labelText = "LABEL TEXT";
+    [Reactive]
+    public string? LabelText { get; set; }
 
-    public string LabelText
-    {
-        get => _labelText;
-        set => this.RaiseAndSetIfChanged(ref _labelText, value);
-    }
-
-    private double _progressValue;
-
-    public double ProgressValue
-    {
-        get => _progressValue;
-        set => this.RaiseAndSetIfChanged(ref _progressValue, value);
-    }
+    [Reactive]
+    public double ProgressValue { get; set; }
 
     public ProgressViewModel()
     {

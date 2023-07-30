@@ -13,6 +13,7 @@ using CyberPlayer.Player.Models;
 using Cybertron;
 using LibMpv.Client;
 using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 
 namespace CyberPlayer.Player.ViewModels;
 
@@ -172,13 +173,8 @@ public class MpvPlayer : ViewModelBase
 
     public string TrimEndTimeCodeString => _trimEndTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength);
 
-    private bool _isFileLoaded;
-    
-    public bool IsFileLoaded
-    {
-        get => _isFileLoaded;
-        set => this.RaiseAndSetIfChanged(ref _isFileLoaded, value);
-    }
+    [Reactive]
+    public bool IsFileLoaded { get; set; }
     
     public CancellationTokenSource UpdateSliderTaskCTS { get; }
 
@@ -338,13 +334,8 @@ public class MpvPlayer : ViewModelBase
         }
     }
 
-    private IEnumerable<TrackInfo> _audioTrackInfos;
-
-    public IEnumerable<TrackInfo> AudioTrackInfos
-    {
-        get => _audioTrackInfos;
-        set => this.RaiseAndSetIfChanged(ref _audioTrackInfos, value);
-    }
+    [Reactive]
+    public IEnumerable<TrackInfo>? AudioTrackInfos { get; set; }
 
     private void FrameStep(string param)
     {

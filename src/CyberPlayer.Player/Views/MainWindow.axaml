@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:CyberPlayer.Player.ViewModels"
+        xmlns:models="clr-namespace:CyberPlayer.Player.Models"
 		xmlns:local="clr-namespace:CyberPlayer.Player"
         xmlns:mpv="clr-namespace:LibMpv.Client;assembly=LibMpv.Context"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -55,7 +56,38 @@
 				*this doesn't work for nativevideoview-->
 			<Panel.ContextMenu>
 				<ContextMenu>
-					<MenuItem Header="Audio Tracks" ItemsSource="{Binding MpvPlayer.AudioTrackInfos}" Click="ChangeAudioTrackButton_OnClick">
+					<MenuItem Name="AudioTrackMenu" Header="Audio Tracks" Classes="SubItems" ItemsSource="{Binding MpvPlayer.AudioTrackInfos}" Click="ChangeAudioTrackButton_OnClick">
+						<MenuItem.Styles>
+							<Style Selector="MenuItem.SubItems MenuItem">
+								<Setter Property="Icon">
+									<Template>
+										<Panel>
+											<Panel.Styles>
+												<Style Selector="Path">
+													<Setter Property="Data" Value="{StaticResource CircleGeometry}" />
+													<Setter Property="Margin" Value="4, 5, 0, 0" />
+												</Style>
+											</Panel.Styles>
+											<Path Stroke="#635552"
+											      StrokeThickness="2"
+											      Fill="Transparent"
+											      IsVisible="{Binding !Selected, DataType=models:TrackInfo}" />
+											<Path Stroke="Gray"
+											      StrokeThickness="2"
+											      Fill="Gray"
+											      IsVisible="{Binding Selected, DataType=models:TrackInfo}" />
+											<Path Fill="Blue"
+											      RenderTransformOrigin="5, 5"
+											      IsVisible="{Binding Selected, DataType=models:TrackInfo}">
+												<Path.RenderTransform>
+													<ScaleTransform ScaleX="0.5" ScaleY="0.5" />
+												</Path.RenderTransform>
+											</Path>
+										</Panel>
+									</Template>
+								</Setter>
+							</Style>
+						</MenuItem.Styles>
 					</MenuItem>
 				</ContextMenu>
 			</Panel.ContextMenu>

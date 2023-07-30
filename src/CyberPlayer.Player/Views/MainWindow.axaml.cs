@@ -235,11 +235,9 @@ namespace CyberPlayer.Player.Views
         private void ChangeAudioTrackButton_OnClick(object? sender, RoutedEventArgs e)
         {
             var selectedMenuItem = e.Source as MenuItem;
-            var selectedTrackInfo = selectedMenuItem?.DataContext as TrackInfo;
-            var selectedTrackId = selectedTrackInfo?.Id.ToString();
-            if (selectedTrackId != null)
+            if (selectedMenuItem?.DataContext is TrackInfo selectedTrackInfo)
             {
-                ViewModel!.MpvPlayer.ChangeAudioTrack(selectedTrackId);
+                ViewModel!.MpvPlayer.SelectedAudioTrack = selectedTrackInfo;
             }
         }
     }

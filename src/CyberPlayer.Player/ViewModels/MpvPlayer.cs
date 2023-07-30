@@ -337,6 +337,25 @@ public class MpvPlayer : ViewModelBase
     [Reactive]
     public IEnumerable<TrackInfo>? AudioTrackInfos { get; set; }
 
+    private TrackInfo? _selectedAudioTrack;
+
+    public TrackInfo? SelectedAudioTrack
+    {
+        get => _selectedAudioTrack;
+        set
+        {
+            if (value == _selectedAudioTrack) return;
+            if (_selectedAudioTrack != null) _selectedAudioTrack.Selected = false;
+            if (value != null)
+            {
+                value.Selected = true;
+                MpvContext.SetPropertyString(MpvProperties.AudioTrackId, value.Id.ToString());
+            }
+            _selectedAudioTrack = value;
+            this.RaisePropertyChanged();
+        }
+    }
+
     private void FrameStep(string param)
     {
         if (IsPlaying)
@@ -352,11 +371,7 @@ public class MpvPlayer : ViewModelBase
         var trackInfosJson = MpvContext.GetPropertyString(MpvProperties.TrackList);
         var trackInfos = JsonSerializer.Deserialize(trackInfosJson, TrackInfoJsonContext.Default.TrackInfoArray);
         AudioTrackInfos = trackInfos!.Where(x => x.Type == "audio");
-    }
-
-    public void ChangeAudioTrack(string trackId)
-    {
-        MpvContext.SetPropertyString(MpvProperties.AudioTrackId, trackId);
+        SelectedAudioTrack = AudioTrackInfos.First();
     }
     
     public void PlayPause()

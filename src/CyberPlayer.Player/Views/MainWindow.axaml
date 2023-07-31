@@ -56,9 +56,11 @@
 				*this doesn't work for nativevideoview-->
 			<Panel.ContextMenu>
 				<ContextMenu>
-					<MenuItem Name="AudioTrackMenu" Header="Audio Tracks" Classes="SubItems" ItemsSource="{Binding MpvPlayer.AudioTrackInfos}" Click="ChangeAudioTrackButton_OnClick">
+					<MenuItem Name="AudioTrackMenu" Header="Audio Tracks" Classes="SubItems" ItemsSource="{Binding MpvPlayer.AudioTrackInfos}">
 						<MenuItem.Styles>
 							<Style Selector="MenuItem.SubItems MenuItem">
+								<Setter Property="Command" Value="{Binding $parent[MenuItem].((vm:MainWindowViewModel)DataContext).MpvPlayer.set_SelectedAudioTrack}" />
+								<Setter Property="CommandParameter" Value="{Binding ., DataType=models:TrackInfo}" />
 								<Setter Property="Icon">
 									<Template>
 										<Panel>

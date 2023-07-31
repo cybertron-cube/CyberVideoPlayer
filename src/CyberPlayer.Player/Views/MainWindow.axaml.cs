@@ -18,7 +18,6 @@ using Cybertron;
 using DynamicData.Binding;
 using LibMpv.Client;
 using System.Diagnostics.CodeAnalysis;
-using CyberPlayer.Player.Models;
 
 namespace CyberPlayer.Player.Views
 {
@@ -230,15 +229,6 @@ namespace CyberPlayer.Player.Views
             _lastFolderLocation = await result.Single().GetParentAsync();
             
             ViewModel!.MpvPlayer.LoadFile(mediaPath);
-        }
-        
-        private void ChangeAudioTrackButton_OnClick(object? sender, RoutedEventArgs e)
-        {
-            var selectedMenuItem = e.Source as MenuItem;
-            if (selectedMenuItem?.DataContext is TrackInfo selectedTrackInfo)
-            {
-                ViewModel!.MpvPlayer.SelectedAudioTrack = selectedTrackInfo;
-            }
         }
     }
 }

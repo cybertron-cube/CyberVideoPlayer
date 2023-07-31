@@ -34,7 +34,7 @@
     </Design.DataContext>
 
 	<Grid Name="MainGrid" ColumnDefinitions="*" RowDefinitions="33, *, 50, 40, 20"><!-- 33,*,50,40/35 -->
-		<Menu Background="DimGray" Grid.Row="0" Height="33" Margin="0, 0, 0, 0">
+		<Menu Name="MenuBar" Background="DimGray" Grid.Row="0" Height="33" Margin="0, 0, 0, 0">
 			<MenuItem Header="_File">
 				<MenuItem Header="_Open" Click="OpenFileMenuItem_OnClick" />
 				<MenuItem Header="_Close" />
@@ -96,80 +96,80 @@
 			<ContentControl Content="{Binding VideoContent}" />
 		</Panel>
 		
-		<Border Grid.Row="2" Grid.RowSpan="2" Background="DimGray" />
+		<ContentControl Name="SeekContentControl" Grid.Row="2" Background="DimGray" Content="{Binding SeekContent}" />
 		
-		<ContentControl Grid.Row="2" Content="{Binding SeekContent}" />
+		<Border Name="ControlsBorder" Grid.Row="3" Background="DimGray">
+			<DockPanel Name="ControlsPanel" LastChildFill="False" Margin="5, 0">
+				<Button
+					Name="PlayButton"
+					Height="32"
+					Width="32"
+					Focusable="False"
+					Command="{Binding MpvPlayer.PlayPause}">
+					<Panel>
+						<Image IsVisible="{Binding MpvPlayer.IsPlaying}" Source="{SvgImage /Assets/Images/Controls_Pause.svg}" />
+						<Image IsVisible="{Binding !MpvPlayer.IsPlaying}" Source="{SvgImage /Assets/Images/Controls_Play.svg}" />
+					</Panel>
+				</Button>
+				<Button
+					Height="32"
+					Width="32"
+					Focusable="False"
+					Command="{Binding MpvPlayer.FrameStepCommand}"
+					CommandParameter="{x:Static mpv:MpvCommands.StepBackward}">
+					<Image Source="{SvgImage /Assets/Images/Controls_FrameStep.svg}">
+						<Image.RenderTransform>
+							<ScaleTransform ScaleX="-1" />
+						</Image.RenderTransform>
+					</Image>
+				</Button>
+				<Button
+					Height="32"
+					Width="32"
+					Focusable="False"
+					Command="{Binding MpvPlayer.FrameStepCommand}"
+					CommandParameter="{x:Static mpv:MpvCommands.StepForward}">
+					<Image Source="{SvgImage /Assets/Images/Controls_FrameStep.svg}" />
+				</Button>
+				<!--height: 30, width: 100-->
+				<Label
+					VerticalAlignment="Center"
+					VerticalContentAlignment="Center"
+					Width="41"
+					DockPanel.Dock="Right"
+					Content="{Binding MpvPlayer.VolumeValue, StringFormat='{}{0:0}%'}" />
+				<Slider
+					Name="VolumeSlider"
+					Classes="Volume"
+					Foreground="LimeGreen"
+					Background="Transparent"
+					DockPanel.Dock="Right"
+					Maximum="100"
+					LargeChange="20"
+					SmallChange="5"
+					Value="{Binding MpvPlayer.VolumeValue}"
+					Height="20"
+					Width="60"
+					IsVisible="True"
+					Focusable="False"/>
+				<Button
+					Name="MuteButton"
+					Background="Transparent"
+					Height="32"
+					Margin="0, 0, 0, 0"
+					DockPanel.Dock="Right"
+					Focusable="False"
+					Command="{Binding MpvPlayer.set_IsMuted}"
+					CommandParameter="{Binding !MpvPlayer.IsMuted}">
+					<Panel>
+						<Image Source="{SvgImage /Assets/Images/Controls_Mute_Speaker.svg}" />
+						<Image IsVisible="{Binding !MpvPlayer.IsMuted}" Source="{SvgImage /Assets/Images/Controls_Mute_Waves.svg}" />
+					</Panel>
+				</Button>
+			</DockPanel>
+		</Border>
 		
-		<DockPanel Name="ControlsPanel" LastChildFill="False" Margin="5, 0" Grid.Row="3">
-			<Button
-				Name="PlayButton"
-				Height="32"
-				Width="32"
-				Focusable="False"
-				Command="{Binding MpvPlayer.PlayPause}">
-				<Panel>
-					<Image IsVisible="{Binding MpvPlayer.IsPlaying}" Source="{SvgImage /Assets/Images/Controls_Pause.svg}" />
-					<Image IsVisible="{Binding !MpvPlayer.IsPlaying}" Source="{SvgImage /Assets/Images/Controls_Play.svg}" />
-				</Panel>
-			</Button>
-			<Button
-				Height="32"
-				Width="32"
-				Focusable="False"
-				Command="{Binding MpvPlayer.FrameStepCommand}"
-				CommandParameter="{x:Static mpv:MpvCommands.StepBackward}">
-				<Image Source="{SvgImage /Assets/Images/Controls_FrameStep.svg}">
-					<Image.RenderTransform>
-						<ScaleTransform ScaleX="-1" />
-					</Image.RenderTransform>
-				</Image>
-			</Button>
-			<Button
-				Height="32"
-				Width="32"
-				Focusable="False"
-				Command="{Binding MpvPlayer.FrameStepCommand}"
-				CommandParameter="{x:Static mpv:MpvCommands.StepForward}">
-				<Image Source="{SvgImage /Assets/Images/Controls_FrameStep.svg}" />
-			</Button>
-			<!--height: 30, width: 100-->
-			<Label
-				VerticalAlignment="Center"
-				VerticalContentAlignment="Center"
-				Width="41"
-				DockPanel.Dock="Right"
-				Content="{Binding MpvPlayer.VolumeValue, StringFormat='{}{0:0}%'}" />
-			<Slider
-				Name="VolumeSlider"
-				Classes="Volume"
-				Foreground="LimeGreen"
-				Background="Transparent"
-				DockPanel.Dock="Right"
-				Maximum="100"
-				LargeChange="20"
-				SmallChange="5"
-				Value="{Binding MpvPlayer.VolumeValue}"
-				Height="20"
-				Width="60"
-				IsVisible="True"
-				Focusable="False"/>
-			<Button
-				Name="MuteButton"
-				Background="Transparent"
-				Height="32"
-				Margin="0, 0, 0, 0"
-				DockPanel.Dock="Right"
-				Focusable="False"
-				Command="{Binding MpvPlayer.set_IsMuted}"
-				CommandParameter="{Binding !MpvPlayer.IsMuted}">
-				<Panel>
-					<Image Source="{SvgImage /Assets/Images/Controls_Mute_Speaker.svg}" />
-					<Image IsVisible="{Binding !MpvPlayer.IsMuted}" Source="{SvgImage /Assets/Images/Controls_Mute_Waves.svg}" />
-				</Panel>
-			</Button>
-		</DockPanel>
-		
-		<DockPanel Grid.Row="4" Margin="3, 0" LastChildFill="False">
+		<DockPanel Name="InfoPanel" Grid.Row="4" Margin="3, 0" LastChildFill="False">
 			<TextBlock
 				DockPanel.Dock="Right">
 				<TextBlock.Text>

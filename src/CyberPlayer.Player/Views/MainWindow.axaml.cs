@@ -190,15 +190,15 @@ namespace CyberPlayer.Player.Views
             SetSeekControlType(ViewModel!.SeekContent is TimelineControl ? SeekControlTypes.Normal : SeekControlTypes.Trim);
         }
         
-        private async void MainWindow_Loaded(object? sender, RoutedEventArgs e)
+        private void MainWindow_Loaded(object? sender, RoutedEventArgs e)
         {
 #if !DEBUG
             if (string.IsNullOrWhiteSpace(ViewModel!.MpvPlayer.MediaPath)) return;
             
-            await Task.Delay(10);
-            ViewModel!.MpvPlayer.MpvContext.SetPropertyFlag("pause", false); //autoplay
-            ViewModel!.MpvPlayer.MpvContext.Command("loadfile", ViewModel!.MpvPlayer.MediaPath, "replace");
-            ViewModel!.MpvPlayer.IsPlaying = true;
+            Dispatcher.UIThread.Post(() =>
+            {
+                ViewModel!.MpvPlayer.LoadFile();
+            });
 #endif
         }
         private void MainWindow_Closed(object? sender, EventArgs e)

@@ -18,6 +18,8 @@ using Cybertron;
 using DynamicData.Binding;
 using LibMpv.Client;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using Avalonia.Threading;
 
 namespace CyberPlayer.Player.Views
 {
@@ -36,6 +38,18 @@ namespace CyberPlayer.Player.Views
             
             AddHandler(DragDrop.DropEvent, Drop!);
             AddHandler(DragDrop.DragOverEvent, DragOver!);
+            
+            _cursorTimer = new Timer(_ =>
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    if (WindowState == WindowState.FullScreen && !MenuBar.IsPointerOver && !LowerGrid.IsPointerOver)
+                    {
+                        Cursor = _noCursor;
+                        Debug.WriteLine("Cursor set to none");
+                    }
+                });
+            });
             
 #if DEBUG
             Button testButton = new()
@@ -106,6 +120,10 @@ namespace CyberPlayer.Player.Views
             if (e.Key == Key.T && e.KeyModifiers == KeyModifiers.Control)
             {
                 InvertSeekControl();
+            }
+            else if (e.Key == Key.F && e.KeyModifiers == KeyModifiers.Control)
+            {
+                FullScreen();
             }
         }
 
@@ -229,6 +247,75 @@ namespace CyberPlayer.Player.Views
             _lastFolderLocation = await result.Single().GetParentAsync();
             
             ViewModel!.MpvPlayer.LoadFile(mediaPath);
+        }
+
+        private void VideoPanel_OnDoubleTapped(object? sender, TappedEventArgs e)
+        {
+            FullScreen();
+        }
+
+        private readonly Cursor _noCursor = new(StandardCursorType.None);
+        
+        private void FullScreen()
+        {
+            if (WindowState == WindowState.FullScreen)
+            {
+                WindowState = WindowState.Normal;
+                
+                MenuBar.ZIndex = 0;
+                MenuBar.Classes.Remove("FadeFullscreen");
+                LowerGrid.Classes.Remove("FadeFullscreen");
+                
+                Grid.SetRow(VideoPanel, 1);
+                Grid.SetRowSpan(VideoPanel, 1);
+                
+                PointerPressed -= MainWindow_PointerPressed;
+                PointerMoved -= MainWindow_PointerMoved;
+                Cursor = Cursor.Default;
+            }
+            else
+            {
+                MenuBar.ZIndex = 1;
+                MenuBar.Classes.Add("FadeFullscreen");
+                LowerGrid.Classes.Add("FadeFullscreen");
+                
+                Grid.SetRow(VideoPanel, 0);
+                Grid.SetRowSpan(VideoPanel, MainGrid.RowDefinitions.Count);
+
+                PointerPressed += MainWindow_PointerPressed;
+                PointerMoved += MainWindow_PointerMoved;
+                
+                WindowState = WindowState.FullScreen;
+            }
+        }
+
+        private void MainWindow_PointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            if (MenuBar.IsPointerOver || LowerGrid.IsPointerOver) return;
+            
+            _ignorePointerPress = true;
+        }
+
+        private bool _ignorePointerPress;
+        private readonly Timer _cursorTimer;
+        
+        private void MainWindow_PointerMoved(object? sender, PointerEventArgs e)
+        {
+            if (MenuBar.IsPointerOver || LowerGrid.IsPointerOver) return;
+            
+            if (_ignorePointerPress)
+            {
+                _ignorePointerPress = false;
+                return;
+            }
+            
+            if (Cursor != Cursor.Default)
+            {
+                Cursor = Cursor.Default;
+                Debug.WriteLine("Cursor set to default");
+            }
+
+            _cursorTimer.Change(1000, Timeout.Infinite);
         }
     }
 }

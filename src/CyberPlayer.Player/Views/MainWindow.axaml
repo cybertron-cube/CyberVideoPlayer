@@ -28,12 +28,26 @@
 		<KeyBinding Gesture="I" Command="{Binding MpvPlayer.set_TrimStartTime}" CommandParameter="{Binding MpvPlayer.SeekValue}" />
 		<KeyBinding Gesture="O" Command="{Binding MpvPlayer.set_TrimEndTime}" CommandParameter="{Binding MpvPlayer.SeekValue}" />
 	</Window.KeyBindings>
+	
+	<Window.Styles>
+		<Style Selector=":is(Control).FadeFullscreen">
+			<Setter Property="Opacity" Value="0" />
+			<Setter Property="Transitions">
+				<Transitions>
+					<DoubleTransition Property="Opacity" Duration="0:0:0.35" Easing="QuadraticEaseInOut" />
+				</Transitions>
+			</Setter>
+		</Style>
+		<Style Selector=":is(Control).FadeFullscreen:pointerover">
+			<Setter Property="Opacity" Value="1" />
+		</Style>
+	</Window.Styles>
 
 	<Design.DataContext>
         <vm:MainWindowViewModel />
     </Design.DataContext>
 
-	<Grid Name="MainGrid" ColumnDefinitions="*" RowDefinitions="33, *, 50, 40, 20"><!-- 33,*,50,40/35 -->
+	<Grid Name="MainGrid" ColumnDefinitions="*" RowDefinitions="33, *, 110"><!-- 33,*,50,40/35 -->
 		<Menu Name="MenuBar" Background="DimGray" Grid.Row="0" Height="33" Margin="0, 0, 0, 0">
 			<MenuItem Header="_File">
 				<MenuItem Header="_Open" Click="OpenFileMenuItem_OnClick" />
@@ -51,7 +65,7 @@
 			</MenuItem>
 		</Menu>
 		
-		<Panel Name="VideoPanel" PointerPressed="VideoPanel_OnPointerPressed" Grid.Row="1" DragDrop.AllowDrop="True" Background="Black">
+		<Panel Name="VideoPanel" PointerPressed="VideoPanel_OnPointerPressed" DoubleTapped="VideoPanel_OnDoubleTapped" Grid.Row="1" DragDrop.AllowDrop="True" Background="Black">
 			<!--Set background in order for contextmenu to interactable
 				*this doesn't work for nativevideoview-->
 			<Panel.ContextMenu>
@@ -96,10 +110,10 @@
 			<ContentControl Content="{Binding VideoContent}" />
 		</Panel>
 		
-		<ContentControl Name="SeekContentControl" Grid.Row="2" Background="DimGray" Content="{Binding SeekContent}" />
-		
-		<Border Name="ControlsBorder" Grid.Row="3" Background="DimGray">
-			<DockPanel Name="ControlsPanel" LastChildFill="False" Margin="5, 0">
+		<Grid Name="LowerGrid" Grid.Row="2" RowDefinitions="50, 40, 20" Background="DimGray">
+			<ContentControl Name="SeekContentControl" Grid.Row="0" Content="{Binding SeekContent}" />
+			
+			<DockPanel Name="ControlsPanel" Grid.Row="1" LastChildFill="False" Margin="5, 0">
 				<Button
 					Name="PlayButton"
 					Height="32"
@@ -167,19 +181,21 @@
 					</Panel>
 				</Button>
 			</DockPanel>
-		</Border>
-		
-		<DockPanel Name="InfoPanel" Grid.Row="4" Margin="3, 0" LastChildFill="False">
-			<TextBlock
-				DockPanel.Dock="Right">
-				<TextBlock.Text>
-					<MultiBinding StringFormat="{}{0} / {1}">
-						<Binding Path="MpvPlayer.SeekTimeCodeString" />
-						<Binding Path="MpvPlayer.DurationTimeCodeString" />
-					</MultiBinding>
-				</TextBlock.Text>
-			</TextBlock>
-		</DockPanel>
+			
+			<Border Grid.Row="2" Background="Black">
+				<DockPanel Name="InfoPanel" Margin="3, 0" LastChildFill="False">
+					<TextBlock
+						DockPanel.Dock="Right">
+						<TextBlock.Text>
+							<MultiBinding StringFormat="{}{0} / {1}">
+								<Binding Path="MpvPlayer.SeekTimeCodeString" />
+								<Binding Path="MpvPlayer.DurationTimeCodeString" />
+							</MultiBinding>
+						</TextBlock.Text>
+					</TextBlock>
+				</DockPanel>
+			</Border>
+		</Grid>
 	</Grid>
 	
 </Window>

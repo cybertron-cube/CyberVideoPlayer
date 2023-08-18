@@ -227,13 +227,13 @@ def DeleteBuildDirs():
 def CopyMpvLib():
     for build in ListDirs(BuildDirPath):
         if "win" in os.path.basename(build):
-            CopyFilesProgress(os.path.join(os.getcwd(), "mpv", "mpv-dev-x86_64", "libmpv-2.dll"), build)
+            CopyFilesProgress(os.path.join(os.getcwd(), "mpv", "win", "libmpv-2.dll"), build)
         elif "linux" in os.path.basename(build):
             CopyFilesProgress(os.path.join(os.getcwd(), "mpv", "linux-2.1.0", "libmpv.so.2"), build)
         #elif "osx" in os.path.basename(build):
             #CopyFilesProgress(ListFiles(os.path.join(os.getcwd(), "mpv", "osx")), build)
         elif "portable" in os.path.basename(build):
-            CopyFilesProgress(os.path.join(os.getcwd(), "mpv", "mpv-dev-x86_64", "libmpv-2.dll"), build)
+            CopyFilesProgress(os.path.join(os.getcwd(), "mpv", "win", "libmpv-2.dll"), build)
             CopyFilesProgress(os.path.join(os.getcwd(), "mpv", "linux-2.1.0", "libmpv.so.2"), build)
             #CopyFilesProgress(ListFiles(os.path.join(os.getcwd(), "mpv", "osx")), build)
 

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -113,8 +113,7 @@
   <Target Name="LibMpvCopy" AfterTargets="FFmpegCopy">
     <Copy Condition=" $(DefineConstants.Contains(WINX64)) Or $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\mpv\win\libmpv-2.dll" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
     <Copy Condition=" $(DefineConstants.Contains(LINUXX64)) " SourceFiles="..\..\mpv\linux-2.1.0\libmpv.so.2" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
-    <!-- TODO Compile libmpv for osx -->
-    <!--<Copy Condition=" $(DefineConstants.Contains(OSXX64)) " SourceFiles="..\..\ffmpeg\osx\ffmpeg" DestinationFolder="$(OutDir)\ffmpeg" SkipUnchangedFiles="true" />-->
+    <Copy Condition=" $(DefineConstants.Contains(OSXX64)) " SourceFiles="..\..\mpv\osx-arm64-2.1.0\libmpv.2.dylib" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
     <Copy Condition=" $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\mpv\linux-2.1.0\libmpv.so.2" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
     <!-- TODO Compile libmpv for osx -->
     <!--<Copy Condition=" $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\mpv\osx\" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />-->

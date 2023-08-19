@@ -12,11 +12,7 @@ public partial class libmpv
 
     static libmpv()
     {
-        EAGAIN = FunctionResolverFactory.GetPlatformId() switch
-        {
-            PlatformID.MacOSX => 35,
-            _ => 11
-        };
+        EAGAIN = OperatingSystem.IsMacOS() ? 35 : 11;
 
         DynamicallyLoadedBindings.Initialize();
     }

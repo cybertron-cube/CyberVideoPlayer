@@ -392,3 +392,4 @@ avalonia version changes.txt
 /build/
 /ffmpeg/
 /avalonia version changes.txt
+*.DS_Store

@@ -225,6 +225,8 @@ def CopyUpdater(updaterBuildPath: str):
             CopyFilesProgress(ListFiles(f"{os.path.join(updaterBuildPath, 'linux-x64')}", exclude=".pdb"), os.path.join(build, "updater"))
         elif "osx-x64" in os.path.basename(build):
             CopyFilesProgress(ListFiles(f"{os.path.join(updaterBuildPath, 'osx-x64')}", exclude=".pdb"), os.path.join(build, "updater"))
+        elif bool(re.search("osx.*arm64.*", os.path.basename(build))):
+            CopyFilesProgress(ListFiles(f"{os.path.join(updaterBuildPath, 'osx-arm64')}", exclude=".pdb"), os.path.join(build, "updater"))
         elif "portable" in os.path.basename(build):
             CopyFilesProgress(ListFiles(f"{os.path.join(updaterBuildPath, 'portable')}", exclude=".pdb"), os.path.join(build, "updater"))
 

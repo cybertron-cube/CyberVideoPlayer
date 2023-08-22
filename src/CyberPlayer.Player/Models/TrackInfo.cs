@@ -63,7 +63,7 @@ public class TrackInfo// : ReactiveObject
     
     [JsonRequired]
     [JsonPropertyName("selected")]
-    //[Reactive]
+    [Reactive]
     public bool Selected { get; set; }
     
     [JsonRequired]

@@ -393,3 +393,4 @@ avalonia version changes.txt
 /ffmpeg/
 /avalonia version changes.txt
 *.DS_Store
+win-installer/

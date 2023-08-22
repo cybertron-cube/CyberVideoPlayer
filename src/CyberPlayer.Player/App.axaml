@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:CyberPlayer.Player"
              x:Class="CyberPlayer.Player.App"
-			 RequestedThemeVariant="Default">
+			 RequestedThemeVariant="Dark">
     <!-- TODO Change RequestedThemeVariant above (Default, Light, Dark) -->
     <Application.DataTemplates>
         <local:ViewLocator/>

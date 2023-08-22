@@ -70,10 +70,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    
-    <!--TODO Remove this include after changing window icon-->
-    <AvaloniaResource Include="Assets\avalonia-logo.ico" />
-    
+    <AvaloniaResource Include="Assets\Logo\*.ico" />
     <AvaloniaResource Include="Assets\Images\*.svg" />
     <AvaloniaResource Include="Assets\Images\*.ico" />
     <None Remove=".gitignore" />

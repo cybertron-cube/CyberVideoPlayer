@@ -13,7 +13,7 @@
         x:CompileBindings="True"
         MinHeight="503"
         MinWidth="640"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/Logo/cyber-logo-sunset.ico"
         Title="{Binding MpvPlayer.MediaName}">
 	<Window.KeyBindings>
 		<KeyBinding Gesture="Space" Command="{Binding MpvPlayer.PlayPause}" />

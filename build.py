@@ -8,17 +8,17 @@ import tqdm
 import re
 
 CompileTargets = {
-    "win-x64-multi": f"-o \"{os.path.join('build', 'win-x64-multi')}\" -r win-x64 -c release-win-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "win-x64-single": f"-o \"{os.path.join('build', 'win-x64-single')}\" -r win-x64 -c release-win-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "linux-x64-multi": f"-o \"{os.path.join('build', 'linux-x64-multi')}\" -r linux-x64 -c release-linux-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "linux-x64-single": f"-o \"{os.path.join('build', 'linux-x64-single')}\" -r linux-x64 -c release-linux-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "osx-x64-multi": f"-o \"{os.path.join('build', 'osx-x64-multi')}\" -r osx-x64 -c release-osx-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "osx-x64-single": f"-o \"{os.path.join('build', 'osx-x64-single')}\" -r osx-x64 -c release-osx-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "osx.13-arm64-multi": f"-o \"{os.path.join('build', 'osx.13-arm64-multi')}\" -r osx.13-arm64 -c release-osx-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "osx.13-arm64-single": f"-o \"{os.path.join('build', 'osx.13-arm64-single')}\" -r osx.13-arm64 -c release-osx-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "portable-multi": f"-o \"{os.path.join('build', 'portable-multi')}\" -c release-portable-multi --sc false -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "portable-single": f"-o \"{os.path.join('build', 'portable-single')}\" -c release-portable-single --sc false -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "win-x64-installer": f"-o \"{os.path.join('build', 'win-x64-installer')}\" -r win-x64 -c release-win-x64-single --sc false -p:PublishReadyToRun=true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "win-x64-multi": f"-o {os.path.join('build', 'win-x64-multi')} -r win-x64 -c release-win-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "win-x64-single": f"-o {os.path.join('build', 'win-x64-single')} -r win-x64 -c release-win-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "linux-x64-multi": f"-o {os.path.join('build', 'linux-x64-multi')} -r linux-x64 -c release-linux-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "linux-x64-single": f"-o {os.path.join('build', 'linux-x64-single')} -r linux-x64 -c release-linux-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "osx-x64-multi": f"-o {os.path.join('build', 'osx-x64-multi')} -r osx-x64 -c release-osx-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "osx-x64-single": f"-o {os.path.join('build', 'osx-x64-single')} -r osx-x64 -c release-osx-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "osx.13-arm64-multi": f"-o {os.path.join('build', 'osx.13-arm64-multi')} -r osx.13-arm64 -c release-osx-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "osx.13-arm64-single": f"-o {os.path.join('build', 'osx.13-arm64-single')} -r osx.13-arm64 -c release-osx-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "portable-multi": f"-o {os.path.join('build', 'portable-multi')} -c release-portable-multi --sc false -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "portable-single": f"-o {os.path.join('build', 'portable-single')} -c release-portable-single --sc false -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "win-x64-installer": f"-o {os.path.join('build', 'win-x64-installer')} -r win-x64 -c release-win-x64-single --sc false -p:PublishReadyToRun=true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
     "sc": "all self contained",
     "all": "all of the above"
 }
@@ -135,7 +135,7 @@ def Compile(chosenTargets: str):
         for compileTarget in CompileTargets:
             if compileTarget == "sc" or compileTarget == "all":
                 continue
-            cmds = f"dotnet publish \"{os.path.join('src', 'cyberplayer.player', 'cyberplayer.player.csproj')}\" {CompileTargets[compileTarget]}"
+            cmds = f"dotnet publish {os.path.join('src', 'cyberplayer.player', 'cyberplayer.player.csproj')} {CompileTargets[compileTarget]}"
             subprocess.call(ParseCmds(cmds))
     elif ";" in chosenTargets:
         if chosenTargets.endswith(";"):
@@ -149,10 +149,10 @@ def Compile(chosenTargets: str):
                 if "--sc true" in CompileTargets[target] and target not in chosenTargets:
                     chosenTargets.append(target)
         for target in chosenTargets:
-            cmds = f"dotnet publish \"{os.path.join('src', 'cyberplayer.player', 'cyberplayer.player.csproj')}\" {CompileTargets[target]}"
+            cmds = f"dotnet publish {os.path.join('src', 'cyberplayer.player', 'cyberplayer.player.csproj')} {CompileTargets[target]}"
             subprocess.call(ParseCmds(cmds))
     else:
-        cmds = f"dotnet publish \"{os.path.join('src', 'cyberplayer.player', 'cyberplayer.player.csproj')}\" {CompileTargets[chosenTargets]}"
+        cmds = f"dotnet publish {os.path.join('src', 'cyberplayer.player', 'cyberplayer.player.csproj')} {CompileTargets[chosenTargets]}"
         subprocess.call(ParseCmds(cmds))
 
 def CopyFFmpeg():

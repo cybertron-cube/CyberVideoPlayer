@@ -325,4 +325,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
 
         _cursorTimer.Change(1000, Timeout.Infinite);
     }
+
+    private void ShowMenuBarMenuItem_OnClick(object? sender, RoutedEventArgs e)
+    {
+        ToggleMenuBar();
+    }
 }

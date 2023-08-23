@@ -50,7 +50,7 @@
 	<Grid Name="MainGrid" ColumnDefinitions="*" RowDefinitions="33, *, 110"><!-- 33,*,50,40/35 -->
 		<Menu Name="MenuBar" Background="DimGray" Grid.Row="0" Height="33" Margin="0, 0, 0, 0">
 			<MenuItem Header="_File">
-				<MenuItem Header="_Open" Click="OpenFileMenuItem_OnClick" />
+				<MenuItem Header="_Open" Command="{Binding MediaPickerCommand}" />
 				<MenuItem Header="_Close" />
 			</MenuItem>
 			<MenuItem Header="_Edit">

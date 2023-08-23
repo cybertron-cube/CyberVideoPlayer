@@ -11,7 +11,6 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
-using Avalonia.Platform.Storage;
 using CyberPlayer.Player.Controls;
 using CyberPlayer.Player.DecoderVideoViews;
 using Cybertron;
@@ -211,12 +210,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
     private void MainWindow_Loaded(object? sender, RoutedEventArgs e)
     {
 #if !DEBUG
-            if (string.IsNullOrWhiteSpace(ViewModel!.MpvPlayer.MediaPath)) return;
-            
-            Dispatcher.UIThread.Post(() =>
-            {
-                ViewModel!.MpvPlayer.LoadFile();
-            });
+        if (string.IsNullOrWhiteSpace(ViewModel!.MpvPlayer.MediaPath)) return;
+        
+        Dispatcher.UIThread.Post(() =>
+        {
+            ViewModel!.MpvPlayer.LoadFile();
+        });
 #endif
     }
     private void MainWindow_Closed(object? sender, EventArgs e)
@@ -232,21 +231,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         {
             ViewModel!.MpvPlayer.PlayPause();
         }
-    }
-
-    private IStorageFolder? _lastFolderLocation; //TODO maybe setting is useful for linux
-        
-    private async void OpenFileMenuItem_OnClick(object? sender, RoutedEventArgs e)
-    {
-        var result = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-            { AllowMultiple = false, Title = "Pick a video file", SuggestedStartLocation = _lastFolderLocation});
-            
-        var mediaPath = result.SingleOrDefault()?.Path.LocalPath;
-        if (mediaPath == null) return;
-
-        _lastFolderLocation = await result.Single().GetParentAsync();
-            
-        ViewModel!.MpvPlayer.LoadFile(mediaPath);
     }
 
     private void VideoPanel_OnDoubleTapped(object? sender, TappedEventArgs e)

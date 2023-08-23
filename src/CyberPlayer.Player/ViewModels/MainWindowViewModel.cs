@@ -1,6 +1,7 @@
 ﻿using ReactiveUI;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.Http;
 using System.Reactive;
 using System.Text.RegularExpressions;
@@ -8,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
 using CyberPlayer.Player.AppSettings;
 using Cybertron;
 using Cybertron.CUpdater;
@@ -35,6 +37,7 @@ namespace CyberPlayer.Player.ViewModels
             MpvPlayer = new MpvPlayer(Settings);
             
             CheckForUpdatesCommand = ReactiveCommand.CreateFromTask(CheckForUpdates);
+            MediaPickerCommand = ReactiveCommand.CreateFromTask(MediaPicker);
             //ExitAppCommand = ReactiveCommand.Create<EventArgs?>(ExitApp);
         }
 #endif
@@ -47,10 +50,13 @@ namespace CyberPlayer.Player.ViewModels
             MpvPlayer = mpvPlayer;
             
             CheckForUpdatesCommand = ReactiveCommand.CreateFromTask(CheckForUpdates);
+            MediaPickerCommand = ReactiveCommand.CreateFromTask(MediaPicker);
             //ExitAppCommand = ReactiveCommand.Create<EventArgs?>(ExitApp);
         }
         
         public ReactiveCommand<Unit, Unit> CheckForUpdatesCommand { get; }
+        
+        public ReactiveCommand<Unit, Unit> MediaPickerCommand { get; }
         
         //public ReactiveCommand<EventArgs?, Unit> ExitAppCommand { get; }
         
@@ -59,6 +65,8 @@ namespace CyberPlayer.Player.ViewModels
 
         [Reactive]
         public object? SeekContent { get; set; }
+
+        private IStorageFolder? _lastFolderLocation;
 
         private async Task CheckForUpdates()
         {
@@ -151,6 +159,19 @@ namespace CyberPlayer.Player.ViewModels
             //TODO CHECK IF FILE ALREADY EXISTS - ffmpeg args contain -y so will overwrite but should make prompt
             //TODO subscribe to progress change event to update progressbar
             //TODO show error if not zero
+        }
+
+        private async Task MediaPicker()
+        {
+            var result = await this.OpenFileDialog(new FilePickerOpenOptions
+                { AllowMultiple = false, Title = "Pick a video file", SuggestedStartLocation = _lastFolderLocation });
+            
+            var mediaPath = result.SingleOrDefault()?.Path.LocalPath;
+            if (mediaPath == null) return;
+
+            _lastFolderLocation = await result.Single().GetParentAsync();
+            
+            MpvPlayer.LoadFile(mediaPath);
         }
 
         private void ExitApp(EventArgs? e = null)

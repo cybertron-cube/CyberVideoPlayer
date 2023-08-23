@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using CyberPlayer.Player.Controls;
 using CyberPlayer.Player.ViewModels;
 using CyberPlayer.Player.Views;
@@ -13,6 +15,16 @@ namespace CyberPlayer.Player.Services;
 
 public static class DialogService
 {
+    public static async Task<IReadOnlyList<IStorageFile>> OpenFileDialog(this ViewModelBase viewModel, FilePickerOpenOptions options)
+    {
+        var viewLocator = Locator.Current.GetService<StrongViewLocator>()!;
+        var viewType = viewLocator.Locate(viewModel).ViewType;
+        var view = (Window)Locator.Current.GetService(viewType)!;
+        var storageProvider = view.StorageProvider;
+        
+        return await storageProvider.OpenFilePickerAsync(options);
+    }
+    
     public static async Task<MessagePopupResult> ShowMessagePopup(this ViewModelBase viewModel, MessagePopupButtons buttons, string title, string message, PopupParams popupParams)
     {
         var content = Locator.Current.GetService<MessagePopupView>()!;

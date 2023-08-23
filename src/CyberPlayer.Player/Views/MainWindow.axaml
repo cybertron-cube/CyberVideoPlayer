@@ -46,6 +46,31 @@
 	<Design.DataContext>
         <vm:MainWindowViewModel />
     </Design.DataContext>
+	
+	<NativeMenu.Menu>
+		<NativeMenu>
+			<NativeMenuItem Header="File">
+				<NativeMenu>
+					<NativeMenuItem Header="Open" Command="{Binding MediaPickerCommand}" />
+					<NativeMenuItem Header="Close" />
+				</NativeMenu>
+			</NativeMenuItem>
+			<NativeMenuItem Header="Edit">
+				<NativeMenu>
+					<NativeMenuItem Header="Trim" Command="{Binding Trim}" />
+					<NativeMenuItem Header="Audio Track Selection" />
+					<NativeMenuItem Header="Remux" />
+					<NativeMenuItem Header="Export "/>
+				</NativeMenu>
+			</NativeMenuItem>
+			<NativeMenuItem Header="Help">
+				<NativeMenu>
+					<NativeMenuItem Header="About" />
+					<NativeMenuItem Header="Check for Updates" Command="{Binding CheckForUpdatesCommand}" />
+				</NativeMenu>
+			</NativeMenuItem>
+		</NativeMenu>
+	</NativeMenu.Menu>
 
 	<Grid Name="MainGrid" ColumnDefinitions="*" RowDefinitions="33, *, 110"><!-- 33,*,50,40/35 -->
 		<Menu Name="MenuBar" Background="DimGray" Grid.Row="0" Height="33" Margin="0, 0, 0, 0">
@@ -105,6 +130,7 @@
 							</Style>
 						</MenuItem.Styles>
 					</MenuItem>
+					<MenuItem Header="Show Menu Bar" Click="ShowMenuBarMenuItem_OnClick" />
 				</ContextMenu>
 			</Panel.ContextMenu>
 			<ContentControl Content="{Binding VideoContent}" />

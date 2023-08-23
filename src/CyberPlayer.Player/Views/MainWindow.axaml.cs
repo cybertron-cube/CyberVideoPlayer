@@ -105,12 +105,36 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
     {
         SetSeekControlType(SeekControlTypes.Normal);
         SetVideoDecoder(Decoder.Hardware);
+        
         //This var isn't necessary, just makes it so that if you change the value in xaml you don't have to change here
         var foregroundBrush = VolumeSlider.Foreground;
         ViewModel!.WhenPropertyChanged(x => x.MpvPlayer.IsMuted).Subscribe(x =>
         {
             VolumeSlider.Foreground = x.Value ? Brushes.DarkSlateGray : foregroundBrush;
         });
+        
+        if (OperatingSystem.IsMacOS())
+        {
+            ToggleMenuBar(false);
+        }
+    }
+
+    private void ToggleMenuBar(bool? toggle = null)
+    {
+        if (toggle == true || Grid.GetRow(VideoPanel) == 0)
+        {
+            MenuBar.IsVisible = true;
+            MenuBar.IsHitTestVisible = true;
+            Grid.SetRow(VideoPanel, 1);
+            Grid.SetRowSpan(VideoPanel, 1);
+        }
+        else if (toggle == false || Grid.GetRow(VideoPanel) == 1)
+        {
+            MenuBar.IsVisible = false;
+            MenuBar.IsHitTestVisible = false;
+            Grid.SetRow(VideoPanel, 0);
+            Grid.SetRowSpan(VideoPanel, 2);
+        }
     }
 
     protected override void OnKeyDown(KeyEventArgs e)

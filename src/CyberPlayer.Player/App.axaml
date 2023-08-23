@@ -2,11 +2,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:CyberPlayer.Player"
              x:Class="CyberPlayer.Player.App"
+             Name="Cyber Video Player"
 			 RequestedThemeVariant="Dark">
     <!-- TODO Change RequestedThemeVariant above (Default, Light, Dark) -->
     <Application.DataTemplates>
         <local:ViewLocator/>
     </Application.DataTemplates>
+    
+    <NativeMenu.Menu>
+        <NativeMenu />
+    </NativeMenu.Menu>
 
     <Application.Resources>
         <ResourceDictionary>

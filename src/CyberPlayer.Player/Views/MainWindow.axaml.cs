@@ -164,7 +164,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         {
             InvertSeekControl();
         }
-        else if (e.Key == Key.F && e.KeyModifiers == KeyModifiers.Control)
+        else if (e.Key == Key.F)
         {
             FullScreen();
         }

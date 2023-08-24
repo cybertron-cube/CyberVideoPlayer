@@ -42,12 +42,25 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         {
             Dispatcher.UIThread.Post(() =>
             {
-                if (WindowState == WindowState.FullScreen && !MenuBar.IsPointerOver && !LowerGrid.IsPointerOver)
+                if (WindowState == WindowState.FullScreen
+                    && !MenuBar.IsPointerOver
+                    && !LowerGrid.IsPointerOver
+                    && !VideoPanel.ContextMenu!.IsOpen)
                 {
                     Cursor = _noCursor;
                     Debug.WriteLine("Cursor set to none");
                 }
             });
+        });
+
+        VideoPanel.ContextMenu!.WhenValueChanged(x => x.IsOpen).Subscribe(open =>
+        {
+            if (WindowState != WindowState.FullScreen) return;
+            
+            if (open)
+                Cursor = Cursor.Default;
+            else
+                _cursorTimer.Change(1000, Timeout.Infinite);
         });
             
 #if DEBUG
@@ -119,16 +132,23 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         }
     }
 
+    private bool _menuBarActivated = true;
+    
     private void ToggleMenuBar(bool? toggle = null)
     {
-        if (toggle == true || Grid.GetRow(VideoPanel) == 0)
+        if (toggle != null)
+            _menuBarActivated = (bool)toggle;
+        else
+            _menuBarActivated = !_menuBarActivated;
+        
+        if (_menuBarActivated)
         {
             MenuBar.IsVisible = true;
             MenuBar.IsHitTestVisible = true;
             Grid.SetRow(VideoPanel, 1);
             Grid.SetRowSpan(VideoPanel, 1);
         }
-        else if (toggle == false || Grid.GetRow(VideoPanel) == 1)
+        else
         {
             MenuBar.IsVisible = false;
             MenuBar.IsHitTestVisible = false;
@@ -274,8 +294,16 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
             MenuBar.Classes.Remove("FadeFullscreen");
             LowerGrid.Classes.Remove("FadeFullscreen");
                 
-            Grid.SetRow(VideoPanel, 1);
-            Grid.SetRowSpan(VideoPanel, 1);
+            if (_menuBarActivated)
+            {
+                Grid.SetRow(VideoPanel, 1);
+                Grid.SetRowSpan(VideoPanel, 1);
+            }
+            else
+            {
+                Grid.SetRow(VideoPanel, 0);
+                Grid.SetRowSpan(VideoPanel, 2);
+            }
                 
             PointerPressed -= MainWindow_PointerPressed;
             PointerMoved -= MainWindow_PointerMoved;
@@ -294,12 +322,13 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
             PointerMoved += MainWindow_PointerMoved;
                 
             WindowState = WindowState.FullScreen;
+            Cursor = _noCursor;
         }
     }
 
     private void MainWindow_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (MenuBar.IsPointerOver || LowerGrid.IsPointerOver) return;
+        if (MenuBar.IsPointerOver || LowerGrid.IsPointerOver || VideoPanel.ContextMenu!.IsOpen) return;
             
         _ignorePointerPress = true;
     }
@@ -309,7 +338,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         
     private void MainWindow_PointerMoved(object? sender, PointerEventArgs e)
     {
-        if (MenuBar.IsPointerOver || LowerGrid.IsPointerOver) return;
+        if (MenuBar.IsPointerOver || LowerGrid.IsPointerOver || VideoPanel.ContextMenu!.IsOpen) return;
             
         if (_ignorePointerPress)
         {

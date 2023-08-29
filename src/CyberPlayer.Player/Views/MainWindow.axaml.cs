@@ -62,6 +62,10 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
             else
                 _cursorTimer.Change(1000, Timeout.Infinite);
         });
+        if (!OperatingSystem.IsMacOS()) //This could be an issue on linux too?
+        {
+            VideoPanel.DoubleTapped += VideoPanel_OnDoubleTapped;
+        }
             
 #if DEBUG
         Button testButton = new()

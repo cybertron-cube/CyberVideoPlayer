@@ -90,7 +90,7 @@
 			</MenuItem>
 		</Menu>
 		
-		<Panel Name="VideoPanel" PointerPressed="VideoPanel_OnPointerPressed" DoubleTapped="VideoPanel_OnDoubleTapped" Grid.Row="1" DragDrop.AllowDrop="True" Background="Black">
+		<Panel Name="VideoPanel" PointerPressed="VideoPanel_OnPointerPressed" Grid.Row="1" DragDrop.AllowDrop="True" Background="Black">
 			<!--Set background in order for contextmenu to interactable
 				*this doesn't work for nativevideoview-->
 			<Panel.ContextMenu>

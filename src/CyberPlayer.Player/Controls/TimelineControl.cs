@@ -252,8 +252,8 @@ namespace CyberPlayer.Player.Controls
 
         private void ArrangeSelection()
         {
-            var width = _upperThumb.Bounds.X - _lowerThumb.Bounds.X;
-            var x = _lowerThumb.Bounds.X + _lowerThumb.Bounds.Width / 2;
+            var width = (_upperThumb.Bounds.X - _upperThumb.Margin.Right) - (_lowerThumb.Bounds.X + _lowerThumb.Margin.Left);
+            var x = _lowerThumb.Bounds.X + (_lowerThumb.Bounds.Width + _lowerThumb.Margin.Left * 2) / 2;
             var rect = new Rect(_selectionPart.Bounds.Position.WithX(x), _selectionPart.Bounds.Size.WithWidth(width));
             _selectionPart.Arrange(rect);
         }

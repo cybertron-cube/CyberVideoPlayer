@@ -4,13 +4,13 @@
 	<Design.PreviewWith>
 		<StackPanel>
 			<Border Width="500">
-				<controls:TimelineControl />
+				<controls:TimelineControl SeekValue="0.5" LowerValue="0.5" />
 			</Border>
 			<Border Width="500">
 				<controls:TimelineControl SeekValue="0" LowerValue="0.5" UpperValue="0.5" />
 			</Border>
 			<Border Width="500">
-				<controls:TimelineControl SeekValue="0.5" LowerValue="0.5" UpperValue="1" />
+				<controls:TimelineControl SeekValue="0.5" LowerValue="0" UpperValue="0.5" />
 			</Border>
 		</StackPanel>
 	</Design.PreviewWith>
@@ -61,19 +61,16 @@
 								  Orientation="Horizontal">
 								  <Thumb
 									  Name="thumb"
-									  Width="{DynamicResource SliderHorizontalThumbWidth}"
+									  Width="26"
 									  Height="26"
-									  Margin="-4, 0, 0, 0"
+									  Margin="-7, 0, 0, 0"
 									  Padding="0"
 									  BorderThickness="0"
 									  Cursor="SizeWestEast"
 									  DataContext="{TemplateBinding Value}">
 									  <Thumb.Template>
 										  <ControlTemplate>
-											  <Grid>
-												  <Border Background="Black" Opacity="0"></Border>
-												  <Image Source="{SvgImage /Assets/Images/Controls_TrimStart.svg}"></Image>
-											  </Grid>
+											  <Image Source="{SvgImage /Assets/Images/Controls_TrimStart.svg}" />
 										  </ControlTemplate>
 									  </Thumb.Template>
 								  </Thumb>
@@ -119,19 +116,16 @@
 									  Orientation="Horizontal">
 									  <Thumb
 										  Name="thumb"
-										  Width="{DynamicResource SliderHorizontalThumbWidth}"
+										  Width="26"
 										  Height="26"
-										  Margin="0, 0, -4, 0"
+										  Margin="0, 0, -7, 0"
 										  Padding="0"
 										  BorderThickness="0"
 										  Cursor="SizeWestEast"
 										  DataContext="{TemplateBinding Value}">
 										  <Thumb.Template>
 											  <ControlTemplate>
-												  <Grid>
-													  <Border Background="Black" Opacity="0"></Border>
-													  <Image Source="{SvgImage /Assets/Images/Controls_TrimEnd.svg}"></Image>
-												  </Grid>
+												  <Image Source="{SvgImage /Assets/Images/Controls_TrimEnd.svg}" />
 											  </ControlTemplate>
 										  </Thumb.Template>
 									  </Thumb>
@@ -204,11 +198,10 @@
 		</Setter>
 	</ControlTheme>
 	
-    <!-- TODO Look at the second/third preview - the start and end should not be overlapping -->
     <ControlTheme x:Key="TimelineControlRepeatButton" TargetType="RepeatButton">
         <Setter Property="Background" Value="DarkOrange" />
         <Setter Property="Height" Value="26" />
-        <Setter Property="Margin" Value="3, 0" />
+        <Setter Property="Margin" Value="10, 0" />
         <Setter Property="Opacity" Value="0.5" />
         <Setter Property="CornerRadius" Value="0" />
         <Setter Property="Cursor" Value="Hand" />

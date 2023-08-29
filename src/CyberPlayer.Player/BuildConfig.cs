@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Cybertron;
 
 namespace CyberPlayer.Player;
 
@@ -17,12 +18,17 @@ public static class BuildConfig
 
     public static readonly Version Version = new(1, 0, 0, 0);
 
+    public static readonly string LogDirectory = OperatingSystem.IsMacOS() ?
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Logs",
+            "CyberVideoPlayer")
+        : GenStatic.GetFullPathFromRelative("logs");
+
 #if WINX64
     public const string UpdaterPath = @"updater\CybertronUpdater";
 #elif PORTABLE
     public static readonly string UpdaterPath = $"updater{Path.DirectorySeparatorChar}CybertronUpdater";
 #else
-    public const string UpdaterPath = @"updater/CybertronUpdater";
+    public const string UpdaterPath = "updater/CybertronUpdater";
 #endif
 
 #if PORTABLE

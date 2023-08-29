@@ -16,7 +16,7 @@ public static class LogHelper
     public static void SetupSerilog()
     {
         var timeStamp = DateTime.Now.ToString(DateTimeFormat);
-        var filePath = GenStatic.GetFullPathFromRelative(Path.Combine("logs", $"debug_{timeStamp}.log"));
+        var filePath = Path.Combine(BuildConfig.LogDirectory, $"debug_{timeStamp}.log");
         //buffered: true
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
@@ -35,7 +35,7 @@ public static class LogHelper
             Log.CloseAndFlush();
         };
         
-        Log.Logger.CleanupLogFiles(GenStatic.GetFullPathFromRelative("logs"), "debug*.log", 3);
+        Log.Logger.CleanupLogFiles(BuildConfig.LogDirectory, "debug*.log", 3);
         
         Locator.CurrentMutable.UseSerilogFullLogger(Log.Logger);
         Locator.CurrentMutable.RegisterConstant(Log.Logger);

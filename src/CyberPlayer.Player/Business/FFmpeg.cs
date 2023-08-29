@@ -27,12 +27,12 @@ public class FFmpeg : IDisposable
         _videoPath = videoPath;
         
         var timeStamp = DateTime.Now.ToString(LogHelper.DateTimeFormat);
-        var filePath = GenStatic.GetFullPathFromRelative(Path.Combine("logs", $"ffmpeg_output_{timeStamp}.log"));
+        var filePath = Path.Combine(BuildConfig.LogDirectory, $"ffmpeg_output_{timeStamp}.log");
         _log = new LoggerConfiguration()
             .MinimumLevel.Debug()
             .WriteTo.Async(s => s.File(filePath))
             .CreateLogger();
-        _log.CleanupLogFiles(GenStatic.GetFullPathFromRelative("logs"), "ffmpeg_output*.log", 10);
+        _log.CleanupLogFiles(BuildConfig.LogDirectory, "ffmpeg_output*.log", 10);
         
         var ffmpegPath = GenStatic.GetFullPathFromRelative(Path.Combine("ffmpeg", "ffmpeg"));
         GenStatic.GetOSRespectiveExecutablePath(ref ffmpegPath);

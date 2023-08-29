@@ -119,6 +119,16 @@ def SetVersion(version: str):
             data = data.replace(versionLine, newVersionLine)
         with open("BuildConfig.cs", 'w') as file:
             file.write(data)
+    plistVersionLine = "<key>CFBundleVersion</key>\n    <string>1.0.0</string>"
+    plistVersionNew = f"<key>CFBundleVersion</key>\n    <string>{version}</string>"
+    plistShortVersionLine = "<key>CFBundleShortVersionString</key>\n    <string>1.0</string>"
+    plistShortVersionNew = f"<key>CFBundleShortVersionString</key>\n    <string>{versionArray[0] + '.' + versionArray[1]}</string>"
+    with open("Info.plist", 'r') as file:
+        plistData = file.read()
+        plistData = plistData.replace(plistVersionLine, plistVersionNew)
+        plistData = plistData.replace(plistShortVersionLine, plistShortVersionNew)
+    with open("Info.plist", 'w') as file:
+        file.write(plistData)
 
 def ResetVersion():
     for target in CompileTargets:
@@ -129,6 +139,12 @@ def ResetVersion():
             data = re.sub(r'public static readonly Version Version = new[^;]*', 'public static readonly Version Version = new(1, 0, 0, 0)', data)
         with open("BuildConfig.cs", 'w') as file:
             file.write(data)
+    with open("Info.plist", 'r') as file:
+        plistData = file.read()
+        plistData = re.sub(r"<key>CFBundleVersion<\/key>\n.*<\/string>", "<key>CFBundleVersion</key>\n    <string>1.0.0</string>", plistData)
+        plistData = re.sub(r"<key>CFBundleShortVersionString<\/key>\n.*<\/string>", "<key>CFBundleShortVersionString</key>\n    <string>1.0</string>", plistData)
+    with open("Info.plist", 'w') as file:
+        file.write(plistData)
 
 def Compile(chosenTargets: str):
     if chosenTargets == "all":

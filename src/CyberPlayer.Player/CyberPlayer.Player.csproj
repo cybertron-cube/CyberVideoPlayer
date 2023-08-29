@@ -14,12 +14,10 @@
 
   <!-- MULTI;SINGLE;PORTABLE;WINX64;OSXX64;LINUXX64 -->
   
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DefineConstants>$(DefineConstants);SINGLE;WINX64</DefineConstants>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DefineConstants>$(DefineConstants);WINX64;SINGLE;</DefineConstants>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' Or '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DefineConstants Condition=" $([MSBuild]::IsOSPlatform('OSX')) ">$(DefineConstants);OSXX64;SINGLE;</DefineConstants>
+    <DefineConstants Condition=" $([MSBuild]::IsOSPlatform('Linux')) ">$(DefineConstants);LINUXX64;SINGLE;</DefineConstants>
+    <DefineConstants Condition=" $([MSBuild]::IsOSPlatform('Windows')) ">$(DefineConstants);WINX64;SINGLE;</DefineConstants>
   </PropertyGroup>
   
   <PropertyGroup Condition=" '$(Configuration)' == 'Release-win-x64-multi' ">

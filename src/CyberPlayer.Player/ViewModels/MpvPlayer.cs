@@ -430,7 +430,7 @@ public class MpvPlayer : ViewModelBase
         if (mediaPath != null)
             MediaPath = mediaPath;
         
-        if (!_reloadFile && IsFileLoaded)
+        if (!_reloadFile)
             _replacingFile = true;
         
         MpvContext.Command("loadfile", MediaPath, "replace");
@@ -460,6 +460,7 @@ public class MpvPlayer : ViewModelBase
     {
         SetSliderValueNoSeek(MpvContext.GetPropertyDouble(MpvProperties.TimePosition));
     }
+    
     private async Task UpdateSliderValueLoop(CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();

@@ -6,6 +6,7 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <PackageId>$(AssemblyName)</PackageId>
+    <ApplicationIcon>Assets/Logo/cyber-logo-sunset.ico</ApplicationIcon>
     <AssemblyName>CyberVideoPlayer</AssemblyName>
     <Configurations>Debug;Release;Release-win-x64-multi;Release-win-x64-single;Release-linux-x64-single;Release-linux-x64-multi;Release-osx-x64-multi;Release-osx-x64-single;Release-portable-single;Release-portable-multi</Configurations>
     <Platforms>AnyCPU</Platforms>

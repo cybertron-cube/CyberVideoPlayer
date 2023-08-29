@@ -15,8 +15,6 @@ public class Settings
 
     public static Settings Import(string settingsPath)
     {
-        settingsPath = GenStatic.GetFullPathFromRelative(settingsPath);
-        
         Settings? settings = null;
         try
         {
@@ -33,8 +31,8 @@ public class Settings
 
     public void Export(string settingsPath)
     {
-        settingsPath = GenStatic.GetFullPathFromRelative(settingsPath);
         var settingsJson = JsonSerializer.Serialize(this, SettingsJsonContext.Default.Settings);
+        Directory.CreateDirectory(Path.GetDirectoryName(settingsPath));
         File.WriteAllText(settingsPath, settingsJson);
     }
 }

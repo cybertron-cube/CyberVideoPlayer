@@ -6,18 +6,23 @@ namespace CyberPlayer.Player;
 
 public static class BuildConfig
 {
-    public const string SettingsPath = "settings.json";
+    public const string SettingsFileName = "settings.json";
     
     public const string WildCardPreservables = "*.log";
     
     //RELATIVE PATHS ONLY
-    public static readonly string[] Preservables = new[]
+    public static readonly string[] Preservables =
     {
-        SettingsPath
+        SettingsFileName
     };
 
     public static readonly Version Version = new(1, 0, 0, 0);
 
+    public static readonly string SettingsPath = OperatingSystem.IsMacOS()
+        ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library",
+            "Application Support", "CyberVideoPlayer", SettingsFileName)
+        : GenStatic.GetFullPathFromRelative(SettingsFileName);
+    
     public static readonly string LogDirectory = OperatingSystem.IsMacOS() ?
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Logs",
             "CyberVideoPlayer")

@@ -96,11 +96,9 @@ namespace CyberPlayer.Player.Controls
         private Thumb _lowerThumb;
         private Thumb _upperThumb;
         private Button _selectionPart;
-        private IDisposable _lowerThumbDragCompleteDispose;
-        private IDisposable _upperThumbDragCompleteDispose;
-        private IDisposable _selectionPartPressDispose;
-        private IDisposable _selectionPartReleaseDispose;
-        private IDisposable _pointerMovedDispose;
+        private IDisposable? _selectionPartPressDispose;
+        private IDisposable? _selectionPartReleaseDispose;
+        private IDisposable? _pointerMovedDispose;
         private double _xOffsetLower;
         private double _xOffsetUpper;
         private bool _isSnapping;
@@ -113,6 +111,14 @@ namespace CyberPlayer.Player.Controls
                 RoutingStrategies.Bubble);
         }
         
+        public TimelineControl()
+        {
+            LayoutUpdated += (_, _) =>
+            {
+                ArrangeSelection();
+            };
+        }
+        
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
             base.OnApplyTemplate(e);
@@ -122,18 +128,14 @@ namespace CyberPlayer.Player.Controls
             {
                 var lowerSliderTrackPart = t.NameScope.Find<Track>("PART_Track");
                 _lowerThumb = lowerSliderTrackPart.Thumb;
-                _lowerThumbDragCompleteDispose?.Dispose();
-                _lowerThumbDragCompleteDispose = _lowerThumb.AddDisposableHandler(PointerReleasedEvent,
-                    OnThumbDragCompleted, RoutingStrategies.Tunnel);
                 
                 _selectionPart = t.NameScope.Find<RepeatButton>("SelectionPart");
                 _selectionPartPressDispose?.Dispose();
                 _selectionPartReleaseDispose?.Dispose();
-                _selectionPartPressDispose =
-                    _selectionPart.AddDisposableHandler(PointerPressedEvent, SelectionPressed, RoutingStrategies.Tunnel);
-                _selectionPartReleaseDispose =
-                    _selectionPart.AddDisposableHandler(PointerReleasedEvent, SelectionRelease,
-                        RoutingStrategies.Tunnel);
+                _selectionPartPressDispose = _selectionPart.AddDisposableHandler(PointerPressedEvent,
+                    SelectionPressed, RoutingStrategies.Tunnel);
+                _selectionPartReleaseDispose = _selectionPart.AddDisposableHandler(PointerReleasedEvent,
+                    SelectionRelease, RoutingStrategies.Tunnel);
             };
             
             _upperSlider = e.NameScope.Find<CustomSlider>("SliderUpper");
@@ -141,19 +143,11 @@ namespace CyberPlayer.Player.Controls
             {
                 var upperSliderTrackPart = t.NameScope.Find<Track>("PART_Track");
                 _upperThumb = upperSliderTrackPart.Thumb;
-                _upperThumbDragCompleteDispose?.Dispose();
-                _upperThumbDragCompleteDispose = _upperThumb.AddDisposableHandler(PointerReleasedEvent,
-                    OnThumbDragCompleted, RoutingStrategies.Tunnel);
             };
             
             _pointerMovedDispose?.Dispose();
             _pointerMovedDispose =
                 this.AddDisposableHandler(PointerMovedEvent, PointerSelectionMoved, RoutingStrategies.Tunnel);
-        }
-
-        private void OnThumbDragCompleted(object? sender, PointerReleasedEventArgs e)
-        {
-            ArrangeSelection();
         }
 
         protected override void OnKeyDown(KeyEventArgs e)
@@ -209,7 +203,6 @@ namespace CyberPlayer.Player.Controls
                     }
                 }
             }
-            ArrangeSelection();
         }
 
         private void SelectionPressed(object? sender, PointerPressedEventArgs e)
@@ -225,7 +218,6 @@ namespace CyberPlayer.Player.Controls
         private void SelectionRelease(object? sender, PointerReleasedEventArgs e)
         {
             _selectionDragging = false;
-            ArrangeSelection();
         }
 
         private void PointerSelectionMoved(object? sender, PointerEventArgs e)
@@ -246,8 +238,6 @@ namespace CyberPlayer.Player.Controls
         {
             _lowerSlider.MoveThumb(p.WithX(p.X - _xOffsetLower));
             _upperSlider.MoveThumb(p.WithX(p.X + _xOffsetUpper));
-            
-            ArrangeSelection();
         }
 
         private void ArrangeSelection()

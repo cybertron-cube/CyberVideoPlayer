@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text.Json;
-using Cybertron;
+using Serilog;
 
 namespace CyberPlayer.Player.AppSettings;
 
@@ -23,7 +23,7 @@ public class Settings
         }
         catch (Exception e)
         {
-            //TODO Log exception
+            Log.Error(e, "Failed to import settings");
         }
 
         return settings ?? new Settings();

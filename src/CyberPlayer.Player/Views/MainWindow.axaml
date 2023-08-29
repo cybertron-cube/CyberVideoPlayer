@@ -66,6 +66,7 @@
 			<NativeMenuItem Header="Help">
 				<NativeMenu>
 					<NativeMenuItem Header="About" />
+					<NativeMenuItem Header="Github" Command="{Binding OpenWebLinkCommand}" CommandParameter="https://github.com/cybertron-cube/CyberVideoPlayer" />
 					<NativeMenuItem Header="Check for Updates" Command="{Binding CheckForUpdatesCommand}" />
 				</NativeMenu>
 			</NativeMenuItem>
@@ -86,6 +87,7 @@
 			</MenuItem>
 			<MenuItem Header="_Help">
 				<MenuItem Header="_Licenses" />
+				<MenuItem Header="Github" Command="{Binding OpenWebLinkCommand}" CommandParameter="https://github.com/cybertron-cube/CyberVideoPlayer" />
 				<MenuItem Header="Check for Updates" Command="{Binding CheckForUpdatesCommand}" />
 			</MenuItem>
 		</Menu>

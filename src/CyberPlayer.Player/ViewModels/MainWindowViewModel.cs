@@ -51,12 +51,15 @@ namespace CyberPlayer.Player.ViewModels
             
             CheckForUpdatesCommand = ReactiveCommand.CreateFromTask(CheckForUpdates);
             MediaPickerCommand = ReactiveCommand.CreateFromTask(MediaPicker);
+            OpenWebLinkCommand = ReactiveCommand.Create<string>(GenStatic.OpenWebLink);
             //ExitAppCommand = ReactiveCommand.Create<EventArgs?>(ExitApp);
         }
         
         public ReactiveCommand<Unit, Unit> CheckForUpdatesCommand { get; }
         
         public ReactiveCommand<Unit, Unit> MediaPickerCommand { get; }
+        
+        public ReactiveCommand<string, Unit> OpenWebLinkCommand { get; }
         
         //public ReactiveCommand<EventArgs?, Unit> ExitAppCommand { get; }
         

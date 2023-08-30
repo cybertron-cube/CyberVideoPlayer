@@ -350,6 +350,28 @@ public class MpvPlayer : ViewModelBase
             this.RaisePropertyChanged();
         }
     }
+    
+    [Reactive]
+    public IEnumerable<TrackInfo>? VideoTrackInfos { get; set; }
+
+    private TrackInfo? _selectedVideoTrack;
+
+    public TrackInfo? SelectedVideoTrack
+    {
+        get => _selectedVideoTrack;
+        set
+        {
+            if (value == _selectedVideoTrack) return;
+            if (_selectedVideoTrack != null) _selectedVideoTrack.Selected = false;
+            if (value != null)
+            {
+                value.Selected = true;
+                MpvContext.SetPropertyString(MpvProperties.VideoTrackId, value.Id.ToString());
+            }
+            _selectedVideoTrack = value;
+            this.RaisePropertyChanged();
+        }
+    }
 
     private void FrameStep(string param)
     {
@@ -367,6 +389,8 @@ public class MpvPlayer : ViewModelBase
         var trackInfos = JsonSerializer.Deserialize(trackInfosJson, TrackInfoJsonContext.Default.TrackInfoArray);
         AudioTrackInfos = trackInfos!.Where(x => x.Type == "audio");
         SelectedAudioTrack = AudioTrackInfos.First();
+        VideoTrackInfos = trackInfos!.Where(x => x.Type == "video");
+        SelectedVideoTrack = VideoTrackInfos.First();
     }
     
     public void PlayPause()

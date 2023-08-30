@@ -84,6 +84,10 @@
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.1" />
     <PackageReference Include="HanumanInstitute.MvvmDialogs.Avalonia" Version="2.0.0" />
     <PackageReference Include="Markdown.Avalonia" Version="11.0.0" />
+    <PackageReference Include="ReactiveMarbles.ObservableEvents.SourceGenerator" Version="1.2.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="ReactiveUI.Fody" Version="19.4.1" PrivateAssets="all" />
     <PackageReference Include="Serilog" Version="3.0.1" />
     <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />

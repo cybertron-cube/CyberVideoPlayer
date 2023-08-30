@@ -52,7 +52,7 @@
 			<NativeMenuItem Header="File">
 				<NativeMenu>
 					<NativeMenuItem Header="Open" Command="{Binding MediaPickerCommand}" />
-					<NativeMenuItem Header="Close" />
+					<NativeMenuItem Header="Close" Command="{Binding ExitAppCommand}" />
 				</NativeMenu>
 			</NativeMenuItem>
 			<NativeMenuItem Header="Edit">
@@ -77,7 +77,7 @@
 		<Menu Name="MenuBar" Background="DimGray" Grid.Row="0" Height="33" Margin="0, 0, 0, 0">
 			<MenuItem Header="_File">
 				<MenuItem Header="_Open" Command="{Binding MediaPickerCommand}" />
-				<MenuItem Header="_Close" />
+				<MenuItem Header="_Close" Command="{Binding ExitAppCommand}" />
 			</MenuItem>
 			<MenuItem Header="_Edit">
 				<MenuItem Header="_Trim" Command="{Binding Trim}"/>

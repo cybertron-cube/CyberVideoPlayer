@@ -32,7 +32,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         InitializeComponent();
 
         Loaded += MainWindow_Loaded;
-        Closed += MainWindow_Closed;
         Opened += MainWindow_Opened;
             
         AddHandler(DragDrop.DropEvent, Drop!);
@@ -265,12 +264,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
             ViewModel!.MpvPlayer.LoadFile();
         });
 #endif
-    }
-    private void MainWindow_Closed(object? sender, EventArgs e)
-    {
-        ViewModel!.MpvPlayer.UpdateSliderTaskCTS.Cancel();
-        ViewModel!.MpvPlayer.MpvContext.Dispose();
-        ViewModel!.Settings.Export(BuildConfig.SettingsPath);
     }
 
     private void VideoPanel_OnPointerPressed(object? sender, PointerPressedEventArgs e)

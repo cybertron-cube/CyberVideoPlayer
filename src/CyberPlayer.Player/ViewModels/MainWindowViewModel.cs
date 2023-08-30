@@ -7,8 +7,6 @@ using System.Reactive;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using CyberPlayer.Player.AppSettings;
 using Cybertron;
@@ -48,11 +46,18 @@ public class MainWindowViewModel : ViewModelBase
         _log = logger.ForContext<MainWindowViewModel>();
         Settings = settings;
         MpvPlayer = mpvPlayer;
+
+        AppExiting.Subscribe(_ =>
+        {
+            MpvPlayer.UpdateSliderTaskCTS.Cancel();
+            MpvPlayer.MpvContext.Dispose();
+            Settings.Export(BuildConfig.SettingsPath);
+        });
             
         CheckForUpdatesCommand = ReactiveCommand.CreateFromTask(CheckForUpdates);
         MediaPickerCommand = ReactiveCommand.CreateFromTask(MediaPicker);
         OpenWebLinkCommand = ReactiveCommand.Create<string>(GenStatic.OpenWebLink);
-        //ExitAppCommand = ReactiveCommand.Create<EventArgs?>(ExitApp);
+        ExitAppCommand = ReactiveCommand.Create<EventArgs?>(ExitApp);
     }
         
     public ReactiveCommand<Unit, Unit> CheckForUpdatesCommand { get; }
@@ -61,7 +66,7 @@ public class MainWindowViewModel : ViewModelBase
         
     public ReactiveCommand<string, Unit> OpenWebLinkCommand { get; }
         
-    //public ReactiveCommand<EventArgs?, Unit> ExitAppCommand { get; }
+    public ReactiveCommand<EventArgs?, Unit> ExitAppCommand { get; }
         
     [Reactive]
     public object? VideoContent { get; set; }
@@ -175,19 +180,6 @@ public class MainWindowViewModel : ViewModelBase
         _lastFolderLocation = await result.Single().GetParentAsync();
             
         MpvPlayer.LoadFile(mediaPath);
-    }
-
-    private void ExitApp(EventArgs? e = null)
-    {
-        if (e == null)
-        {
-            var app = (IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!;
-            app.Shutdown();
-            return;
-            //This method will be called again by MainWindow with event args
-        }
-        //TODO save settings
-        //TODO Do anything else needed to when shutting down normally 
     }
         
     private static string TempWebLinkFix(string markdown)

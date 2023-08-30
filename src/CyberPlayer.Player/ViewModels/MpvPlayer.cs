@@ -69,7 +69,6 @@ public class MpvPlayer : ViewModelBase
         
         IsFileLoaded = false;
         SetSliderValueNoSeek(Duration);
-        //SeekValue = Duration;
     }
 
     private void MpvContext_FileLoaded(object? sender, EventArgs e)
@@ -83,10 +82,7 @@ public class MpvPlayer : ViewModelBase
         }
         else if (!double.IsNaN(_lastSeekValue))
         {
-            Debug.WriteLine("CALLED 2");
-            //SeekValue = _lastSeekValue;
             Seek();
-            //_lastSeekValue = double.NaN;
             MpvContext.SetPropertyFlag(MpvProperties.Paused, true);
         }
         else //loading new file
@@ -206,7 +202,7 @@ public class MpvPlayer : ViewModelBase
         {
             if (_isPlaying == value) return;
             _isPlaying = value;
-            this.RaisePropertyChanged(nameof(IsPlaying));
+            this.RaisePropertyChanged();
             if (value)
             {
                 _updateSliderMRE.Set();
@@ -215,7 +211,6 @@ public class MpvPlayer : ViewModelBase
             {
                 _updateSliderMRE.Reset();
             }
-            //this.RaiseAndSetIfChanged(ref _isPlaying, value);
         }
     }
 

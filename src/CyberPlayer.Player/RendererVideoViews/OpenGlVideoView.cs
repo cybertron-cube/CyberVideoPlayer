@@ -6,7 +6,7 @@ using Avalonia.OpenGL.Controls;
 using Avalonia.Threading;
 using LibMpv.Client;
 
-namespace CyberPlayer.Player.DecoderVideoViews;
+namespace CyberPlayer.Player.RendererVideoViews;
 
 public class OpenGlVideoView : OpenGlControlBase
 {

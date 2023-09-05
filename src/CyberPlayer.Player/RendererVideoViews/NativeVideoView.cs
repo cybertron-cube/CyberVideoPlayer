@@ -13,7 +13,7 @@ using Avalonia.Platform;
 using Avalonia.VisualTree;
 using LibMpv.Client;
 
-namespace CyberPlayer.Player.DecoderVideoViews;
+namespace CyberPlayer.Player.RendererVideoViews;
 
 public class NativeVideoView : NativeControlHost
 {

@@ -120,7 +120,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
     private void MainWindow_Opened(object? sender, EventArgs e)
     {
         SetSeekControlType(SeekControlTypes.Normal);
-        SetVideoDecoder(Decoder.Hardware);
+        SetVideoRenderer(Renderer.Hardware);
         
         //This var isn't necessary, just makes it so that if you change the value in xaml you don't have to change here
         var foregroundBrush = VolumeSlider.Foreground;
@@ -177,7 +177,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
     private bool _defaultRendererSet;
 
     [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "<Pending>")]
-    private void SetVideoDecoder(Decoder decoder)
+    private void SetVideoRenderer(Renderer renderer)
     {
         if (_defaultRendererSet)
         {
@@ -190,19 +190,19 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
             _defaultRendererSet = true;
         }
             
-        switch (decoder)
+        switch (renderer)
         {
-            case Decoder.Native:
+            case Renderer.Native:
                 var nativeVideoView = new NativeVideoView { DataContext = ViewModel!.MpvPlayer };
                 _mpvContextBinding = nativeVideoView.Bind(NativeVideoView.MpvContextProperty, new Binding(nameof(MpvPlayer.MpvContext)));
                 ViewModel!.VideoContent = nativeVideoView;
                 return;
-            case Decoder.Software:
+            case Renderer.Software:
                 var softwareVideoView = new SoftwareVideoView { DataContext = ViewModel!.MpvPlayer };
                 _mpvContextBinding = softwareVideoView.Bind(SoftwareVideoView.MpvContextProperty, new Binding(nameof(MpvPlayer.MpvContext)));
                 ViewModel!.VideoContent = softwareVideoView;
                 return;
-            case Decoder.Hardware:
+            case Renderer.Hardware:
                 var hardwareVideoView = new OpenGlVideoView { DataContext = ViewModel!.MpvPlayer };
                 _mpvContextBinding = hardwareVideoView.Bind(OpenGlVideoView.MpvContextProperty, new Binding(nameof(MpvPlayer.MpvContext)));
                 ViewModel!.VideoContent = hardwareVideoView;

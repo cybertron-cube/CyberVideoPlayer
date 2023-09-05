@@ -7,7 +7,7 @@ using Avalonia.Platform;
 using Avalonia.Threading;
 using LibMpv.Client;
 
-namespace CyberPlayer.Player.DecoderVideoViews;
+namespace CyberPlayer.Player.RendererVideoViews;
 
 public class SoftwareVideoView : Control
 {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text.Json;
+using CyberPlayer.Player.RendererVideoViews;
 using Serilog;
 
 namespace CyberPlayer.Player.AppSettings;
@@ -12,6 +13,8 @@ public class Settings
     public int SeekRefreshRate { get; set; } = 100;
 
     public int TimeCodeLength { get; set; } = 8;
+
+    public Renderer Renderer { get; set; } = Renderer.Hardware;
 
     public static Settings Import(string settingsPath)
     {

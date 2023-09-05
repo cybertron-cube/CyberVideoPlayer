@@ -12,13 +12,13 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
 using CyberPlayer.Player.Controls;
-using CyberPlayer.Player.DecoderVideoViews;
 using Cybertron;
 using DynamicData.Binding;
 using LibMpv.Client;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Avalonia.Threading;
+using CyberPlayer.Player.RendererVideoViews;
 
 namespace CyberPlayer.Player.Views;
 
@@ -120,7 +120,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
     private void MainWindow_Opened(object? sender, EventArgs e)
     {
         SetSeekControlType(SeekControlTypes.Normal);
-        SetVideoRenderer(Renderer.Hardware);
+        SetVideoRenderer(ViewModel!.Settings.Renderer);
         
         //This var isn't necessary, just makes it so that if you change the value in xaml you don't have to change here
         var foregroundBrush = VolumeSlider.Foreground;

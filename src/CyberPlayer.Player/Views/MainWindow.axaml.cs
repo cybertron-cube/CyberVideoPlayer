@@ -143,13 +143,13 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         
         if (OperatingSystem.IsMacOS())
         {
-            ToggleMenuBar(false);
+            ToggleMenuBar(false, false);
         }
     }
 
     private bool _menuBarActivated = true;
     
-    private void ToggleMenuBar(bool? toggle = null)
+    private void ToggleMenuBar(bool? toggle = null, bool resizeWindow = true)
     {
         if (toggle != null)
             _menuBarActivated = (bool)toggle;
@@ -170,8 +170,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
             Grid.SetRow(VideoPanel, 0);
             Grid.SetRowSpan(VideoPanel, 2);
         }
-        
-        ViewModel!.MpvPlayer.SetWindowSize();
+
+        if (resizeWindow)
+            ViewModel!.MpvPlayer.SetWindowSize();
     }
 
     protected override void OnKeyDown(KeyEventArgs e)

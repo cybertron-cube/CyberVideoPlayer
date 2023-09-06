@@ -3,6 +3,7 @@
         xmlns:vm="clr-namespace:CyberPlayer.Player.ViewModels"
         xmlns:models="clr-namespace:CyberPlayer.Player.Models"
 		xmlns:local="clr-namespace:CyberPlayer.Player"
+        xmlns:converters="clr-namespace:CyberPlayer.Player.ValueConverters"
         xmlns:mpv="clr-namespace:LibMpv.Client;assembly=LibMpv.Context"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -15,16 +16,20 @@
         MinWidth="640"
         Icon="/Assets/Logo/cyber-logo-sunset.ico"
         Title="{Binding MpvPlayer.MediaName}">
+	
+	<Window.Resources>
+		<converters:NegativeConverter x:Key="NegativeConverter" />
+	</Window.Resources>
+	
 	<Window.KeyBindings>
 		<KeyBinding Gesture="Space" Command="{Binding MpvPlayer.PlayPause}" />
-		<!-- Seek 5 seconds forward -->
-		<!-- Seek 5 seconds backward -->
+		<KeyBinding Gesture="Left" Command="{Binding MpvPlayer.SeekCommand}" CommandParameter="{Binding Settings.SeekChange, Converter={StaticResource NegativeConverter}}" />
+		<KeyBinding Gesture="Right" Command="{Binding MpvPlayer.SeekCommand}" CommandParameter="{Binding Settings.SeekChange}" />
 		<KeyBinding Gesture="Ctrl+Right" Command="{Binding MpvPlayer.FrameStepCommand}" CommandParameter="{x:Static mpv:MpvCommands.StepForward}" />
 		<KeyBinding Gesture="Ctrl+Left" Command="{Binding MpvPlayer.FrameStepCommand}" CommandParameter="{x:Static mpv:MpvCommands.StepBackward}" />
 		<KeyBinding Gesture="M" Command="{Binding MpvPlayer.set_IsMuted}" CommandParameter="{Binding !MpvPlayer.IsMuted}" />
-		<!-- Increase Volume -->
-		<!-- Decrease Volume -->
-		
+		<KeyBinding Gesture="Up" Command="{Binding MpvPlayer.VolumeCommand}" CommandParameter="{Binding Settings.VolumeChange}" />
+		<KeyBinding Gesture="Down" Command="{Binding MpvPlayer.VolumeCommand}" CommandParameter="{Binding Settings.VolumeChange, Converter={StaticResource NegativeConverter}}" />
 		<KeyBinding Gesture="I" Command="{Binding MpvPlayer.set_TrimStartTime}" CommandParameter="{Binding MpvPlayer.SeekValue}" />
 		<KeyBinding Gesture="O" Command="{Binding MpvPlayer.set_TrimEndTime}" CommandParameter="{Binding MpvPlayer.SeekValue}" />
 	</Window.KeyBindings>

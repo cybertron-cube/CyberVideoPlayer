@@ -16,6 +16,10 @@ public class Settings
 
     public Renderer Renderer { get; set; } = Renderer.Hardware;
 
+    public double SeekChange { get; set; } = 5;
+
+    public double VolumeChange { get; set; } = 10;
+
     public static Settings Import(string settingsPath)
     {
         Settings? settings = null;

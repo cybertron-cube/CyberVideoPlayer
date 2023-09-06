@@ -51,6 +51,7 @@ public class MpvPlayer : ViewModelBase
 
         FrameStepCommand = ReactiveCommand.Create<string>(FrameStep);
         SeekCommand = ReactiveCommand.Create<double>(Seek);
+        VolumeCommand = ReactiveCommand.Create<double>(ChangeVolume);
 
         UpdateSliderTaskCTS = new CancellationTokenSource();
         Task.Run(() => UpdateSliderValueLoop(UpdateSliderTaskCTS.Token));
@@ -112,6 +113,8 @@ public class MpvPlayer : ViewModelBase
     public ReactiveCommand<string, Unit> FrameStepCommand { get; }
     
     public ReactiveCommand<double, Unit> SeekCommand { get; }
+    
+    public ReactiveCommand<double, Unit> VolumeCommand { get; }
 
     private readonly ManualResetEvent _updateSliderMRE = new(false);
     
@@ -371,6 +374,17 @@ public class MpvPlayer : ViewModelBase
             _selectedVideoTrack = value;
             this.RaisePropertyChanged();
         }
+    }
+
+    private void ChangeVolume(double offset)
+    {
+        var newVolume = VolumeValue + offset;
+        VolumeValue = newVolume switch
+        {
+            > 100 => 100,
+            < 0 => 0,
+            _ => newVolume
+        };
     }
 
     private void FrameStep(string param)

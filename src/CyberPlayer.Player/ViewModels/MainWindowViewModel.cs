@@ -22,8 +22,9 @@ namespace CyberPlayer.Player.ViewModels;
 public class MainWindowViewModel : ViewModelBase
 {
     private readonly ILogger _log;
-    public readonly Settings Settings;
-        
+    
+    public Settings Settings { get; }
+    
     [Reactive]
     public MpvPlayer MpvPlayer { get; set; }
 

@@ -151,7 +151,7 @@ def Compile(chosenTargets: str):
         for compileTarget in CompileTargets:
             if compileTarget == "sc" or compileTarget == "all":
                 continue
-            cmds = f"dotnet publish {os.path.join('src', 'cyberplayer.player', 'cyberplayer.player.csproj')} {CompileTargets[compileTarget]}"
+            cmds = f"dotnet publish {os.path.join('src', 'CyberPlayer.Player', 'CyberPlayer.Player.csproj')} {CompileTargets[compileTarget]}"
             subprocess.call(ParseCmds(cmds))
     elif ";" in chosenTargets:
         if chosenTargets.endswith(";"):
@@ -165,10 +165,10 @@ def Compile(chosenTargets: str):
                 if "--sc true" in CompileTargets[target] and target not in chosenTargets:
                     chosenTargets.append(target)
         for target in chosenTargets:
-            cmds = f"dotnet publish {os.path.join('src', 'cyberplayer.player', 'cyberplayer.player.csproj')} {CompileTargets[target]}"
+            cmds = f"dotnet publish {os.path.join('src', 'CyberPlayer.Player', 'CyberPlayer.Player.csproj')} {CompileTargets[target]}"
             subprocess.call(ParseCmds(cmds))
     else:
-        cmds = f"dotnet publish {os.path.join('src', 'cyberplayer.player', 'cyberplayer.player.csproj')} {CompileTargets[chosenTargets]}"
+        cmds = f"dotnet publish {os.path.join('src', 'CyberPlayer.Player', 'CyberPlayer.Player.csproj')} {CompileTargets[chosenTargets]}"
         subprocess.call(ParseCmds(cmds))
 
 def CopyFFmpeg():

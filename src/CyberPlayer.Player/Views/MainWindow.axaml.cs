@@ -17,8 +17,10 @@ using DynamicData.Binding;
 using LibMpv.Client;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using Avalonia.Rendering;
 using Avalonia.Threading;
 using CyberPlayer.Player.RendererVideoViews;
+using Serilog;
 
 namespace CyberPlayer.Player.Views;
 
@@ -73,8 +75,23 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         };
         testButton.Click += (object? sender, RoutedEventArgs e) =>
         {
-            ViewModel!.MpvPlayer.TrimStartTime = 12;
-            ViewModel!.MpvPlayer.TrimEndTime = 22;
+            Debug.WriteLine($"Screen Width: {Screens.Primary.Bounds.Width}");
+            Debug.WriteLine($"Screen Height: {Screens.Primary.Bounds.Height}");
+            Debug.WriteLine($"Width: {Width}");
+            Debug.WriteLine($"Height: {Height}");
+            Debug.WriteLine($"ClientSize Width: {ClientSize.Width}");
+            Debug.WriteLine($"ClientSize Height: {ClientSize.Height}");
+            Debug.WriteLine($"WindowDecorationMargin: {WindowDecorationMargin}");
+            Debug.WriteLine($"WorkingArea Width: {Screens.Primary.WorkingArea.Width}");
+            Debug.WriteLine($"WorkingArea Height: {Screens.Primary.WorkingArea.Height}");
+            
+            Log.Debug($"Screen Width: {Screens.Primary.Bounds.Width}");
+            Log.Debug($"Screen Height: {Screens.Primary.Bounds.Height}");
+            Log.Debug($"WorkingArea Width: {Screens.Primary.WorkingArea.Width}");
+            Log.Debug($"WorkingArea Height: {Screens.Primary.WorkingArea.Height}");
+            Log.Debug($"ClientSize Width: {ClientSize.Width}");
+            Log.Debug($"ClientSize Height: {ClientSize.Height}");
+            Log.Debug($"Render Scaling: {((IRenderRoot)this).RenderScaling}");
         };
 
         Button loadButton = new()
@@ -84,12 +101,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         };
         loadButton.Click += (object? sender, RoutedEventArgs e) =>
         {
-            ViewModel!.MpvPlayer.MpvContext.SetPropertyFlag("pause", true); //do not autoplay
-            ViewModel!.MpvPlayer.MpvContext.CommandAsync(0, "loadfile", ViewModel!.MpvPlayer.MediaPath, "replace");
-                
-            //ViewModel!.Duration = ViewModel!.OpenGLMpvContext.GetPropertyDouble("duration");
-            //Debug.WriteLine(ViewModel!.Duration);
-            //ViewModel!.IsPlaying = true;
+            ViewModel!.MpvPlayer.LoadFile();
         };
         ControlsPanel.Children.Insert(0, loadButton);
         ControlsPanel.Children.Insert(0, testButton);

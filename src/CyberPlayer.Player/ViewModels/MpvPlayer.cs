@@ -48,6 +48,8 @@ public class MpvPlayer : ViewModelBase
         _trimEndTimeCode = new TimeCode(1);
         _timeCodeStartIndex = 0;
         _timeCodeLength = _settings.TimeCodeLength;
+        WindowWidth = double.NaN;
+        WindowHeight = double.NaN;
 
         FrameStepCommand = ReactiveCommand.Create<string>(FrameStep);
         SeekCommand = ReactiveCommand.Create<double>(Seek);
@@ -106,6 +108,7 @@ public class MpvPlayer : ViewModelBase
             this.RaisePropertyChanged(nameof(SeekTimeCodeString));
             
             GetTracks();
+            SetWindowSize();
         }
         Debug.WriteLine(Duration);
     }
@@ -374,6 +377,84 @@ public class MpvPlayer : ViewModelBase
             _selectedVideoTrack = value;
             this.RaisePropertyChanged();
         }
+    }
+
+    [Reactive]
+    public double WindowWidth { get; set; }
+    
+    [Reactive]
+    public double WindowHeight { get; set; }
+
+    private void SetWindowSize()
+    {
+        var maxWidth = Screens.Primary.WorkingArea.Width;
+        var maxHeight = Screens.Primary.WorkingArea.Height;
+        
+        var panelHeightDifference = 0;
+        Dispatcher.UIThread.Invoke(() =>
+        {
+            panelHeightDifference = (int)PanelHeightDifference;
+        });
+
+        //Calculate the height of the video and the height of the entire window
+        double desiredHeight;
+        int videoHeight;
+        if (SelectedVideoTrack.VideoDemuxHeight + panelHeightDifference >= maxHeight)
+        {
+            videoHeight = maxHeight - panelHeightDifference;
+            desiredHeight = maxHeight;
+        }
+        else
+        {
+            videoHeight = (int)SelectedVideoTrack.VideoDemuxHeight!;
+            desiredHeight = (int)SelectedVideoTrack.VideoDemuxHeight + panelHeightDifference;
+        }
+        
+        //get aspect ratio ... usually 16:9
+        var aspectRatio = GetAspectRatio((int)SelectedVideoTrack.VideoDemuxWidth!, (int)SelectedVideoTrack.VideoDemuxHeight!);
+        var desiredWidth = (double)videoHeight / aspectRatio.Height * aspectRatio.Width;
+        
+        if (desiredWidth > maxWidth)
+        {
+            //change height to match new width
+            desiredHeight = (double)maxWidth / aspectRatio.Width * aspectRatio.Height;
+        }
+        
+        WindowWidth = desiredWidth;
+        WindowHeight = desiredHeight;
+
+        //call this method when enabling/disabling menubar
+    }
+
+    private struct AspectRatio
+    {
+        public readonly int Width;
+        public readonly int Height;
+
+        public AspectRatio(int width, int height)
+        {
+            Width = width;
+            Height = height;
+        }
+    }
+
+    private static AspectRatio GetAspectRatio(int width, int height)
+    {
+        var gcd = GCD(width, height);
+        return new AspectRatio(width / gcd, height / gcd);
+    }
+    
+    private static int GCD(int a, int b)
+    {
+        while (a != 0 && b != 0)
+        {
+            if (a > b)
+                a %= b;
+            else
+                b %= a;
+        }
+
+        return a | b;
     }
 
     private void ChangeVolume(double offset)

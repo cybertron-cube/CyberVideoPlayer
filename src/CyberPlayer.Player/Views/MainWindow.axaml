@@ -14,6 +14,8 @@
         x:CompileBindings="True"
         MinHeight="503"
         MinWidth="640"
+        Width="{Binding MpvPlayer.WindowWidth}"
+        Height="{Binding MpvPlayer.WindowHeight}"
         Icon="/Assets/Logo/cyber-logo-sunset.ico"
         Title="{Binding MpvPlayer.MediaName}">
 	

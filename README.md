@@ -8,6 +8,10 @@
 | F | Toggle fullscreen |
 | Ctrl+Left | Frame step backward |
 | Ctrl+Right | Frame step forward |
+| Left | Seek backward |
+| Right | Seek forward |
+| Up | Increase volume |
+| Down | Decrease volume |
 | M | Mute |
 | Ctrl+T | Switch to trim control |
 | I | Set the start time for trimming |
@@ -16,7 +20,7 @@
 ## List of features being worked on
 
 - [ ] Ability to change keybindings
-- [ ] Ability to change settings without editing xml
+- [ ] Ability to change settings without editing json
 - [x] Being able to change audio tracks
 - [ ] Transcoding/Remuxing
 - [x] Show trim progress
@@ -28,6 +32,6 @@
 - [ ] Use mediainfo to display detailed information
 - [x] Add support for OSX
 - [ ] Select tracks to export
-- [ ] Size window to fit video
+- [x] Size window to fit video
 - [ ] Screenshot/GIF
 - [ ] Theme selection

@@ -81,9 +81,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
             Debug.WriteLine($"Height: {Height}");
             Debug.WriteLine($"ClientSize Width: {ClientSize.Width}");
             Debug.WriteLine($"ClientSize Height: {ClientSize.Height}");
-            Debug.WriteLine($"WindowDecorationMargin: {WindowDecorationMargin}");
             Debug.WriteLine($"WorkingArea Width: {Screens.Primary.WorkingArea.Width}");
             Debug.WriteLine($"WorkingArea Height: {Screens.Primary.WorkingArea.Height}");
+            Debug.WriteLine($"Render Scaling: {((IRenderRoot)this).RenderScaling}");
             
             Log.Debug($"Screen Width: {Screens.Primary.Bounds.Width}");
             Log.Debug($"Screen Height: {Screens.Primary.Bounds.Height}");
@@ -170,6 +170,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
             Grid.SetRow(VideoPanel, 0);
             Grid.SetRowSpan(VideoPanel, 2);
         }
+        
+        ViewModel!.MpvPlayer.SetWindowSize();
     }
 
     protected override void OnKeyDown(KeyEventArgs e)

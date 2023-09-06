@@ -7,6 +7,7 @@ using System.Reactive;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Threading;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Models;
@@ -385,10 +386,10 @@ public class MpvPlayer : ViewModelBase
     [Reactive]
     public double WindowHeight { get; set; }
 
-    private void SetWindowSize()
+    public void SetWindowSize()
     {
-        var maxWidth = Screens.Primary.WorkingArea.Width;
-        var maxHeight = Screens.Primary.WorkingArea.Height;
+        var maxWidth = Screens.Primary.WorkingArea.Width / RenderScaling;
+        var maxHeight = (int)(Screens.Primary.WorkingArea.Height / RenderScaling);
         
         var panelHeightDifference = 0;
         Dispatcher.UIThread.Invoke(() =>
@@ -396,13 +397,23 @@ public class MpvPlayer : ViewModelBase
             panelHeightDifference = (int)PanelHeightDifference;
         });
 
+        //TODO check renderscaling calculations on other operating systems (only tested on windows)
         //Calculate the height of the video and the height of the entire window
         double desiredHeight;
         int videoHeight;
         if (SelectedVideoTrack.VideoDemuxHeight + panelHeightDifference >= maxHeight)
         {
-            videoHeight = maxHeight - panelHeightDifference;
-            desiredHeight = maxHeight;
+            //Setting height on windows will assume height excludes the system decorations
+            if (OperatingSystem.IsWindows())
+            {
+                videoHeight = maxHeight - panelHeightDifference;
+                desiredHeight = maxHeight - SystemDecorations;
+            }
+            else
+            {
+                videoHeight = maxHeight - panelHeightDifference;
+                desiredHeight = maxHeight;
+            }
         }
         else
         {
@@ -417,13 +428,21 @@ public class MpvPlayer : ViewModelBase
         if (desiredWidth > maxWidth)
         {
             //change height to match new width
-            desiredHeight = (double)maxWidth / aspectRatio.Width * aspectRatio.Height;
+            desiredHeight = maxWidth / aspectRatio.Width * aspectRatio.Height;
         }
         
         WindowWidth = desiredWidth;
         WindowHeight = desiredHeight;
 
-        //call this method when enabling/disabling menubar
+        //windows does not center window automatically
+        //TODO need to do this on all operating systems, centering height as well (if height < maxHeight)
+        if (OperatingSystem.IsWindows())
+        {
+            var offset = (maxWidth * RenderScaling - desiredWidth * RenderScaling) / 2;
+            MainWindow.Position = new PixelPoint((int)offset, 0);
+        }
+        
+        //with windows the width seems to be one pixel too much?
     }
 
     private struct AspectRatio

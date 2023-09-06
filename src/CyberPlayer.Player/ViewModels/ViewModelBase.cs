@@ -1,5 +1,6 @@
 ﻿using System;
 using Avalonia.Controls;
+using Avalonia.Rendering;
 using CyberPlayer.Player.Views;
 using ReactiveMarbles.ObservableEvents;
 using ReactiveUI;
@@ -15,9 +16,14 @@ public class ViewModelBase : ReactiveObject
 
     protected static double PanelHeightDifference => GetPanelHeightDifference();
 
-    //protected static bool MenuBarEnabled => MainWindow.MenuBar.IsVisible;
+    protected static double RenderScaling => ((IRenderRoot)MainWindow).RenderScaling;
 
-    private static readonly MainWindow MainWindow;
+    protected static readonly MainWindow MainWindow;
+
+    protected static int SystemDecorations => OperatingSystem.IsMacOS() ? 28
+        : OperatingSystem.IsWindows() ? 30
+        : OperatingSystem.IsLinux() ? 37
+        : 0;
 
     static ViewModelBase()
     {
@@ -50,10 +56,7 @@ public class ViewModelBase : ReactiveObject
             panelHeightDifference = MainWindow.MainGrid.RowDefinitions[2].Height.Value;
         }
 
-        if (OperatingSystem.IsMacOS())
-        {
-            panelHeightDifference += 28;
-        }
+        panelHeightDifference += SystemDecorations;
 
         return panelHeightDifference;
     }

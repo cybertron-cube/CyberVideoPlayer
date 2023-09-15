@@ -22,6 +22,6 @@ public partial class libmpv
     ///     Gets or sets the root path for loading libraries.
     /// </summary>
     /// <value>The root path.</value>
-    public static string RootPath { get; set; } = AppDomain.CurrentDomain.BaseDirectory;
+    public static string RootPath { get; set; }
 
 }

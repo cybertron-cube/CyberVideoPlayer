@@ -8,6 +8,7 @@ using Avalonia.Threading;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.ViewModels;
 using CyberPlayer.Player.Views;
+using LibMpv.Client;
 using Splat;
 
 namespace CyberPlayer.Player.Helpers;
@@ -78,8 +79,10 @@ public static class Setup
     public static void Register()
     {
         var container = Locator.CurrentMutable;
-        
-        container.RegisterConstant(Settings.Import(BuildConfig.SettingsPath));
+        var settings = Settings.Import(BuildConfig.SettingsPath);
+        libmpv.RootPath = settings.LibMpvDir;
+
+        container.RegisterConstant(settings);
         container.RegisterLazySingleton(() => new HttpClient());
         
         container.RegisterLazySingleton(() => new MainWindow());

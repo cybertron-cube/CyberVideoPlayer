@@ -20,6 +20,9 @@ public class Settings
 
     public double VolumeChange { get; set; } = 10;
 
+    public string LibMpvDir { get; set; } = OperatingSystem.IsMacOS() ? "/opt/homebrew/Cellar/mpv/0.36.0/lib"
+        : AppDomain.CurrentDomain.BaseDirectory;
+
     public static Settings Import(string settingsPath)
     {
         Settings? settings = null;

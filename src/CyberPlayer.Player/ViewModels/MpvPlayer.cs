@@ -523,18 +523,34 @@ public class MpvPlayer : ViewModelBase
     private void Seek(double offset)
     {
         var newSeekValue = SeekValue + offset;
+        var wasPlaying = false;
+
+        if (IsPlaying)
+        {
+            PlayPause();
+            wasPlaying = true;
+        }
+        
         if (0 < newSeekValue && newSeekValue < Duration)
         {
-            SeekValue = newSeekValue;
+            
         }
-        else if (newSeekValue > Duration)
+        else if (newSeekValue >= Duration)
         {
             SeekValue = Duration;
+            return;
         }
         else
         {
-            SeekValue = 0;
+            newSeekValue = 0;
         }
+        
+        Dispatcher.UIThread.Post(() =>
+        {
+            SeekValue = newSeekValue;
+            if (wasPlaying)
+                PlayPause();
+        });
     }
 
     public void LoadFile(string? mediaPath = null)

@@ -493,8 +493,17 @@ public class MpvPlayer : ViewModelBase
         {
             IsPlaying = false;
         }
-        MpvContext.CommandAsync(0, param);
-        UpdateSliderValue();
+
+        Dispatcher.UIThread.Invoke(() =>
+        {
+            MpvContext.Command(param);
+        });
+        
+        Task.Run(() =>
+        {
+            Thread.Sleep(_settings.FrameStepUpdateDelay);
+            Dispatcher.UIThread.Post(UpdateSliderValue);
+        });
     }
 
     private void GetTracks()

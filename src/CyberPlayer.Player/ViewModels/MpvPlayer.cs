@@ -527,7 +527,7 @@ public class MpvPlayer : ViewModelBase
 
         if (IsPlaying)
         {
-            PlayPause();
+            Dispatcher.UIThread.Invoke(PlayPause);
             wasPlaying = true;
         }
         
@@ -537,7 +537,10 @@ public class MpvPlayer : ViewModelBase
         }
         else if (newSeekValue >= Duration)
         {
-            SeekValue = Duration;
+            Dispatcher.UIThread.Post(() =>
+            {
+                SeekValue = Duration;
+            });
             return;
         }
         else

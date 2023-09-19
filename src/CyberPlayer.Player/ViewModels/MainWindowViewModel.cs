@@ -14,6 +14,7 @@ using Cybertron.CUpdater;
 using Splat;
 using CyberPlayer.Player.Business;
 using CyberPlayer.Player.Services;
+using LibMpv.Client;
 using ReactiveUI.Fody.Helpers;
 using ILogger = Serilog.ILogger;
 
@@ -33,6 +34,7 @@ public class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel()
     {
         Settings = new Settings();
+        libmpv.RootPath = AppDomain.CurrentDomain.BaseDirectory;
         MpvPlayer = new MpvPlayer(Settings);
             
         CheckForUpdatesCommand = ReactiveCommand.CreateFromTask(CheckForUpdates);

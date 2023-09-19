@@ -511,7 +511,7 @@ public class MpvPlayer : ViewModelBase
     {
         if (IsFileLoaded)
         {
-            if (SeekValue - Duration == 0)
+            if (SeekValue - Duration >= 0)
             {
                 MpvContext.Command(MpvCommands.Seek, "0", "absolute");
                 SetSliderValueNoSeek(0);
@@ -529,7 +529,6 @@ public class MpvPlayer : ViewModelBase
                 _reloadFile = true;
                 LoadFile();
             }
-            //MpvContext.SetPropertyFlag(MpvProperties.Paused, false);
         }
     }
 
@@ -566,10 +565,11 @@ public class MpvPlayer : ViewModelBase
         if (!_reloadFile)
             _replacingFile = true;
         
-        MpvContext.Command("loadfile", MediaPath, "replace");
+        MpvContext.Command(MpvCommands.LoadFile, MediaPath, "replace");
 
         if (_replacingFile)
         {
+            MpvContext.SetPropertyFlag(MpvProperties.Paused, false);
             IsPlaying = true; //TODO Make setting
             return;
         }

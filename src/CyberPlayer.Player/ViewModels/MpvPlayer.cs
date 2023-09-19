@@ -388,92 +388,63 @@ public class MpvPlayer : ViewModelBase
 
     public void SetWindowSize()
     {
-        var maxWidth = Screens.Primary.WorkingArea.Width / RenderScaling;
-        var maxHeight = (int)(Screens.Primary.WorkingArea.Height / RenderScaling);
+        //Mac scaling is unique
+        var maxWidth = OperatingSystem.IsMacOS()? Screens.Primary!.WorkingArea.Width
+            : Screens.Primary!.WorkingArea.Width / RenderScaling;
+        var maxHeight = OperatingSystem.IsMacOS() ? Screens.Primary.WorkingArea.Height
+                : (int)(Screens.Primary.WorkingArea.Height / RenderScaling);
         
         var panelHeightDifference = 0;
         Dispatcher.UIThread.Invoke(() =>
         {
+            //INCLUDES SYSTEM DECORATIONS
+            //The height of the entire window without the video panel
             panelHeightDifference = (int)PanelHeightDifference;
         });
 
-        //TODO check renderscaling calculations on other operating systems (only tested on windows)
         //Calculate the height of the video and the height of the entire window
         double desiredHeight;
         int videoHeight;
-        if (SelectedVideoTrack.VideoDemuxHeight + panelHeightDifference >= maxHeight)
+        if (SelectedVideoTrack!.VideoDemuxHeight + panelHeightDifference >= maxHeight)
         {
-            //Setting height on windows will assume height excludes the system decorations
-            if (OperatingSystem.IsWindows())
-            {
-                videoHeight = maxHeight - panelHeightDifference;
-                desiredHeight = maxHeight - SystemDecorations;
-            }
-            else
-            {
-                videoHeight = maxHeight - panelHeightDifference;
-                desiredHeight = maxHeight;
-            }
+            videoHeight = maxHeight - panelHeightDifference;
+            desiredHeight = maxHeight - SystemDecorations;
         }
         else
         {
             videoHeight = (int)SelectedVideoTrack.VideoDemuxHeight!;
-            desiredHeight = (int)SelectedVideoTrack.VideoDemuxHeight + panelHeightDifference;
+            desiredHeight = (int)SelectedVideoTrack.VideoDemuxHeight + panelHeightDifference - SystemDecorations;
         }
         
-        //get aspect ratio ... usually 16:9
-        var aspectRatio = GetAspectRatio((int)SelectedVideoTrack.VideoDemuxWidth!, (int)SelectedVideoTrack.VideoDemuxHeight!);
-        var desiredWidth = (double)videoHeight / aspectRatio.Height * aspectRatio.Width;
+        //Calculate aspect ratio
+        var displayAspectRatio = (double)SelectedVideoTrack.VideoDemuxWidth! / (double)SelectedVideoTrack.VideoDemuxHeight!;
+        //Account for sample/pixel aspect ratio
+        displayAspectRatio *= (double)SelectedVideoTrack.VideoDemuxPar!;
+        
+        var desiredWidth = videoHeight * displayAspectRatio;
         
         if (desiredWidth > maxWidth)
         {
             //change height to match new width
-            desiredHeight = maxWidth / aspectRatio.Width * aspectRatio.Height;
+            desiredHeight = maxWidth / displayAspectRatio;
+            desiredWidth = maxWidth;
         }
-        
-        WindowWidth = desiredWidth;
-        WindowHeight = desiredHeight;
 
-        //windows does not center window automatically
-        //TODO need to do this on all operating systems, centering height as well (if height < maxHeight)
-        if (OperatingSystem.IsWindows())
+        var x = OperatingSystem.IsMacOS() ? (maxWidth - desiredWidth) / 2
+            : (maxWidth * RenderScaling - desiredWidth * RenderScaling) / 2;
+        
+        //this seems to be a tad inaccurate on mac (on the lower side) but not crazy noticeable
+        var y = OperatingSystem.IsMacOS() ? (maxHeight - desiredHeight + SystemDecorations) / 2
+            : (maxHeight * RenderScaling - desiredHeight * RenderScaling) / 2;
+        
+        Dispatcher.UIThread.Invoke(() =>
         {
-            var offset = (maxWidth * RenderScaling - desiredWidth * RenderScaling) / 2;
-            MainWindow.Position = new PixelPoint((int)offset, 0);
-        }
+            WindowWidth = desiredWidth;
+            WindowHeight = desiredHeight;
+            MainWindow.Position = new PixelPoint((int)x, (int)y);
+        });
         
         //with windows the width seems to be one pixel too much?
-    }
-
-    private struct AspectRatio
-    {
-        public readonly int Width;
-        public readonly int Height;
-
-        public AspectRatio(int width, int height)
-        {
-            Width = width;
-            Height = height;
-        }
-    }
-
-    private static AspectRatio GetAspectRatio(int width, int height)
-    {
-        var gcd = GCD(width, height);
-        return new AspectRatio(width / gcd, height / gcd);
-    }
-    
-    private static int GCD(int a, int b)
-    {
-        while (a != 0 && b != 0)
-        {
-            if (a > b)
-                a %= b;
-            else
-                b %= a;
-        }
-
-        return a | b;
     }
 
     private void ChangeVolume(double offset)

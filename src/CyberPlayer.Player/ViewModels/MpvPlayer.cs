@@ -436,12 +436,15 @@ public class MpvPlayer : ViewModelBase
         //Find centered x and y pixel points
         //Assumes default taskbar locations for the most part (bottom and left side work properly)
         var x = OperatingSystem.IsMacOS() ? (maxWidth - desiredWidth) / 2 + Screens.Primary.Bounds.Width - maxWidth
-            : (maxWidth * RenderScaling - desiredWidth * RenderScaling) / 2 + Screens.Primary.Bounds.Width - maxWidth;
+            : (maxWidth * RenderScaling - desiredWidth * RenderScaling) / 2 + Screens.Primary.Bounds.Width / RenderScaling - maxWidth;
         
         //This seems to be a tad inaccurate on mac (on the lower side) but not crazy noticeable
+        // - would have to find height of top bar and bottom bar in order to correct this
+        //On linux RenderScaling seems to always be one
+        // - if scaling is set to 200%, the window will not be centered vertically correctly (more towards bottom)
         var y = OperatingSystem.IsMacOS() ? (maxHeight - desiredHeight + SystemDecorations) / 2 :
             OperatingSystem.IsWindows() ? (maxHeight * RenderScaling - (desiredHeight + SystemDecorations) * RenderScaling) / 2
-            : (maxHeight * RenderScaling - (desiredHeight + SystemDecorations) * RenderScaling) / 2 + Screens.Primary.Bounds.Height - maxHeight;
+            : (maxHeight - (desiredHeight + SystemDecorations)) / 2 + Screens.Primary.Bounds.Height - maxHeight;
         
         Dispatcher.UIThread.Invoke(() =>
         {

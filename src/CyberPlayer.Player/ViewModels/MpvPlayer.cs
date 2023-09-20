@@ -401,6 +401,9 @@ public class MpvPlayer : ViewModelBase
             //The height of the entire window without the video panel
             panelHeightDifference = (int)PanelHeightDifference;
         });
+        
+        //Get the height of the video scaled for the correct aspect ratio
+        var videoSourceHeight = (int)_mpvContext.GetPropertyLong("video-params/dh");
 
         //Calculate the height of the video and the height of the entire window
         double desiredHeight;
@@ -412,8 +415,8 @@ public class MpvPlayer : ViewModelBase
         }
         else
         {
-            videoHeight = (int)SelectedVideoTrack.VideoDemuxHeight!;
-            desiredHeight = (int)SelectedVideoTrack.VideoDemuxHeight + panelHeightDifference - SystemDecorations;
+            videoHeight = videoSourceHeight;
+            desiredHeight = videoSourceHeight + panelHeightDifference - SystemDecorations;
         }
         
         //Calculate aspect ratio
@@ -430,17 +433,28 @@ public class MpvPlayer : ViewModelBase
             desiredWidth = maxWidth;
         }
 
-        var x = OperatingSystem.IsMacOS() ? (maxWidth - desiredWidth) / 2
-            : (maxWidth * RenderScaling - desiredWidth * RenderScaling) / 2;
+        //Find centered x and y pixel points
+        //Assumes default taskbar locations for the most part (bottom and left side work properly)
+        var x = OperatingSystem.IsMacOS() ? (maxWidth - desiredWidth) / 2 + Screens.Primary.Bounds.Width - maxWidth
+            : (maxWidth * RenderScaling - desiredWidth * RenderScaling) / 2 + Screens.Primary.Bounds.Width / RenderScaling - maxWidth;
         
-        //this seems to be a tad inaccurate on mac (on the lower side) but not crazy noticeable
-        var y = OperatingSystem.IsMacOS() ? (maxHeight - desiredHeight + SystemDecorations) / 2
-            : (maxHeight * RenderScaling - desiredHeight * RenderScaling) / 2;
+        //This seems to be a tad inaccurate on mac (on the lower side) but not crazy noticeable
+        // - would have to find height of top bar and bottom bar in order to correct this
+        //On linux RenderScaling seems to always be one
+        // - if scaling is set to 200%, the window will not be centered vertically correctly (more towards bottom)
+        var y = OperatingSystem.IsMacOS() ? (maxHeight - desiredHeight + SystemDecorations) / 2 :
+            OperatingSystem.IsWindows() ? (maxHeight * RenderScaling - (desiredHeight + SystemDecorations) * RenderScaling) / 2
+            : (maxHeight - (desiredHeight + SystemDecorations)) / 2 + Screens.Primary.Bounds.Height - maxHeight;
         
         Dispatcher.UIThread.Invoke(() =>
         {
             WindowWidth = desiredWidth;
             WindowHeight = desiredHeight;
+        });
+        
+        //Position updates too early on linux occasionally
+        Dispatcher.UIThread.Post(() =>
+        {
             MainWindow.Position = new PixelPoint((int)x, (int)y);
         });
         

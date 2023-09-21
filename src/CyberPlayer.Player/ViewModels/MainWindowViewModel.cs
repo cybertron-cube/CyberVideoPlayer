@@ -34,7 +34,7 @@ public class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel()
     {
         Settings = new Settings();
-        libmpv.RootPath = AppDomain.CurrentDomain.BaseDirectory;
+        libmpv.RootPath = Settings.LibMpvDir;
         MpvPlayer = new MpvPlayer(Settings);
             
         CheckForUpdatesCommand = ReactiveCommand.CreateFromTask(CheckForUpdates);

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using CyberPlayer.Player.AppSettings;
 using Cybertron;
 using Serilog;
 using CyberPlayer.Player.Helpers;
@@ -15,6 +16,7 @@ public class FFmpeg : IDisposable
     public event Action<double>? ProgressChanged;
 
     private readonly ILogger _log;
+    private readonly Settings _settings;
     private readonly string _videoPath;
     private string? _lastStdErrLine;
     private readonly Process _ffmpegProcess;
@@ -22,9 +24,10 @@ public class FFmpeg : IDisposable
     private double _endTimeMs = double.NaN;
     private double _spanTimeMs = double.NaN;
 
-    public FFmpeg(string videoPath)
+    public FFmpeg(string videoPath, Settings settings)
     {
         _videoPath = videoPath;
+        _settings = settings;
         
         var timeStamp = DateTime.Now.ToString(LogHelper.DateTimeFormat);
         var filePath = Path.Combine(BuildConfig.LogDirectory, $"ffmpeg_output_{timeStamp}.log");
@@ -145,7 +148,7 @@ public class FFmpeg : IDisposable
     private void SetTrimArgs(string startTimeCode, string endTimeCode, string videoDestination)
     {
         _ffmpegProcess.StartInfo.Arguments =
-            $"-progress pipe:1 -y -ss {startTimeCode} -to {endTimeCode} -i \"{_videoPath}\" -map 0 -codec copy -avoid_negative_ts make_zero \"{videoDestination}\"";
+            $"-progress pipe:1 -y -ss {startTimeCode} -to {endTimeCode} -i \"{_videoPath}\" -map 0 -codec copy {_settings.ExtraTrimArgs} \"{videoDestination}\"";
         _log.Information("FFmpeg arguments: {Args}", _ffmpegProcess.StartInfo.Arguments);
     }
 }

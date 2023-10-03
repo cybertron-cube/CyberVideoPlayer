@@ -146,7 +146,7 @@ public class MainWindowViewModel : ViewModelBase
             }
         });
             
-        using (var ffmpeg = new FFmpeg(MpvPlayer.MediaPath))
+        using (var ffmpeg = new FFmpeg(MpvPlayer.MediaPath, Settings))
         {
             ffmpeg.ProgressChanged += progress =>
             {
@@ -166,6 +166,7 @@ public class MainWindowViewModel : ViewModelBase
             
         Debug.WriteLine(result.ExitCode);
         Debug.WriteLine(result.ErrorMessage);
+        _log.Information("FFmpeg result: {ExitCode} , {ErrorMessage}", result.ExitCode, result.ErrorMessage);
             
         //TODO CHECK IF FILE ALREADY EXISTS - ffmpeg args contain -y so will overwrite but should make prompt
         //TODO subscribe to progress change event to update progressbar

@@ -529,9 +529,9 @@ public class MpvPlayer : ViewModelBase
         var trackInfosJson = MpvContext.GetPropertyString(MpvProperties.TrackList);
         var trackInfos = JsonSerializer.Deserialize(trackInfosJson, TrackInfoJsonContext.Default.TrackInfoArray);
         AudioTrackInfos = trackInfos!.Where(x => x.Type == "audio");
-        SelectedAudioTrack = AudioTrackInfos.First();
+        SelectedAudioTrack = AudioTrackInfos.FirstOrDefault();
         VideoTrackInfos = trackInfos!.Where(x => x.Type == "video");
-        SelectedVideoTrack = VideoTrackInfos.First();
+        SelectedVideoTrack = VideoTrackInfos.FirstOrDefault();
     }
     
     public void PlayPause()

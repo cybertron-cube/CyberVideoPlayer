@@ -15,12 +15,15 @@ using Cybertron;
 using LibMpv.Client;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using Serilog;
 
 namespace CyberPlayer.Player.ViewModels;
 
 public class MpvPlayer : ViewModelBase
 {
     private readonly Settings _settings;
+
+    private readonly ILogger _log;
     
     private MpvContext _mpvContext;
 
@@ -35,8 +38,9 @@ public class MpvPlayer : ViewModelBase
         }
     }
     
-    public MpvPlayer(Settings settings)
+    public MpvPlayer(ILogger logger, Settings settings)
     {
+        _log = logger.ForContext<MpvPlayer>();
         _settings = settings;
 
         _mpvContext = new MpvContext();
@@ -389,7 +393,7 @@ public class MpvPlayer : ViewModelBase
     public void SetWindowSize()
     {
         //Mac scaling is unique
-        var maxWidth = OperatingSystem.IsMacOS()? Screens.Primary!.WorkingArea.Width
+        var maxWidth = OperatingSystem.IsMacOS() ? Screens.Primary!.WorkingArea.Width
             : Screens.Primary!.WorkingArea.Width / RenderScaling;
         var maxHeight = OperatingSystem.IsMacOS() ? Screens.Primary.WorkingArea.Height
                 : (int)(Screens.Primary.WorkingArea.Height / RenderScaling);
@@ -403,7 +407,15 @@ public class MpvPlayer : ViewModelBase
         });
         
         //Get the height of the video scaled for the correct aspect ratio
-        var videoSourceHeight = (int)_mpvContext.GetPropertyLong("video-params/dh");
+        //Sometimes the property is attempted to be retrieved before available
+        //(Even though this method is called in the fileloaded event the exception still occurs on windows)
+        var videoSourceHeight = 0;
+        var getDemuxHeightResult = ExecuteAndRetry(() =>
+        {
+            videoSourceHeight = (int)_mpvContext.GetPropertyLong("video-params/dh");
+        }, exception => _log.Error(exception, ""));
+
+        if (getDemuxHeightResult == false) throw new Exception("Could not retrieve video height from mpv");
 
         //Calculate the height of the video and the height of the entire window
         double desiredHeight;
@@ -459,6 +471,26 @@ public class MpvPlayer : ViewModelBase
         });
         
         //with windows the width seems to be one pixel too much?
+    }
+    
+    ///Made to help with calls to mpv since information retrieval can be a bit wonky
+    private static bool ExecuteAndRetry(Action work, Action<Exception>? onCaughtException = null, int retryCount = 2, int delay = 100)
+    {
+        for (int i = 0; i <= retryCount; i++)
+        {
+            try
+            {
+                work.Invoke();
+                return true;
+            }
+            catch (Exception e)
+            {
+                onCaughtException?.Invoke(e);
+                Thread.Sleep(delay);
+            }
+        }
+
+        return false;
     }
 
     private void ChangeVolume(double offset)

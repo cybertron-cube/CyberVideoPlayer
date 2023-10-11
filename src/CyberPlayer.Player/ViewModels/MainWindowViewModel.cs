@@ -16,6 +16,7 @@ using CyberPlayer.Player.Business;
 using CyberPlayer.Player.Services;
 using LibMpv.Client;
 using ReactiveUI.Fody.Helpers;
+using Serilog;
 using ILogger = Serilog.ILogger;
 
 namespace CyberPlayer.Player.ViewModels;
@@ -35,7 +36,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         Settings = new Settings();
         libmpv.RootPath = Settings.LibMpvDir;
-        MpvPlayer = new MpvPlayer(Settings);
+        MpvPlayer = new MpvPlayer(Log.ForContext<MpvPlayer>(), Settings);
             
         CheckForUpdatesCommand = ReactiveCommand.CreateFromTask(CheckForUpdates);
         MediaPickerCommand = ReactiveCommand.CreateFromTask(MediaPicker);

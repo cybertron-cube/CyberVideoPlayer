@@ -433,8 +433,9 @@ public class MpvPlayer : ViewModelBase
         
         //Calculate aspect ratio
         var displayAspectRatio = (double)SelectedVideoTrack.VideoDemuxWidth! / (double)SelectedVideoTrack.VideoDemuxHeight!;
-        //Account for sample/pixel aspect ratio
-        displayAspectRatio *= (double)SelectedVideoTrack.VideoDemuxPar!;
+        //Account for sample/pixel aspect ratio if needed
+        if (SelectedVideoTrack.VideoDemuxPar != null)
+            displayAspectRatio *= (double)SelectedVideoTrack.VideoDemuxPar;
         
         var desiredWidth = videoHeight * displayAspectRatio;
         

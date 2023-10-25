@@ -160,18 +160,34 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         {
             MenuBar.IsVisible = true;
             MenuBar.IsHitTestVisible = true;
-            Grid.SetRow(VideoPanel, 1);
-            Grid.SetRowSpan(VideoPanel, 1);
+            
+            if (WindowState == WindowState.FullScreen)
+            {
+                MenuBar.Classes.Add("FadeFullscreen");
+            }
+            else
+            {
+                Grid.SetRow(VideoPanel, 1);
+                Grid.SetRowSpan(VideoPanel, 1);
+            }
         }
         else
         {
             MenuBar.IsVisible = false;
             MenuBar.IsHitTestVisible = false;
-            Grid.SetRow(VideoPanel, 0);
-            Grid.SetRowSpan(VideoPanel, 2);
+            
+            if (WindowState == WindowState.FullScreen)
+            {
+                MenuBar.Classes.Remove("FadeFullscreen");
+            }
+            else
+            {
+                Grid.SetRow(VideoPanel, 0);
+                Grid.SetRowSpan(VideoPanel, 2);
+            }
         }
-
-        if (resizeWindow)
+        
+        if (resizeWindow && WindowState != WindowState.FullScreen)
             ViewModel!.MpvPlayer.SetWindowSize();
     }
 
@@ -316,6 +332,16 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
                 Grid.SetRow(VideoPanel, 0);
                 Grid.SetRowSpan(VideoPanel, 2);
             }
+            
+            //Width does not adjust properly if menu bar changed in fullscreen
+            //(So set the window size again if the height of the video panel has changed)
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (Math.Abs((int)VideoPanel.Bounds.Height - ViewModel!.MpvPlayer.VideoHeight) > 1)
+                {
+                    ViewModel.MpvPlayer.SetWindowSize();
+                }
+            });
                 
             PointerPressed -= MainWindow_PointerPressed;
             PointerMoved -= MainWindow_PointerMoved;

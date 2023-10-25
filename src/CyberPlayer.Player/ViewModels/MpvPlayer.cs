@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Threading;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Models;
@@ -113,7 +114,8 @@ public class MpvPlayer : ViewModelBase
             this.RaisePropertyChanged(nameof(SeekTimeCodeString));
             
             GetTracks();
-            SetWindowSize();
+            if (GetMainWindowState() == WindowState.Normal)
+                SetWindowSize();
         }
         Debug.WriteLine(Duration);
     }
@@ -390,6 +392,8 @@ public class MpvPlayer : ViewModelBase
     [Reactive]
     public double WindowHeight { get; set; }
 
+    public int VideoHeight { get; private set; }
+
     public void SetWindowSize()
     {
         //Mac scaling is unique
@@ -419,15 +423,15 @@ public class MpvPlayer : ViewModelBase
 
         //Calculate the height of the video and the height of the entire window
         double desiredHeight;
-        int videoHeight;
+        
         if (SelectedVideoTrack!.VideoDemuxHeight + panelHeightDifference >= maxHeight)
         {
-            videoHeight = maxHeight - panelHeightDifference;
+            VideoHeight = maxHeight - panelHeightDifference;
             desiredHeight = maxHeight - SystemDecorations;
         }
         else
         {
-            videoHeight = videoSourceHeight;
+            VideoHeight = videoSourceHeight;
             desiredHeight = videoSourceHeight + panelHeightDifference - SystemDecorations;
         }
         
@@ -437,7 +441,7 @@ public class MpvPlayer : ViewModelBase
         if (SelectedVideoTrack.VideoDemuxPar != null)
             displayAspectRatio *= (double)SelectedVideoTrack.VideoDemuxPar;
         
-        var desiredWidth = videoHeight * displayAspectRatio;
+        var desiredWidth = VideoHeight * displayAspectRatio;
         
         if (desiredWidth > maxWidth)
         {

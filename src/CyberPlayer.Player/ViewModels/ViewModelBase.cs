@@ -1,6 +1,7 @@
 ﻿using System;
 using Avalonia.Controls;
 using Avalonia.Rendering;
+using Avalonia.Threading;
 using CyberPlayer.Player.Views;
 using ReactiveMarbles.ObservableEvents;
 using ReactiveUI;
@@ -25,6 +26,8 @@ public class ViewModelBase : ReactiveObject
         : OperatingSystem.IsLinux() ? 37
         : 0;
 
+    protected static WindowState GetMainWindowState() => Dispatcher.UIThread.Invoke(() => MainWindow.WindowState);
+    
     static ViewModelBase()
     {
         MainWindow = Locator.Current.GetService<MainWindow>()!;

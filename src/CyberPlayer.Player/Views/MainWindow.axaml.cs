@@ -194,13 +194,18 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
-        if (e.Key == Key.T && e.KeyModifiers == KeyModifiers.Control)
+        switch (e.Key)
         {
-            InvertSeekControl();
-        }
-        else if (e.Key == Key.F)
-        {
-            FullScreen();
+            case Key.T when e.KeyModifiers == KeyModifiers.Control:
+                InvertSeekControl();
+                break;
+            case Key.F:
+                FullScreen();
+                break;
+            case Key.Escape:
+                if (WindowState == WindowState.FullScreen)
+                    FullScreen();
+                break;
         }
     }
 

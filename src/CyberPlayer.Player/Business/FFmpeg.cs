@@ -13,13 +13,15 @@ namespace CyberPlayer.Player.Business;
 
 public class FFmpeg : IDisposable
 {
+    public const string ProbeFormatArgs = "-v quiet -show_format -show_streams -print_format ";
     public event Action<double>? ProgressChanged;
-
+    
     private readonly ILogger _log;
     private readonly Settings _settings;
     private readonly string _videoPath;
     private string? _lastStdErrLine;
-    private readonly Process _ffmpegProcess;
+    private readonly CustomProcess _ffmpegProcess;
+    private readonly CustomProcess _ffprobeProcess;
     private double _startTimeMs = double.NaN;
     private double _endTimeMs = double.NaN;
     private double _spanTimeMs = double.NaN;
@@ -41,7 +43,7 @@ public class FFmpeg : IDisposable
         GenStatic.GetOSRespectiveExecutablePath(ref ffmpegPath);
         _log.Information("Using ffmpeg path {Path}", ffmpegPath);
         
-        _ffmpegProcess = new Process
+        _ffmpegProcess = new CustomProcess
         {
             EnableRaisingEvents = true,
             StartInfo = new ProcessStartInfo(ffmpegPath)
@@ -56,6 +58,23 @@ public class FFmpeg : IDisposable
         
         _ffmpegProcess.OutputDataReceived += FFmpegProcessOnOutputDataReceived;
         _ffmpegProcess.ErrorDataReceived += FFmpegProcessOnErrorDataReceived;
+
+        var ffprobePath = GenStatic.GetFullPathFromRelative(Path.Combine("ffmpeg", "ffprobe"));
+        GenStatic.GetOSRespectiveExecutablePath(ref ffprobePath);
+        _log.Information("Using ffmpeg path {Path}", ffprobePath);
+        
+        _ffprobeProcess = new CustomProcess
+        {
+            EnableRaisingEvents = true,
+            StartInfo = new ProcessStartInfo(ffprobePath)
+            {
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardError = true,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true
+            }
+        };
     }
 
     public struct FFmpegResult
@@ -110,6 +129,34 @@ public class FFmpeg : IDisposable
         throw new NotImplementedException();
     }
 
+    public string Probe(string args = "")
+    {
+        _ffprobeProcess.StartInfo.Arguments =
+            $"{args} \"{_videoPath}\"";
+        _log.Information("FFprobe arguments: {Args}", _ffprobeProcess.StartInfo.Arguments);
+        
+        _ffprobeProcess.Start();
+        var stdout = _ffprobeProcess.StandardOutput.ReadToEnd();
+        var stderr = _ffprobeProcess.StandardError.ReadToEnd();
+        return stdout == string.Empty ? stderr : stdout;
+    }
+
+    public string ProbeFormat(string format) => Probe($"{ProbeFormatArgs}{format}");
+
+    public void Dispose()
+    {
+        //TODO Should make sure the ffmpegprocess is closed after this
+        if (_ffmpegProcess is { HasStarted: true, HasExited: false })
+            _ffmpegProcess.StandardInput.Write('q');
+        _ffmpegProcess.Dispose();
+        
+        if (_ffprobeProcess is { HasStarted: true, HasExited: false })
+            _ffprobeProcess.Kill();
+        _ffprobeProcess.Dispose();
+        
+        GC.SuppressFinalize(this);
+    }
+
     private void FFmpegProcessOnOutputDataReceived(object sender, DataReceivedEventArgs e)
     {
         if (e.Data == null) return;
@@ -135,14 +182,6 @@ public class FFmpeg : IDisposable
 
         _lastStdErrLine = e.Data;
         _log.Error(_lastStdErrLine);
-    }
-
-    public void Dispose()
-    {
-        if (!_ffmpegProcess.HasExited)
-            _ffmpegProcess.StandardInput.Write('q');
-        _ffmpegProcess.Dispose();
-        GC.SuppressFinalize(this);
     }
 
     private void SetTrimArgs(string startTimeCode, string endTimeCode, string videoDestination)

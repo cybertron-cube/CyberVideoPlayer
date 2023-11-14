@@ -1,0 +1,97 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CyberPlayer.Player"
+        xmlns:vm="clr-namespace:CyberPlayer.Player.ViewModels"
+        xmlns:system="clr-namespace:System;assembly=mscorlib"
+        mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="350"
+        d:DataContext="{x:Static local:ViewModelLocator.VideoInfo}"
+        x:Class="CyberPlayer.Player.Views.VideoInfoWindow"
+        x:DataType="vm:VideoInfoViewModel"
+        x:CompileBindings="True"
+        MinWidth="700" MinHeight="400"
+        Icon="/Assets/Logo/cyber-logo-sunset.ico"
+        Title="{Binding VideoInfoType}">
+    
+    <Design.DataContext>
+        <vm:VideoInfoViewModel />
+    </Design.DataContext>
+    
+    <Window.Styles>
+        <Style Selector="ListBox.open">
+            <Setter Property="Height" Value="57" />
+        </Style>
+        <Style Selector="ListBox.close">
+            <Setter Property="Height" Value="0" />
+        </Style>
+    </Window.Styles>
+    
+    <Grid RowDefinitions="*, Auto" Name="MainGrid" ShowGridLines="False">
+        <ContentControl Grid.Row="0" Name="ContentControl" />
+        <!-- TODO Change to dockpanel and have export button on right side with a choice as sidecar or FilePicker(browse) -->
+        <StackPanel Name="ButtonStack" Grid.Row="1" Orientation="Horizontal" Spacing="10">
+            <!-- TODO add minwidth to button, make more circular and align listbox after, increase height of listbox -->
+            <Button Name="FormatButton" Click="FormatButton_OnClick">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding CurrentFormat}" />
+                    <Path Name="ArrowShape"
+                          Data="{StaticResource ArrowGeometry}"
+                          Stroke="White"
+                          StrokeThickness="2"
+                          VerticalAlignment="Center"
+                          Margin="10, 1, 0, 0">
+                        <Path.Transitions>
+                            <Transitions>
+                                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1" />
+                            </Transitions>
+                        </Path.Transitions>
+                    </Path>
+                </StackPanel>
+            </Button>
+            <CheckBox Name="JsonTreeCheck" Content="Tree View" IsChecked="{Binding JsonTreeView}" />
+        </StackPanel>
+        <ListBox Name="FormatBox"
+                 Grid.Row="0"
+                 Grid.RowSpan="2"
+                 HorizontalAlignment="Left"
+                 VerticalAlignment="Bottom"
+                 Margin="0, 0, 0, 0"
+                 Background="Black"
+                 ItemsSource="{Binding FormatOptions}"
+                 Classes="close">
+            <ListBox.Styles>
+                <Style Selector="ListBoxItem">
+                    <Setter Property="Padding" Value="0" />
+                </Style>
+                <Style Selector="Button">
+                    <Setter Property="Command" Value="{Binding $parent[ListBox].((vm:VideoInfoViewModel)DataContext).set_CurrentFormat}" />
+                    <Setter Property="CommandParameter" Value="{Binding ., DataType=system:String}" />
+                </Style>
+                <Style Selector="Button:pointerover">
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="BorderBrush" Value="Transparent" />
+                    <Setter Property="Foreground" Value="Transparent" />
+                </Style>
+            </ListBox.Styles>
+            <ListBox.Transitions>
+                <Transitions>
+                    <DoubleTransition Property="Height" Duration="0:0:0.1" />
+                </Transitions>
+            </ListBox.Transitions>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Button Width="{Binding #FormatButton.Bounds.Width}"
+                            Background="Transparent"
+                            Focusable="False"
+                            Padding="0"
+                            CornerRadius="0"
+                            BorderThickness="0"
+                            Click="FormatListBoxButton_OnClick">
+                        <TextBlock Text="{Binding .}" />
+                    </Button>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+</Window>

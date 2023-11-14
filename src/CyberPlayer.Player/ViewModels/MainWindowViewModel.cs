@@ -1,5 +1,6 @@
 ﻿using ReactiveUI;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
@@ -23,6 +24,12 @@ namespace CyberPlayer.Player.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
+    public readonly Dictionary<VideoInfoType, bool> VideoInfoActive = new()
+    {
+        { VideoInfoType.MediaInfo , false },
+        { VideoInfoType.FFprobe , false },
+        { VideoInfoType.Mpv , false }
+    };
     private readonly ILogger _log;
     private IStorageFolder? _lastFolderLocation;
     
@@ -38,6 +45,8 @@ public class MainWindowViewModel : ViewModelBase
         
     public ReactiveCommand<EventArgs?, Unit> ExitAppCommand { get; }
     
+    public ReactiveCommand<VideoInfoType, Unit> ViewVideoInfoCommand { get; }
+    
     [Reactive]
     public object? VideoContent { get; set; }
 
@@ -49,7 +58,7 @@ public class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel()
     {
         Settings = new Settings();
-        libmpv.RootPath = Settings.LibMpvDir;
+        libmpv.RootPath = AppDomain.CurrentDomain.BaseDirectory;
         MpvPlayer = new MpvPlayer(Log.ForContext<MpvPlayer>(), Settings);
             
         CheckForUpdatesCommand = ReactiveCommand.CreateFromTask(CheckForUpdates);
@@ -76,6 +85,7 @@ public class MainWindowViewModel : ViewModelBase
         MediaPickerCommand = ReactiveCommand.CreateFromTask(MediaPicker);
         OpenWebLinkCommand = ReactiveCommand.Create<string>(GenStatic.OpenWebLink);
         ExitAppCommand = ReactiveCommand.Create<EventArgs?>(ExitApp);
+        ViewVideoInfoCommand = ReactiveCommand.Create<VideoInfoType>(ViewVideoInfo);
     }
 
     private async Task CheckForUpdates()
@@ -183,6 +193,12 @@ public class MainWindowViewModel : ViewModelBase
         _lastFolderLocation = await result.Single().GetParentAsync();
             
         MpvPlayer.LoadFile(mediaPath);
+    }
+    
+    private void ViewVideoInfo(VideoInfoType videoInfoType)
+    {
+        if (!VideoInfoActive[videoInfoType])
+            this.ShowVideoInfo(videoInfoType);
     }
         
     private static string TempWebLinkFix(string markdown)

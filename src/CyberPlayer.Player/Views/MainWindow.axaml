@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:CyberPlayer.Player.ViewModels"
         xmlns:models="clr-namespace:CyberPlayer.Player.Models"
+        xmlns:services="clr-namespace:CyberPlayer.Player.Services"
 		xmlns:local="clr-namespace:CyberPlayer.Player"
         xmlns:converters="clr-namespace:CyberPlayer.Player.ValueConverters"
         xmlns:mpv="clr-namespace:LibMpv.Client;assembly=LibMpv.Context"
@@ -70,6 +71,13 @@
 					<NativeMenuItem Header="Export "/>
 				</NativeMenu>
 			</NativeMenuItem>
+			<NativeMenuItem Header="View">
+				<NativeMenu>
+					<NativeMenuItem Header="MediaInfo" Command="{Binding ViewVideoInfoCommand}" CommandParameter="{x:Static services:VideoInfoType.MediaInfo}" />
+					<NativeMenuItem Header="FFprobe" Command="{Binding ViewVideoInfoCommand}" CommandParameter="{x:Static services:VideoInfoType.FFprobe}" />
+					<NativeMenuItem Header="Mpv" Command="{Binding ViewVideoInfoCommand}" CommandParameter="{x:Static services:VideoInfoType.Mpv}" />
+				</NativeMenu>
+			</NativeMenuItem>
 			<NativeMenuItem Header="Help">
 				<NativeMenu>
 					<NativeMenuItem Header="About" />
@@ -87,10 +95,15 @@
 				<MenuItem Header="_Close" Command="{Binding ExitAppCommand}" />
 			</MenuItem>
 			<MenuItem Header="_Edit">
-				<MenuItem Header="_Trim" Command="{Binding Trim}"/>
+				<MenuItem Header="_Trim" Command="{Binding Trim}" />
 				<MenuItem Header="_Audio Track Selection" />
 				<MenuItem Header="_Remux" />
 				<MenuItem Header="_Export "/>
+			</MenuItem>
+			<MenuItem Header="_View">
+				<MenuItem Header="MediaInfo" Command="{Binding ViewVideoInfoCommand}" CommandParameter="{x:Static services:VideoInfoType.MediaInfo}" />
+				<MenuItem Header="FFprobe" Command="{Binding ViewVideoInfoCommand}" CommandParameter="{x:Static services:VideoInfoType.FFprobe}" />
+				<MenuItem Header="Mpv" Command="{Binding ViewVideoInfoCommand}" CommandParameter="{x:Static services:VideoInfoType.Mpv}" />
 			</MenuItem>
 			<MenuItem Header="_Help">
 				<MenuItem Header="_Licenses" />

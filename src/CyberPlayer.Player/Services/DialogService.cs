@@ -17,12 +17,22 @@ public static class DialogService
 {
     public static async Task<IReadOnlyList<IStorageFile>> OpenFileDialog(this ViewModelBase viewModel, FilePickerOpenOptions options)
     {
-        var viewLocator = Locator.Current.GetService<StrongViewLocator>()!;
-        var viewType = viewLocator.Locate(viewModel).ViewType;
-        var view = (Window)Locator.Current.GetService(viewType)!;
+        var view = (Window)GetView(viewModel);
         var storageProvider = view.StorageProvider;
         
         return await storageProvider.OpenFilePickerAsync(options);
+    }
+
+    public static void ShowVideoInfo(this MainWindowViewModel viewModel, VideoInfoType videoInfoType)
+    {
+        //var owner = GetView(viewModel);
+        var videoInfoView = new VideoInfoWindow();
+        var videoInfoViewModel = new VideoInfoViewModel(videoInfoType, viewModel.MpvPlayer, viewModel.Settings);
+        videoInfoView.DataContext = videoInfoViewModel;
+        videoInfoView.Closed += (_, _) => viewModel.VideoInfoActive[videoInfoType] = false;
+        viewModel.VideoInfoActive[videoInfoType] = true;
+        videoInfoView.Show(/*owner*/);
+        //return videoInfoViewModel;
     }
     
     public static async Task<MessagePopupResult> ShowMessagePopup(this ViewModelBase viewModel, MessagePopupButtons buttons, string title, string message, PopupParams popupParams)
@@ -147,9 +157,7 @@ public static class DialogService
     
     private static (IParentPanelView attachedView, ContentPopup popup) GetPopup(ViewModelBase viewModel, object content, PopupParams popupParams)
     {
-        var viewLocator = Locator.Current.GetService<StrongViewLocator>()!;
-        var viewType = viewLocator.Locate(viewModel).ViewType;
-        var view = (IParentPanelView)Locator.Current.GetService(viewType)!;
+        var view = (IParentPanelView)GetView(viewModel);
         var contentPopup = MakePopup(content, popupParams);
         
         //If content has a static viewmodel association, datacontext needs to be set before adding
@@ -165,6 +173,13 @@ public static class DialogService
         return (view, contentPopup);
     }
 
+    private static object GetView(ViewModelBase viewModel)
+    {
+        var viewLocator = Locator.Current.GetService<StrongViewLocator>()!;
+        var viewType = viewLocator.Locate(viewModel).ViewType;
+        return Locator.Current.GetService(viewType)!;
+    }
+    
     private static ContentPopup MakePopup(object content, PopupParams popupParams)
     {
         var popup = new ContentPopup

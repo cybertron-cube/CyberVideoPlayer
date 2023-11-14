@@ -15,7 +15,8 @@ namespace CyberPlayer.Player
                 .Register<MainWindowViewModel, MainWindow>()
                 .Register<ProgressViewModel, ProgressView>()
                 .Register<MessagePopupViewModel, MessagePopupView>()
-                .Register<JsonTreeViewModel, JsonTreeView>();
+                .Register<JsonTreeViewModel, JsonTreeView>()
+                .Register<VideoInfoViewModel, VideoInfoWindow>();
             
             container.Register(() => viewLocator);
         }
@@ -27,5 +28,7 @@ namespace CyberPlayer.Player
         public static MessagePopupViewModel Message => Locator.Current.GetService<MessagePopupViewModel>()!;
 
         public static JsonTreeViewModel JsonTree => Locator.Current.GetService<JsonTreeViewModel>()!;
+
+        public static VideoInfoViewModel VideoInfo => Locator.Current.GetService<VideoInfoViewModel>()!;
     }
 }

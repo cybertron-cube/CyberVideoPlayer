@@ -1,5 +1,6 @@
 using System.IO;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 
@@ -26,6 +27,7 @@ namespace CyberPlayer.Player
                 mainWindow.DataContext = mainWindowVm;
                 
                 desktop.MainWindow = mainWindow;
+                desktop.ShutdownMode = ShutdownMode.OnMainWindowClose;
             }
 
             base.OnFrameworkInitializationCompleted();

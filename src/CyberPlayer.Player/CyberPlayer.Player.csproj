@@ -10,6 +10,7 @@
     <AssemblyName>CyberVideoPlayer</AssemblyName>
     <Configurations>Debug;Release;Release-win-x64-multi;Release-win-x64-single;Release-linux-x64-single;Release-linux-x64-multi;Release-osx-x64-multi;Release-osx-x64-single;Release-portable-single;Release-portable-multi</Configurations>
     <Platforms>AnyCPU</Platforms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <!-- MULTI;SINGLE;PORTABLE;WINX64;OSXX64;LINUXX64 -->
@@ -116,5 +117,11 @@
     <Copy Condition=" $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\mpv\linux-2.1.0\libmpv.so.2" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
     <!-- TODO Compile libmpv for osx -->
     <!--<Copy Condition=" $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\mpv\osx\" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />-->
+  </Target>
+
+  <Target Name="MediaInfoCopy" AfterTargets="LibMpvCopy">
+    <Copy Condition=" $(DefineConstants.Contains(WINX64)) " SourceFiles="..\..\mediainfo\win\MediaInfo.dll" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+    <Copy Condition=" $(DefineConstants.Contains(LINUXX64)) " SourceFiles="..\..\mediainfo\linux\libmediainfo.so.0.0.0" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+    <Copy Condition=" $(DefineConstants.Contains(OSXX64)) " SourceFiles="..\..\mediainfo\osx\libmediainfo.dylib" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
   </Target>
 </Project>

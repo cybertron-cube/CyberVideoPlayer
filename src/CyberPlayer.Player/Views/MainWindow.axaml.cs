@@ -18,6 +18,7 @@ using LibMpv.Client;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Avalonia.Rendering;
+using System.Threading.Tasks;
 using Avalonia.Threading;
 using CyberPlayer.Player.RendererVideoViews;
 using Serilog;
@@ -340,10 +341,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
             
             //Width does not adjust properly if menu bar changed in fullscreen
             //(So set the window size again if the height of the video panel has changed)
-            Dispatcher.UIThread.Post(() =>
+            Dispatcher.UIThread.Post(async () =>
             {
                 if (Math.Abs((int)VideoPanel.Bounds.Height - ViewModel!.MpvPlayer.VideoHeight) > 1)
                 {
+                    if (OperatingSystem.IsMacOS())
+                        await Task.Delay(300);
                     ViewModel.MpvPlayer.SetWindowSize();
                 }
             });

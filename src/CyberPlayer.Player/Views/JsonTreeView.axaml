@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:CyberPlayer.Player.ViewModels"
+             xmlns:local="clr-namespace:CyberPlayer.Player"
+             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="350"
+             d:DataContext="{x:Static local:ViewModelLocator.JsonTree}"
+             x:Class="CyberPlayer.Player.Views.JsonTreeView"
+             x:DataType="vm:JsonTreeViewModel"
+             x:CompileBindings="True">
+    
+    <Design.DataContext>
+        <vm:JsonTreeViewModel />
+    </Design.DataContext>
+    
+    <TreeView ItemsSource="{Binding Items}">
+        <TreeView.ItemTemplate>
+            <TreeDataTemplate ItemsSource="{Binding Children}">
+                <Panel>
+                    <TextBlock Text="{Binding Header}" />
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Left"
+                                   Text="{Binding Key}" />
+                        <TextBlock DockPanel.Dock="Right"
+                                   Text="{Binding Value}"
+                                   HorizontalAlignment="Right"
+                                   Margin="0, 0, 20, 0" />
+                    </DockPanel>
+                </Panel>
+            </TreeDataTemplate>
+        </TreeView.ItemTemplate>
+    </TreeView>
+</UserControl>

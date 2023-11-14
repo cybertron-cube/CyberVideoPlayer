@@ -385,6 +385,9 @@ public class MpvPlayer : ViewModelBase
             this.RaisePropertyChanged();
         }
     }
+    
+    [Reactive]
+    public string TrackListJson { get; set; }
 
     [Reactive]
     public double WindowWidth { get; set; }
@@ -530,8 +533,8 @@ public class MpvPlayer : ViewModelBase
 
     private void GetTracks()
     {
-        var trackInfosJson = MpvContext.GetPropertyString(MpvProperties.TrackList);
-        var trackInfos = JsonSerializer.Deserialize(trackInfosJson, TrackInfoJsonContext.Default.TrackInfoArray);
+        TrackListJson = MpvContext.GetPropertyString(MpvProperties.TrackList);
+        var trackInfos = JsonSerializer.Deserialize(TrackListJson, TrackInfoJsonContext.Default.TrackInfoArray);
         AudioTrackInfos = trackInfos!.Where(x => x.Type == "audio");
         SelectedAudioTrack = AudioTrackInfos.FirstOrDefault();
         VideoTrackInfos = trackInfos!.Where(x => x.Type == "video");

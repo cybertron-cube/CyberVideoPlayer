@@ -4,13 +4,13 @@ using ReactiveUI.Fody.Helpers;
 
 namespace CyberPlayer.Player.Models;
 
-public class TrackInfo// : ReactiveObject
+public class TrackInfo
 {
     [JsonPropertyName("id")]
     public int Id { get; set; }
     
     [JsonPropertyName("type")]
-    public string Type { get; set; }
+    public string? Type { get; set; }
     
     [JsonPropertyName("src-id")]
     public int SrcId { get; set; }
@@ -47,7 +47,7 @@ public class TrackInfo// : ReactiveObject
     public int FFIndex { get; set; }
     
     [JsonPropertyName("codec")]
-    public string Codec { get; set; }
+    public string? Codec { get; set; }
     
     [JsonPropertyName("main-selection")]
     public int? MainSelection { get; set; }

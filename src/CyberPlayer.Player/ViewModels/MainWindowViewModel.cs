@@ -24,11 +24,25 @@ namespace CyberPlayer.Player.ViewModels;
 public class MainWindowViewModel : ViewModelBase
 {
     private readonly ILogger _log;
+    private IStorageFolder? _lastFolderLocation;
     
     public Settings Settings { get; }
     
+    public MpvPlayer MpvPlayer { get; }
+        
+    public ReactiveCommand<Unit, Unit> CheckForUpdatesCommand { get; }
+        
+    public ReactiveCommand<Unit, Unit> MediaPickerCommand { get; }
+        
+    public ReactiveCommand<string, Unit> OpenWebLinkCommand { get; }
+        
+    public ReactiveCommand<EventArgs?, Unit> ExitAppCommand { get; }
+    
     [Reactive]
-    public MpvPlayer MpvPlayer { get; set; }
+    public object? VideoContent { get; set; }
+
+    [Reactive]
+    public object? SeekContent { get; set; }
 
 #if DEBUG
     //For previewer
@@ -63,22 +77,6 @@ public class MainWindowViewModel : ViewModelBase
         OpenWebLinkCommand = ReactiveCommand.Create<string>(GenStatic.OpenWebLink);
         ExitAppCommand = ReactiveCommand.Create<EventArgs?>(ExitApp);
     }
-        
-    public ReactiveCommand<Unit, Unit> CheckForUpdatesCommand { get; }
-        
-    public ReactiveCommand<Unit, Unit> MediaPickerCommand { get; }
-        
-    public ReactiveCommand<string, Unit> OpenWebLinkCommand { get; }
-        
-    public ReactiveCommand<EventArgs?, Unit> ExitAppCommand { get; }
-        
-    [Reactive]
-    public object? VideoContent { get; set; }
-
-    [Reactive]
-    public object? SeekContent { get; set; }
-
-    private IStorageFolder? _lastFolderLocation;
 
     private async Task CheckForUpdates()
     {

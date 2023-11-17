@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reactive;
 using System.Threading.Tasks;
+using Avalonia.Platform.Storage;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Business;
 using CyberPlayer.Player.Services;
@@ -36,6 +38,24 @@ public class VideoInfoViewModel : ViewModelBase
         "xml",
         "compact",
         "flat"
+    };
+
+    public static readonly Dictionary<string, string> FileTypes = new()
+    {
+        { "default", "txt" },
+        { "xml", "xml" },
+        { "html", "html" },
+        { "json", "json" },
+        { "mpeg-7", "xml" },
+        { "pbcore", "xml" },
+        { "pbcore2", "xml" },
+        { "ebucore", "xml" },
+        { "fims_1.1", "xml" },
+        { "mixml", "xml" },
+        { "csv", "csv" },
+        { "ini", "ini" },
+        { "compact", "txt" },
+        { "flat", "txt" }
     };
     
     public VideoInfoType VideoInfoType { get; init; }
@@ -72,6 +92,7 @@ public class VideoInfoViewModel : ViewModelBase
 
     private readonly MpvPlayer _mpvPlayer;
     private readonly Settings _settings;
+    private IStorageFolder? _lastFolderLocation;
 
 #if DEBUG
     //Previewer constructor
@@ -117,6 +138,28 @@ public class VideoInfoViewModel : ViewModelBase
 
     private async Task Export()
     {
+        if (Sidecar)
+        {
+            await File.WriteAllTextAsync($"{_mpvPlayer.MediaPath}.{FileTypes[CurrentFormat.ToLower()]}", RawText);
+        }
+        else
+        {
+            var saveFile = await this.SaveFileDialog(new FilePickerSaveOptions
+            {
+                Title = $"Save {VideoInfoType} Output",
+                DefaultExtension = FileTypes[CurrentFormat.ToLower()],
+                SuggestedStartLocation = _lastFolderLocation,
+                SuggestedFileName = "untitled"
+            });
+
+            if (saveFile == null) return;
+            
+            _lastFolderLocation = await saveFile.GetParentAsync();
+
+            await using var stream = await saveFile.OpenWriteAsync();
+            await using var streamWriter = new StreamWriter(stream);
+            await streamWriter.WriteAsync(RawText);
+        }
     }
 
     private void SetFormat()

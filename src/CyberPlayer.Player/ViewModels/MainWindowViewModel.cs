@@ -24,12 +24,6 @@ namespace CyberPlayer.Player.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
-    public readonly Dictionary<VideoInfoType, bool> VideoInfoActive = new()
-    {
-        { VideoInfoType.MediaInfo , false },
-        { VideoInfoType.FFprobe , false },
-        { VideoInfoType.Mpv , false }
-    };
     private readonly ILogger _log;
     private IStorageFolder? _lastFolderLocation;
     
@@ -85,7 +79,7 @@ public class MainWindowViewModel : ViewModelBase
         MediaPickerCommand = ReactiveCommand.CreateFromTask(MediaPicker);
         OpenWebLinkCommand = ReactiveCommand.Create<string>(GenStatic.OpenWebLink);
         ExitAppCommand = ReactiveCommand.Create<EventArgs?>(ExitApp);
-        ViewVideoInfoCommand = ReactiveCommand.Create<VideoInfoType>(ViewVideoInfo);
+        ViewVideoInfoCommand = ReactiveCommand.Create<VideoInfoType>(this.ShowVideoInfo);
     }
 
     private async Task CheckForUpdates()
@@ -193,12 +187,6 @@ public class MainWindowViewModel : ViewModelBase
         _lastFolderLocation = await result.Single().GetParentAsync();
             
         MpvPlayer.LoadFile(mediaPath);
-    }
-    
-    private void ViewVideoInfo(VideoInfoType videoInfoType)
-    {
-        if (!VideoInfoActive[videoInfoType])
-            this.ShowVideoInfo(videoInfoType);
     }
         
     private static string TempWebLinkFix(string markdown)

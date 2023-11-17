@@ -15,6 +15,13 @@ namespace CyberPlayer.Player.Services;
 
 public static class DialogService
 {
+    private static readonly Dictionary<VideoInfoType, Window?> VideoInfoActive = new()
+    {
+        { VideoInfoType.MediaInfo , null },
+        { VideoInfoType.FFprobe , null },
+        { VideoInfoType.Mpv , null }
+    };
+    
     public static async Task<IReadOnlyList<IStorageFile>> OpenFileDialog(this ViewModelBase viewModel, FilePickerOpenOptions options)
     {
         var view = (Window)GetView(viewModel);
@@ -23,16 +30,24 @@ public static class DialogService
         return await storageProvider.OpenFilePickerAsync(options);
     }
 
+    public static async Task<IStorageFile?> SaveFileDialog(this ViewModelBase viewModel, FilePickerSaveOptions options)
+    {
+        var view = (Window)GetView(viewModel);
+        var storageProvider = view.StorageProvider;
+
+        return await storageProvider.SaveFilePickerAsync(options);
+    }
+
     public static void ShowVideoInfo(this MainWindowViewModel viewModel, VideoInfoType videoInfoType)
     {
-        //var owner = GetView(viewModel);
+        if (VideoInfoActive[videoInfoType] != null) return;
+        
         var videoInfoView = new VideoInfoWindow();
         var videoInfoViewModel = new VideoInfoViewModel(videoInfoType, viewModel.MpvPlayer, viewModel.Settings);
         videoInfoView.DataContext = videoInfoViewModel;
-        videoInfoView.Closed += (_, _) => viewModel.VideoInfoActive[videoInfoType] = false;
-        viewModel.VideoInfoActive[videoInfoType] = true;
-        videoInfoView.Show(/*owner*/);
-        //return videoInfoViewModel;
+        videoInfoView.Closed += (_, _) => VideoInfoActive[videoInfoType] = null;
+        VideoInfoActive[videoInfoType] = videoInfoView;
+        videoInfoView.Show();
     }
     
     public static async Task<MessagePopupResult> ShowMessagePopup(this ViewModelBase viewModel, MessagePopupButtons buttons, string title, string message, PopupParams popupParams)
@@ -175,6 +190,9 @@ public static class DialogService
 
     private static object GetView(ViewModelBase viewModel)
     {
+        if (viewModel is VideoInfoViewModel videoInfoViewModel)
+            return VideoInfoActive[videoInfoViewModel.VideoInfoType]!;
+        
         var viewLocator = Locator.Current.GetService<StrongViewLocator>()!;
         var viewType = viewLocator.Locate(viewModel).ViewType;
         return Locator.Current.GetService(viewType)!;

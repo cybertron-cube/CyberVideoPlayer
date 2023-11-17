@@ -80,7 +80,8 @@ public static class Setup
     {
         var container = Locator.CurrentMutable;
         var settings = Settings.Import(BuildConfig.SettingsPath);
-        libmpv.RootPath = settings.LibMpvDir;
+        if (!string.IsNullOrWhiteSpace(settings.LibMpvDir))
+            libmpv.RootPath = settings.LibMpvDir;
 
         container.RegisterConstant(settings);
         container.RegisterLazySingleton(() => new HttpClient());

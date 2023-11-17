@@ -112,10 +112,11 @@ public class VideoInfoViewModel : ViewModelBase
         switch (VideoInfoType)
         {
             case VideoInfoType.MediaInfo:
-                using (var mediaInfo = new MediaInfo())
+                using (var mediaInfo = new MediaInfo(_settings))
                 {
                     //TODO Complete should be an option
-                    mediaInfo.Option("Complete", "1");
+                    //Complete information is automatically shown if requesting json though
+                    //mediaInfo.Option("Complete", "1");
                     mediaInfo.Option("output", CurrentFormat);
                     mediaInfo.Open(_mpvPlayer.MediaPath);
                     RawText = mediaInfo.Inform();

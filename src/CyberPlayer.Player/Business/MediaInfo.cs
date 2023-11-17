@@ -1,9 +1,11 @@
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
+using CyberPlayer.Player.AppSettings;
 
 namespace CyberPlayer.Player.Business;
 
-public partial class MediaInfo : IDisposable
+public class MediaInfo : IDisposable
 {
     public enum StreamKind
     {
@@ -55,81 +57,40 @@ public partial class MediaInfo : IDisposable
         Finalized   =       0x08,
     }
     
-    [LibraryImport("mediainfo")]
-    private static partial IntPtr MediaInfo_New();
-    
-    [LibraryImport("mediainfo")]
-    private static partial void MediaInfo_Delete(IntPtr handle);
-    
-    [LibraryImport("mediainfo")]
-    private static partial IntPtr MediaInfo_Open(IntPtr handle, [MarshalAs(UnmanagedType.LPWStr)] string fileName);
-    
-    [LibraryImport("mediainfo")]
-    private static partial IntPtr MediaInfoA_Open(IntPtr handle, IntPtr fileName);
-    
-    [LibraryImport("mediainfo")]
-    private static partial IntPtr MediaInfo_Open_Buffer_Init(IntPtr handle, long fileSize, long fileOffset);
-    
-    [LibraryImport("mediainfo")]
-    private static partial IntPtr MediaInfoA_Open(IntPtr handle, long fileSize, long fileOffset);
-    
-    [LibraryImport("mediainfo")]
-    private static partial IntPtr MediaInfo_Open_Buffer_Continue(IntPtr handle, IntPtr buffer, IntPtr bufferSize);
-    
-    [LibraryImport("mediainfo")]
-    private static partial IntPtr MediaInfoA_Open_Buffer_Continue(IntPtr handle, long fileSize, byte[] buffer, IntPtr bufferSize);
-    
-    [LibraryImport("mediainfo")]
-    private static partial long MediaInfo_Open_Buffer_Continue_GoTo_Get(IntPtr handle);
-    
-    [LibraryImport("mediainfo")]
-    private static partial long MediaInfoA_Open_Buffer_Continue_GoTo_Get(IntPtr handle);
-    
-    [LibraryImport("mediainfo")]
-    private static partial IntPtr MediaInfo_Open_Buffer_Finalize(IntPtr handle);
-    
-    [LibraryImport("mediainfo")]
-    private static partial IntPtr MediaInfoA_Open_Buffer_Finalize(IntPtr handle);
-    
-    [LibraryImport("mediainfo")]
-    private static partial void MediaInfo_Close(IntPtr handle);
-    
-    [LibraryImport("mediainfo")]
-    private static partial IntPtr MediaInfo_Inform(IntPtr handle, IntPtr reserved);
-    
-    [LibraryImport("mediainfo")]
-    private static partial IntPtr MediaInfoA_Inform(IntPtr handle, IntPtr reserved);
-    
-    [LibraryImport("mediainfo")]
-    private static partial IntPtr MediaInfo_GetI(IntPtr handle, IntPtr streamKind, IntPtr streamNumber, IntPtr parameter, IntPtr kindOfInfo);
-    
-    [LibraryImport("mediainfo")]
-    private static partial IntPtr MediaInfoA_GetI(IntPtr handle, IntPtr streamKind, IntPtr streamNumber, IntPtr parameter, IntPtr kindOfInfo);
-    
-    [LibraryImport("mediainfo")]
-    private static partial IntPtr MediaInfo_Get(IntPtr handle, IntPtr streamKind, IntPtr streamNumber, [MarshalAs(UnmanagedType.LPWStr)] string parameter, IntPtr kindOfInfo, IntPtr kindOfSearch);
-    
-    [LibraryImport("mediainfo")]
-    private static partial IntPtr MediaInfoA_Get(IntPtr handle, IntPtr streamKind, IntPtr streamNumber, IntPtr parameter, IntPtr kindOfInfo, IntPtr kindOfSearch);
-    
-    [LibraryImport("mediainfo")]
-    private static partial IntPtr MediaInfo_Option(IntPtr handle, [MarshalAs(UnmanagedType.LPWStr)] string option, [MarshalAs(UnmanagedType.LPWStr)] string value);
-    
-    [LibraryImport("mediainfo")]
-    private static partial IntPtr MediaInfoA_Option(IntPtr handle, IntPtr option,  IntPtr value);
-    
-    [LibraryImport("mediainfo")]
-    private static partial IntPtr MediaInfo_State_Get(IntPtr handle);
-    
-    [LibraryImport("mediainfo")]
-    private static partial IntPtr MediaInfo_Count_Get(IntPtr handle, IntPtr streamKind, IntPtr streamNumber);
-    
+    public MediaInfoFunctions.MediaInfo_New MediaInfo_New { get; private set; } = null!;
+    public MediaInfoFunctions.MediaInfo_Delete MediaInfo_Delete { get; private set; } = null!;
+    public MediaInfoFunctions.MediaInfo_Open MediaInfo_Open { get; private set; } = null!;
+    public MediaInfoFunctions.MediaInfoA_Open MediaInfoA_Open { get; private set; } = null!;
+    //public MediaInfoFunctions.MediaInfoA_Open2 MediaInfoA_Open2 { get; private set; }
+    public MediaInfoFunctions.MediaInfo_Open_Buffer_Init MediaInfo_Open_Buffer_Init { get; private set; } = null!;
+    public MediaInfoFunctions.MediaInfo_Open_Buffer_Continue MediaInfo_Open_Buffer_Continue { get; private set; } = null!;
+    public MediaInfoFunctions.MediaInfoA_Open_Buffer_Continue MediaInfoA_Open_Buffer_Continue { get; private set; } = null!;
+    public MediaInfoFunctions.MediaInfo_Open_Buffer_Continue_GoTo_Get MediaInfo_Open_Buffer_Continue_GoTo_Get { get; private set; } = null!;
+    public MediaInfoFunctions.MediaInfoA_Open_Buffer_Continue_GoTo_Get MediaInfoA_Open_Buffer_Continue_GoTo_Get { get; private set; } = null!;
+    public MediaInfoFunctions.MediaInfo_Open_Buffer_Finalize MediaInfo_Open_Buffer_Finalize { get; private set; } = null!;
+    public MediaInfoFunctions.MediaInfoA_Open_Buffer_Finalize MediaInfoA_Open_Buffer_Finalize { get; private set; } = null!;
+    public MediaInfoFunctions.MediaInfo_Close MediaInfo_Close { get; private set; } = null!;
+    public MediaInfoFunctions.MediaInfo_Inform MediaInfo_Inform { get; private set; } = null!;
+    public MediaInfoFunctions.MediaInfoA_Inform MediaInfoA_Inform { get; private set; } = null!;
+    public MediaInfoFunctions.MediaInfo_GetI MediaInfo_GetI { get; private set; } = null!;
+    public MediaInfoFunctions.MediaInfoA_GetI MediaInfoA_GetI { get; private set; } = null!;
+    public MediaInfoFunctions.MediaInfo_Get MediaInfo_Get { get; private set; } = null!;
+    public MediaInfoFunctions.MediaInfoA_Get MediaInfoA_Get { get; private set; } = null!;
+    public MediaInfoFunctions.MediaInfo_Option MediaInfo_Option { get; private set; } = null!;
+    public MediaInfoFunctions.MediaInfoA_Option MediaInfoA_Option { get; private set; } = null!;
+    public MediaInfoFunctions.MediaInfo_State_Get MediaInfo_State_Get { get; private set; } = null!;
+    public MediaInfoFunctions.MediaInfo_Count_Get MediaInfo_Count_Get { get; private set; } = null!;
+
+    private static readonly bool MustUseAnsi;
     private readonly IntPtr _handle;
-    
-    private readonly bool _mustUseAnsi;
-    
-    public MediaInfo()
+    private IntPtr _lib;
+
+    static MediaInfo() => MustUseAnsi = !OperatingSystem.IsWindows();
+
+    public MediaInfo(Settings settings)
     {
+        FindAndLoadLibrary(settings);
+        InitializeFunctions();
         try
         {
             _handle = MediaInfo_New();
@@ -138,8 +99,6 @@ public partial class MediaInfo : IDisposable
         {
             _handle = 0;
         }
-
-        _mustUseAnsi = !OperatingSystem.IsWindows();
     }
 
     ~MediaInfo()
@@ -151,12 +110,6 @@ public partial class MediaInfo : IDisposable
     {
         ReleaseUnmanagedResources();
         GC.SuppressFinalize(this);
-    }
-    
-    private void ReleaseUnmanagedResources()
-    {
-        if (_handle != 0)
-            MediaInfo_Close(_handle);
     }
     
     public int Open_Buffer_Init(long fileSize, long fileOffset)
@@ -194,7 +147,7 @@ public partial class MediaInfo : IDisposable
         if (_handle == 0)
             return 0;
         
-        if (!_mustUseAnsi)
+        if (!MustUseAnsi)
             return (int)MediaInfo_Open(_handle, fileName);
         
         var fileNamePtr = Marshal.StringToHGlobalAnsi(fileName);
@@ -208,7 +161,7 @@ public partial class MediaInfo : IDisposable
         if (_handle == 0)
             return "Unable to load MediaInfo library";
         
-        return _mustUseAnsi ? Marshal.PtrToStringAnsi(MediaInfoA_Inform(_handle, 0))
+        return MustUseAnsi ? Marshal.PtrToStringAnsi(MediaInfoA_Inform(_handle, 0))
             : Marshal.PtrToStringUni(MediaInfo_Inform(_handle, 0));
     }
     
@@ -217,7 +170,7 @@ public partial class MediaInfo : IDisposable
         if (_handle == 0)
             return "Unable to load MediaInfo library";
         
-        if (!_mustUseAnsi)
+        if (!MustUseAnsi)
             return Marshal.PtrToStringUni(MediaInfo_Get(_handle, (IntPtr)streamKind, streamNumber, parameter,
                 (IntPtr)kindOfInfo, (IntPtr)kindOfSearch));
         
@@ -233,7 +186,7 @@ public partial class MediaInfo : IDisposable
         if (_handle == 0)
             return "Unable to load MediaInfo library";
 
-        return _mustUseAnsi ?
+        return MustUseAnsi ?
             Marshal.PtrToStringAnsi(MediaInfoA_GetI(_handle, (IntPtr)streamKind, streamNumber, parameter, (IntPtr)kindOfInfo))
             : Marshal.PtrToStringUni(MediaInfo_GetI(_handle, (IntPtr)streamKind, streamNumber, parameter, (IntPtr)kindOfInfo));
     }
@@ -243,7 +196,7 @@ public partial class MediaInfo : IDisposable
         if (_handle == 0)
             return "Unable to load MediaInfo library";
         
-        if (!_mustUseAnsi)
+        if (!MustUseAnsi)
             return Marshal.PtrToStringUni(MediaInfo_Option(_handle, option, value));
         
         var optionPtr = Marshal.StringToHGlobalAnsi(option);
@@ -252,5 +205,71 @@ public partial class MediaInfo : IDisposable
         Marshal.FreeHGlobal(optionPtr);
         Marshal.FreeHGlobal(valuePtr);
         return toReturn;
+    }
+    
+    private void ReleaseUnmanagedResources()
+    {
+        if (_handle != 0)
+            MediaInfo_Close(_handle);
+        NativeLibrary.Free(_lib);
+    }
+    
+    //TODO Test on linux and clean this method up
+    private void FindAndLoadLibrary(Settings settings)
+    {
+        var mediaInfoDir = settings.MediaInfoDir;
+        
+        string libPath;
+        if (string.IsNullOrWhiteSpace(mediaInfoDir))
+        {
+            libPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "mediainfo");
+            if (OperatingSystem.IsWindows())
+                libPath = Path.Combine(libPath, "MediaInfo.dll");
+            else if (OperatingSystem.IsMacOS())
+                libPath = Path.Combine(libPath, "libmediainfo.dylib");
+            else if (OperatingSystem.IsLinux())
+                libPath = Path.Combine(libPath, "libmediainfo.so.0.0.0");
+            else throw new PlatformNotSupportedException();
+        }
+        else
+        {
+            var index = mediaInfoDir.LastIndexOf(Path.DirectorySeparatorChar);
+            if (index != -1)
+                index = mediaInfoDir.IndexOf('.', index);
+            else
+                throw new Exception("MediaInfo path format error");
+            if (index == -1)
+            {
+                if (OperatingSystem.IsWindows())
+                    libPath = Path.Combine(mediaInfoDir, "MediaInfo.dll");
+                else if (OperatingSystem.IsMacOS())
+                    libPath = Path.Combine(mediaInfoDir, "libmediainfo.dylib");
+                else if (OperatingSystem.IsLinux())
+                    libPath = Path.Combine(mediaInfoDir, "libmediainfo.so.0.0.0");
+                else throw new PlatformNotSupportedException();
+            }
+            else libPath = mediaInfoDir;
+        }
+
+        if (!File.Exists(libPath))
+            throw new FileNotFoundException($"MediaInfo library could not be found at \"{libPath}\"");
+        
+        _lib = NativeLibrary.Load(libPath);
+    }
+
+    private void InitializeFunctions()
+    {
+        var type = typeof(MediaInfoFunctions);
+        var delegatesTypes = type.GetNestedTypes();
+
+        var thisType = this.GetType();
+        
+        foreach (var delegateType in delegatesTypes)
+        {
+            var functionPtr = NativeLibrary.GetExport(_lib, delegateType.Name);
+            var prop = thisType.GetProperty(delegateType.Name);
+            var function = Marshal.GetDelegateForFunctionPointer(functionPtr, delegateType);
+            prop!.SetValue(this, function);
+        }
     }
 }

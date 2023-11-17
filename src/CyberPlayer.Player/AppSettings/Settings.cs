@@ -25,6 +25,8 @@ public class Settings
     public string LibMpvDir { get; set; } = OperatingSystem.IsMacOS() ? "/opt/homebrew/Cellar/mpv/0.36.0/lib"
         : AppDomain.CurrentDomain.BaseDirectory;
 
+    public string MediaInfoDir { get; set; } = string.Empty;
+
     public string ExtraTrimArgs { get; set; } = "-avoid_negative_ts make_zero";
 
     public static Settings Import(string settingsPath)

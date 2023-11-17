@@ -14,6 +14,7 @@ using Cybertron;
 using Cybertron.CUpdater;
 using Splat;
 using CyberPlayer.Player.Business;
+using CyberPlayer.Player.Models;
 using CyberPlayer.Player.Services;
 using LibMpv.Client;
 using ReactiveUI.Fody.Helpers;
@@ -54,6 +55,17 @@ public class MainWindowViewModel : ViewModelBase
         Settings = new Settings();
         libmpv.RootPath = AppDomain.CurrentDomain.BaseDirectory;
         MpvPlayer = new MpvPlayer(Log.ForContext<MpvPlayer>(), Settings);
+        
+        //ToString() returns $"Track {Id}: {Codec}, {AudioDemuxSampleRate} Hz, {AudioDemuxChannels}";
+        var selected = new TrackInfo()
+            { Id = 0, Codec = "codec", AudioDemuxSampleRate = 0, AudioDemuxChannels = "channels" };
+        MpvPlayer.AudioTrackInfos = new[]
+        {
+            selected,
+            new TrackInfo() { Id = 1, Codec = "codec", AudioDemuxSampleRate = 1, AudioDemuxChannels = "channels" },
+            new TrackInfo() { Id = 2, Codec = "codec", AudioDemuxSampleRate = 2, AudioDemuxChannels = "channels" }
+        };
+        MpvPlayer.SelectedAudioTrack = selected;
             
         CheckForUpdatesCommand = ReactiveCommand.CreateFromTask(CheckForUpdates);
         MediaPickerCommand = ReactiveCommand.CreateFromTask(MediaPicker);

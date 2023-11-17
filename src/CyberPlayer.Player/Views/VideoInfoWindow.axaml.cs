@@ -50,7 +50,7 @@ public partial class VideoInfoWindow : ReactiveWindow<VideoInfoViewModel>
                 }
             });
 
-        FormatBox.Margin = new Thickness(0, 0, 0, FormatButton.Bounds.Height);
+        FormatBox.Margin = new Thickness(0, 0, 0, FormatButton.Bounds.Height + 4);
     }
 
     private void ChangeView()
@@ -81,24 +81,24 @@ public partial class VideoInfoWindow : ReactiveWindow<VideoInfoViewModel>
     {
         if (_listOpen)
         {
-            //FormatBox.Classes.Remove("open");
-            //FormatBox.Classes.Add("close");
             FormatBox.Height = 0;
             ArrowShape.RenderTransform = null;
             _listOpen = false;
         }
         else
         {
-            //FormatBox.Classes.Remove("close");
-            //FormatBox.Classes.Add("open");
-            FormatBox.Height = 57;
+            FormatBox.Height = Bounds.Height / 3;
             ArrowShape.RenderTransform = _openTransform;
             _listOpen = true;
         }
     }
     
-    private void FormatListBoxButton_OnClick(object? sender, RoutedEventArgs e)
+    private void FormatBox_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
+        if (FormatBox.SelectedItem is string format) ViewModel!.CurrentFormat = format;
+
+        FormatBox.SelectedItem = null;
+            
         FormatBox.Height = 0;
         ArrowShape.RenderTransform = null;
         _listOpen = false;

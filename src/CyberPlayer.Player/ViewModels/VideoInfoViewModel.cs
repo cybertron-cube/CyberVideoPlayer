@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Reactive;
+using System.Threading.Tasks;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Business;
 using CyberPlayer.Player.Services;
@@ -46,6 +48,9 @@ public class VideoInfoViewModel : ViewModelBase
     
     [Reactive]
     public IEnumerable<string> FormatOptions { get; set; }
+    
+    [Reactive]
+    public bool Sidecar { get; set; }
 
     private string _currentFormat;
 
@@ -63,8 +68,9 @@ public class VideoInfoViewModel : ViewModelBase
         }
     }
 
-    private readonly MpvPlayer _mpvPlayer;
+    public ReactiveCommand<Unit, Unit> ExportCommand { get; }
 
+    private readonly MpvPlayer _mpvPlayer;
     private readonly Settings _settings;
 
 #if DEBUG
@@ -81,6 +87,8 @@ public class VideoInfoViewModel : ViewModelBase
         VideoInfoType = videoInfoType;
         _mpvPlayer = mpvPlayer;
         _settings = settings;
+
+        ExportCommand = ReactiveCommand.CreateFromTask(Export);
         
         JsonTreeView = true;
         switch (videoInfoType)
@@ -105,6 +113,10 @@ public class VideoInfoViewModel : ViewModelBase
         //... will not be changed until after RawText is set (loaded event will take too long)
         //... maybe need a separate subscription for TrackListJson if videotypeinfo is Mpv
         mpvPlayer.WhenPropertyChanged(x => x.MediaPath).Subscribe(_ => SetFormat());
+    }
+
+    private async Task Export()
+    {
     }
 
     private void SetFormat()

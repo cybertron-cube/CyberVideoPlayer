@@ -15,6 +15,7 @@
 
     <Application.Resources>
         <ResourceDictionary>
+            <FontFamily x:Key="RobotoMonoFont">/Assets/Fonts/Roboto_Mono/RobotoMono-VariableFont_wght.ttf#</FontFamily>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="/Themes/CustomSlider.axaml" />
                 <ResourceInclude Source="/Themes/TimelineControl.axaml" />
@@ -27,6 +28,10 @@
             <LinearGradientBrush x:Key="BackgroundGradient" StartPoint="0%,0%" EndPoint="50%,100%">
                 <GradientStop Offset="0" Color="DarkGray" />
                 <GradientStop Offset="1" Color="SlateGray" />
+            </LinearGradientBrush>
+            <LinearGradientBrush x:Key="ButtonGradient" StartPoint="50%,0%" EndPoint="100%,0%">
+                <GradientStop Offset="0" Color="DarkGray" />
+                <GradientStop Offset="1" Color="Blue" />
             </LinearGradientBrush>
         </ResourceDictionary>
     </Application.Resources>

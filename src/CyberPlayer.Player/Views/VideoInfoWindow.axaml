@@ -4,7 +4,6 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CyberPlayer.Player"
         xmlns:vm="clr-namespace:CyberPlayer.Player.ViewModels"
-        xmlns:system="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="350"
         d:DataContext="{x:Static local:ViewModelLocator.VideoInfo}"
         x:Class="CyberPlayer.Player.Views.VideoInfoWindow"
@@ -27,51 +26,66 @@
         </Style>
     </Window.Styles>
     
-    <Grid RowDefinitions="*, Auto" Name="MainGrid" ShowGridLines="False">
-        <ContentControl Grid.Row="0" Name="ContentControl" />
+    <Grid RowDefinitions="*, 35" Name="MainGrid" ShowGridLines="False">
+        <ContentControl Grid.Row="0" Name="ContentControl">
+            <ContentControl.Styles>
+                <Style Selector="TextBox">
+                    <Setter Property="FontFamily" Value="{StaticResource RobotoMonoFont}" />
+                    <Setter Property="BorderThickness" Value="0" />
+                    <Setter Property="CornerRadius" Value="0" />
+                </Style>
+                <Style Selector="TextBlock">
+                    <Setter Property="FontFamily" Value="{StaticResource RobotoMonoFont}" />
+                </Style>
+            </ContentControl.Styles>
+        </ContentControl>
         <!-- TODO Change to dockpanel and have export button on right side with a choice as sidecar or FilePicker(browse) -->
-        <StackPanel Name="ButtonStack" Grid.Row="1" Orientation="Horizontal" Spacing="10">
-            <!-- TODO add minwidth to button, make more circular and align listbox after, increase height of listbox -->
-            <Button Name="FormatButton" Click="FormatButton_OnClick">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="{Binding CurrentFormat}" />
-                    <Path Name="ArrowShape"
+        <!-- TODO Change hover color of buttons -->
+        <Border Grid.Row="1" BorderThickness="0, 1, 0, 0" BorderBrush="SlateGray">
+            <DockPanel Name="ButtonStack" Margin="4, 0" LastChildFill="False">
+                <Button Name="FormatButton" DockPanel.Dock="Left" Click="FormatButton_OnClick" CornerRadius="20" Background="SlateBlue">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding CurrentFormat}" />
+                        <Path Name="ArrowShape"
                           Data="{StaticResource ArrowGeometry}"
                           Stroke="White"
                           StrokeThickness="2"
                           VerticalAlignment="Center"
                           Margin="10, 1, 0, 0">
-                        <Path.Transitions>
-                            <Transitions>
-                                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1" />
-                            </Transitions>
-                        </Path.Transitions>
-                    </Path>
-                </StackPanel>
-            </Button>
-            <CheckBox Name="JsonTreeCheck" Content="Tree View" IsChecked="{Binding JsonTreeView}" />
-        </StackPanel>
+                            <Path.Transitions>
+                                <Transitions>
+                                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1" />
+                                </Transitions>
+                            </Path.Transitions>
+                        </Path>
+                    </StackPanel>
+                </Button>
+                <CheckBox DockPanel.Dock="Left" Name="JsonTreeCheck" Margin="5, 0, 0, 0" IsChecked="{Binding JsonTreeView}">
+                    <TextBlock>Tree View</TextBlock>
+                </CheckBox>
+                <Button DockPanel.Dock="Right" Margin="5, 0, 0, 0" Command="{Binding ExportCommand}">
+                    <TextBlock>Export</TextBlock>
+                </Button>
+                <CheckBox DockPanel.Dock="Right" IsChecked="{Binding Sidecar}">
+                    <TextBlock>Sidecar</TextBlock>
+                </CheckBox>
+            </DockPanel>
+        </Border>
         <ListBox Name="FormatBox"
                  Grid.Row="0"
                  Grid.RowSpan="2"
                  HorizontalAlignment="Left"
                  VerticalAlignment="Bottom"
                  Margin="0, 0, 0, 0"
-                 Background="Black"
+                 Background="DimGray"
                  ItemsSource="{Binding FormatOptions}"
-                 Classes="close">
+                 Classes="close"
+                 CornerRadius="5"
+                 SelectionMode="Single"
+                 SelectionChanged="FormatBox_OnSelectionChanged">
             <ListBox.Styles>
                 <Style Selector="ListBoxItem">
-                    <Setter Property="Padding" Value="0" />
-                </Style>
-                <Style Selector="Button">
-                    <Setter Property="Command" Value="{Binding $parent[ListBox].((vm:VideoInfoViewModel)DataContext).set_CurrentFormat}" />
-                    <Setter Property="CommandParameter" Value="{Binding ., DataType=system:String}" />
-                </Style>
-                <Style Selector="Button:pointerover">
-                    <Setter Property="Background" Value="Transparent" />
-                    <Setter Property="BorderBrush" Value="Transparent" />
-                    <Setter Property="Foreground" Value="Transparent" />
+                    <Setter Property="Padding" Value="6" />
                 </Style>
             </ListBox.Styles>
             <ListBox.Transitions>
@@ -81,15 +95,10 @@
             </ListBox.Transitions>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Button Width="{Binding #FormatButton.Bounds.Width}"
+                    <TextBlock Width="{Binding #FormatButton.Bounds.Width}"
                             Background="Transparent"
                             Focusable="False"
-                            Padding="0"
-                            CornerRadius="0"
-                            BorderThickness="0"
-                            Click="FormatListBoxButton_OnClick">
-                        <TextBlock Text="{Binding .}" />
-                    </Button>
+                            Text="{Binding .}"/>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>

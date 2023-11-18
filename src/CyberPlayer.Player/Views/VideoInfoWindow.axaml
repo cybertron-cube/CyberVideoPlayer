@@ -42,7 +42,7 @@
         <!-- TODO Change to dockpanel and have export button on right side with a choice as sidecar or FilePicker(browse) -->
         <!-- TODO Change hover color of buttons -->
         <Border Grid.Row="1" BorderThickness="0, 1, 0, 0" BorderBrush="SlateGray">
-            <DockPanel Name="ButtonStack" Margin="4, 0" LastChildFill="False">
+            <DockPanel Name="ButtonStack" Margin="10, 0" LastChildFill="False">
                 <Button Name="FormatButton" DockPanel.Dock="Left" Click="FormatButton_OnClick" CornerRadius="20" Background="SlateBlue">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{Binding CurrentFormat}" />
@@ -60,16 +60,27 @@
                         </Path>
                     </StackPanel>
                 </Button>
-                <CheckBox DockPanel.Dock="Left" Name="JsonTreeCheck" Margin="5, 0, 0, 0" IsChecked="{Binding JsonTreeView}">
+                <CheckBox DockPanel.Dock="Left"
+                          Name="JsonTreeCheck"
+                          Margin="5, 0, 0, 0" 
+                          IsChecked="{Binding JsonTreeView}">
                     <TextBlock>Tree View</TextBlock>
                 </CheckBox>
-                <CheckBox DockPanel.Dock="Left" Name="TextWrapCheck" Margin="5, 0, 0, 0" IsChecked="False" IsCheckedChanged="TextWrapCheck_OnIsCheckedChanged">
+                <CheckBox DockPanel.Dock="Left"
+                          Name="TextWrapCheck" Margin="5, 0, 0, 0"
+                          IsChecked="False"
+                          IsCheckedChanged="TextWrapCheck_OnIsCheckedChanged">
                     <TextBlock>Wrap Text</TextBlock>
                 </CheckBox>
-                <Button DockPanel.Dock="Right" Margin="5, 0, 0, 0" Command="{Binding ExportCommand}">
+                <Button DockPanel.Dock="Right"
+                        Margin="5, 0, 0, 0"
+                        CornerRadius="20"
+                        Background="DarkGreen"
+                        Command="{Binding ExportCommand}">
                     <TextBlock>Export</TextBlock>
                 </Button>
-                <CheckBox DockPanel.Dock="Right" IsChecked="{Binding Sidecar}">
+                <CheckBox DockPanel.Dock="Right"
+                          IsChecked="{Binding Sidecar}">
                     <TextBlock>Sidecar</TextBlock>
                 </CheckBox>
             </DockPanel>

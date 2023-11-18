@@ -28,8 +28,8 @@
 - [x] Full screen
 - [ ] Ability to switch playback renderer
 - [ ] Ability to set config file for MPV to use
-- [ ] Display track info in separate window
-- [ ] Use mediainfo to display detailed information
+- [x] Display track info in separate window
+- [x] Use mediainfo to display detailed information
 - [x] Add support for OSX
 - [ ] Select tracks to export
 - [x] Size window to fit video

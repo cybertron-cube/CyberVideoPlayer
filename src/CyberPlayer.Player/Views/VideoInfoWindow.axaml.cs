@@ -113,7 +113,8 @@ public partial class VideoInfoWindow : ReactiveWindow<VideoInfoViewModel>
             var view = new JsonTreeView();
             var viewModel = new JsonTreeViewModel();
             viewModel.RawText = ViewModel!.RawText;
-            _textBinding = ViewModel!.WhenPropertyChanged(x => x.RawText).Subscribe(_ => viewModel.RawText = ViewModel!.RawText);
+            _textBinding = ViewModel!.WhenPropertyChanged(x => x.RawText)
+                .Subscribe(_ => viewModel.RawText = ViewModel!.RawText);
             view.DataContext = viewModel;
             ContentControl.Content = view;
         }
@@ -165,7 +166,11 @@ public partial class VideoInfoWindow : ReactiveWindow<VideoInfoViewModel>
         }
         else
         {
-            FormatBox.Height = Bounds.Height / 3;
+            //28 height per format ListBoxItem
+            var maxHeight = (int)(Bounds.Height / 3 / 26) * 26;
+            var desiredHeight = FormatBox.ItemCount * 26;
+            FormatBox.Height = desiredHeight > maxHeight ? maxHeight : desiredHeight;
+            
             ArrowShape.RenderTransform = _openFormatBoxTransform;
             _listOpen = true;
         }

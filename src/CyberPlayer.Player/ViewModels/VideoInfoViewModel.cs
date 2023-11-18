@@ -198,7 +198,8 @@ public class VideoInfoViewModel : ViewModelBase
                 }
                 break;
             case VideoInfoType.Mpv:
-                RawText = $"{{\"Track \":{_mpvPlayer.TrackListJson}}}";
+                if (!string.IsNullOrWhiteSpace(_mpvPlayer.TrackListJson))
+                    RawText = $"{{\"Track \":{_mpvPlayer.TrackListJson}}}";
                 break;
         }
     }

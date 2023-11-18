@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using Avalonia.Controls;
 using CyberPlayer.Player.Models;
 using ReactiveUI;
@@ -44,11 +46,13 @@ public class JsonTreeViewModel : ViewModelBase
         if (Design.IsDesignMode)
         {
             Title = "Design Mode";
-            Items = new[]
+            var currentDir = AppDomain.CurrentDomain.BaseDirectory;
+            while (Path.GetFileName(currentDir) != "src")
             {
-                new Node() { Header = "Skeet", Children = new List<Node> { new Node() { Header = "Yeet", Children = new List<Node>() { new Node("test", "123") }} } },
-                new Node() { Header = "Jeet" }
-            };
+                currentDir = Path.GetDirectoryName(currentDir);
+            }
+
+            RawText = File.ReadAllText(Path.Combine(currentDir, "Tests", "mediainfojsonoutput.json"));
         }
     }
 

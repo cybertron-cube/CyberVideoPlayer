@@ -15,7 +15,7 @@
 
     <Application.Resources>
         <ResourceDictionary>
-            <FontFamily x:Key="RobotoMonoFont">/Assets/Fonts/Roboto_Mono/RobotoMono-VariableFont_wght.ttf#</FontFamily>
+            <FontFamily x:Key="RobotoMonoFont">/Assets/Fonts/Roboto_Mono/static#Roboto</FontFamily>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="/Themes/CustomSlider.axaml" />
                 <ResourceInclude Source="/Themes/TimelineControl.axaml" />

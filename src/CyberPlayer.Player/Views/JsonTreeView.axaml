@@ -18,14 +18,16 @@
         <TreeView.ItemTemplate>
             <TreeDataTemplate ItemsSource="{Binding Children}">
                 <Panel>
-                    <TextBlock Text="{Binding Header}" />
-                    <DockPanel>
+                    <TextBlock Text="{Binding Header}" FontWeight="Bold" />
+                    <DockPanel Width="{Binding $parent.Bounds.Width}" >
                         <TextBlock DockPanel.Dock="Left"
                                    Text="{Binding Key}" />
                         <TextBlock DockPanel.Dock="Right"
                                    Text="{Binding Value}"
                                    HorizontalAlignment="Right"
-                                   Margin="0, 0, 20, 0" />
+                                   TextWrapping="Wrap"
+                                   FontWeight="Thin"
+                                   Margin="20, 0, 20, 0" />
                     </DockPanel>
                 </Panel>
             </TreeDataTemplate>

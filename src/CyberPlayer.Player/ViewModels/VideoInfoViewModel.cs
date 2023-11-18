@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reactive;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using CyberPlayer.Player.AppSettings;
@@ -89,6 +90,8 @@ public class VideoInfoViewModel : ViewModelBase
     }
 
     public ReactiveCommand<Unit, Unit> ExportCommand { get; }
+    
+    public Subject<Unit> ExportFinished { get; }
 
     private readonly MpvPlayer _mpvPlayer;
     private readonly Settings _settings;
@@ -100,6 +103,14 @@ public class VideoInfoViewModel : ViewModelBase
     {
         FormatOptions = new[] { "1", "2", "3" };
         _currentFormat = "1";
+        
+        var currentDir = AppDomain.CurrentDomain.BaseDirectory;
+        while (Path.GetFileName(currentDir) != "src")
+        {
+            currentDir = Path.GetDirectoryName(currentDir);
+        }
+
+        RawText = File.ReadAllText(Path.Combine(currentDir, "Tests", "mediainfodefaultoutput.txt"));
     }
 #endif
     
@@ -110,6 +121,7 @@ public class VideoInfoViewModel : ViewModelBase
         _settings = settings;
 
         ExportCommand = ReactiveCommand.CreateFromTask(Export);
+        ExportFinished = new Subject<Unit>();
         
         JsonTreeView = true;
         switch (videoInfoType)
@@ -160,6 +172,8 @@ public class VideoInfoViewModel : ViewModelBase
             await using var streamWriter = new StreamWriter(stream);
             await streamWriter.WriteAsync(RawText);
         }
+        
+        ExportFinished.OnNext(Unit.Default);
     }
 
     private void SetFormat()

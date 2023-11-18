@@ -25,6 +25,7 @@
             <Geometry x:Key="XGeometry">L 0,0 10,10 M 0,10 10,0</Geometry>
             <Geometry x:Key="CircleGeometry">M 10,0 A 10,10 0 1,1 0,10 A 10,10 0 0,1 10,0 Z</Geometry>
             <Geometry x:Key="ArrowGeometry">L 0,0 5,5 10,0</Geometry>
+            <Geometry x:Key="CheckMarkGeometry">L 0,10 5,15 13,0</Geometry>
             <LinearGradientBrush x:Key="BackgroundGradient" StartPoint="0%,0%" EndPoint="50%,100%">
                 <GradientStop Offset="0" Color="DarkGray" />
                 <GradientStop Offset="1" Color="SlateGray" />

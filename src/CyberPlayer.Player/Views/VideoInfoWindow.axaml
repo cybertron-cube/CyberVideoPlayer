@@ -63,6 +63,9 @@
                 <CheckBox DockPanel.Dock="Left" Name="JsonTreeCheck" Margin="5, 0, 0, 0" IsChecked="{Binding JsonTreeView}">
                     <TextBlock>Tree View</TextBlock>
                 </CheckBox>
+                <CheckBox DockPanel.Dock="Left" Name="TextWrapCheck" Margin="5, 0, 0, 0" IsChecked="False" IsCheckedChanged="TextWrapCheck_OnIsCheckedChanged">
+                    <TextBlock>Wrap Text</TextBlock>
+                </CheckBox>
                 <Button DockPanel.Dock="Right" Margin="5, 0, 0, 0" Command="{Binding ExportCommand}">
                     <TextBlock>Export</TextBlock>
                 </Button>
@@ -102,5 +105,46 @@
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
+        <Path Name="CirclePath"
+              Grid.Row="0"
+              Grid.RowSpan="2"
+              IsVisible="True"
+              Fill="Green"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              Data="{StaticResource CircleGeometry}">
+            <Path.RenderTransform>
+                <ScaleTransform ScaleX="0" ScaleY="0" />
+                <!-- 5,5 -->
+            </Path.RenderTransform>
+            <Path.Transitions>
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:1" Easing="ElasticEaseOut" />
+                </Transitions>
+            </Path.Transitions>
+        </Path>
+        <Path Name="CheckPath"
+              Grid.Row="0"
+              Grid.RowSpan="2"
+              IsVisible="True"
+              Stroke="White"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              StrokeLineCap="Round"
+              StrokeThickness="2"
+              StrokeDashArray="13, 13"
+              StrokeDashOffset="13"
+              Data="{StaticResource CheckMarkGeometry}">
+            <Path.RenderTransform>
+                <ScaleTransform ScaleX="0" ScaleY="0" />
+                <!-- 3,3 -->
+            </Path.RenderTransform>
+            <Path.Transitions>
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:1" Easing="ElasticEaseOut" />
+                    <DoubleTransition Property="StrokeDashOffset" Duration="0:0:0.8" Delay="0:0:0.1" Easing="BounceEaseOut" />
+                </Transitions>
+            </Path.Transitions>
+        </Path>
     </Grid>
 </Window>

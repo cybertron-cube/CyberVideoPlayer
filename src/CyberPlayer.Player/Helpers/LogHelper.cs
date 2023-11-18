@@ -44,7 +44,7 @@ public static class LogHelper
     public static void CleanupLogFiles(this ILogger logger, string location, string searchPattern, int fileInstances)
     {
         var dirInfo = new DirectoryInfo(location);
-        var logFiles = dirInfo.EnumerateFiles(searchPattern).ToArray();
+        var logFiles = dirInfo.EnumerateFiles(searchPattern).OrderBy(x => x.Name).ToArray();
 
         if (logFiles.Length <= fileInstances) return;
         

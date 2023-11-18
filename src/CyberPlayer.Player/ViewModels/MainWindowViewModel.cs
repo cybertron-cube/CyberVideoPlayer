@@ -1,6 +1,5 @@
 ﻿using ReactiveUI;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
@@ -92,6 +91,15 @@ public class MainWindowViewModel : ViewModelBase
         OpenWebLinkCommand = ReactiveCommand.Create<string>(GenStatic.OpenWebLink);
         ExitAppCommand = ReactiveCommand.Create<EventArgs?>(ExitApp);
         ViewVideoInfoCommand = ReactiveCommand.Create<VideoInfoType>(this.ShowVideoInfo);
+        
+        CheckForUpdatesCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
+        ViewVideoInfoCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
+    }
+
+    private async void HandleCommandExceptions(Exception ex)
+    {
+        _log.Error(ex, "{Message}", ex.Message);
+        await this.ShowMessagePopup(MessagePopupButtons.Ok, "An error occured", ex.Message, new PopupParams());
     }
 
     private async Task CheckForUpdates()

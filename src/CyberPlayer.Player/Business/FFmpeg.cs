@@ -61,7 +61,7 @@ public class FFmpeg : IDisposable
 
         var ffprobePath = GenStatic.GetFullPathFromRelative(Path.Combine("ffmpeg", "ffprobe"));
         GenStatic.GetOSRespectiveExecutablePath(ref ffprobePath);
-        _log.Information("Using ffmpeg path {Path}", ffprobePath);
+        _log.Information("Using ffprobe path {Path}", ffprobePath);
         
         _ffprobeProcess = new CustomProcess
         {

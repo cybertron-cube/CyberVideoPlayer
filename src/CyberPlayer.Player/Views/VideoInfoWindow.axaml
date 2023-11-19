@@ -26,7 +26,7 @@
         </Style>
     </Window.Styles>
     
-    <Grid RowDefinitions="*, 35" Name="MainGrid" ShowGridLines="False">
+    <Grid RowDefinitions="*, 45" Name="MainGrid" ShowGridLines="False">
         <ContentControl Grid.Row="0" Name="ContentControl">
             <ContentControl.Styles>
                 <Style Selector="TextBox">
@@ -44,6 +44,11 @@
         <Border Grid.Row="1" BorderThickness="0, 1, 0, 0" BorderBrush="SlateGray">
             <DockPanel Name="ButtonStack" Margin="10, 0" LastChildFill="False">
                 <Button Name="FormatButton" DockPanel.Dock="Left" Click="FormatButton_OnClick" CornerRadius="20" Background="SlateBlue">
+                    <Button.Styles>
+                        <Style Selector="Button:pointerover /template/ ContentPresenter">
+                            <Setter Property="Background" Value="Blue" />
+                        </Style>
+                    </Button.Styles>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{Binding CurrentFormat}" />
                         <Path Name="ArrowShape"
@@ -75,8 +80,13 @@
                 <Button DockPanel.Dock="Right"
                         Margin="5, 0, 0, 0"
                         CornerRadius="20"
-                        Background="DarkGreen"
+                        Background="Green"
                         Command="{Binding ExportCommand}">
+                    <Button.Styles>
+                        <Style Selector="Button:pointerover /template/ ContentPresenter">
+                            <Setter Property="Background" Value="DarkGreen" />
+                        </Style>
+                    </Button.Styles>
                     <TextBlock>Export</TextBlock>
                 </Button>
                 <CheckBox DockPanel.Dock="Right"

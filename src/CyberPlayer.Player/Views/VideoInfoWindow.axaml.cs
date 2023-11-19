@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Animation;
@@ -7,6 +8,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Data;
 using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Media.Transformation;
 using Avalonia.ReactiveUI;
@@ -102,7 +104,9 @@ public partial class VideoInfoWindow : ReactiveWindow<VideoInfoViewModel>
 
         _exportSubscription = ViewModel!.ExportFinished.Subscribe(_ => ExportFinishedAnimation());
 
-        FormatBox.Margin = new Thickness(0, 0, 0, FormatButton.Bounds.Height + 4);
+        var leftMargin = ButtonStack.Margin.Left + (FormatButton.Bounds.Width - FormatBox.Bounds.Width) / 2;
+        var bottomMargin = FormatButton.Bounds.Height + (MainGrid.RowDefinitions[1].Height.Value - FormatButton.Bounds.Height) / 2;
+        FormatBox.Margin = new Thickness(leftMargin, 0, 0, bottomMargin);
     }
 
     private void ChangeView()
@@ -166,9 +170,10 @@ public partial class VideoInfoWindow : ReactiveWindow<VideoInfoViewModel>
         }
         else
         {
-            //28 height per format ListBoxItem
-            var maxHeight = (int)(Bounds.Height / 3 / 26) * 26;
-            var desiredHeight = FormatBox.ItemCount * 26;
+            var listBoxItem = (ListBoxItem)FormatBox.GetLogicalChildren().First();
+            var itemHeight = listBoxItem.Bounds.Height;
+            var maxHeight = (int)(Bounds.Height / 3 / itemHeight) * itemHeight;
+            var desiredHeight = FormatBox.ItemCount * itemHeight;
             FormatBox.Height = desiredHeight > maxHeight ? maxHeight : desiredHeight;
             
             ArrowShape.RenderTransform = _openFormatBoxTransform;

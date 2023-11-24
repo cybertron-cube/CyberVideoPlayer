@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO;
 using System.Reactive;
@@ -16,7 +17,7 @@ namespace CyberPlayer.Player.ViewModels;
 
 public class VideoInfoViewModel : ViewModelBase
 {
-    public static readonly string[] MediaInfoOptions = new []
+    public static readonly FrozenSet<string> MediaInfoOptions = new[]
     {
         "Default",
         "XML",
@@ -28,9 +29,9 @@ public class VideoInfoViewModel : ViewModelBase
         "EBUCore",
         "FIMS_1.1",
         "MIXML"
-    };
+    }.ToFrozenSet();
 
-    public static readonly string[] FFprobeOptions = new[]
+    public static readonly FrozenSet<string> FFprobeOptions = new[]
     {
         "default",
         "csv",
@@ -39,9 +40,9 @@ public class VideoInfoViewModel : ViewModelBase
         "xml",
         "compact",
         "flat"
-    };
+    }.ToFrozenSet();
 
-    public static readonly Dictionary<string, string> FileTypes = new()
+    public static readonly FrozenDictionary<string, string> FileTypes = new Dictionary<string, string>
     {
         { "default", "txt" },
         { "xml", "xml" },
@@ -57,7 +58,7 @@ public class VideoInfoViewModel : ViewModelBase
         { "ini", "ini" },
         { "compact", "txt" },
         { "flat", "txt" }
-    };
+    }.ToFrozenDictionary();
     
     public VideoInfoType VideoInfoType { get; init; }
     

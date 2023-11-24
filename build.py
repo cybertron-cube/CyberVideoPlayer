@@ -191,6 +191,16 @@ def CopyFFmpeg():
                 os.rename("ffmpeg", "ffmpeg-osx")
                 os.rename("ffprobe", "ffprobe-osx")
 
+def CopyMediaInfo():
+    for build in ListDirs(BuildDirPath):
+        mediaInfoPath = os.path.join(build, "mediainfo")
+        if "win" in os.path.basename(build):
+            CopyFilesProgress(ListFiles(os.path.join(os.getcwd(), "mediainfo", "win")), mediaInfoPath)
+        elif "linux" in os.path.basename(build):
+            CopyFilesProgress(ListFiles(os.path.join(os.getcwd(), "mediainfo", "linux")), mediaInfoPath)
+        elif "osx" in os.path.basename(build):
+            CopyFilesProgress(ListFiles(os.path.join(os.getcwd(), "mediainfo", "osx")), mediaInfoPath)
+
 def RemovePDBs():
     for file in ListFiles(BuildDirPath, True):
         if file.endswith(".pdb"):
@@ -297,7 +307,8 @@ Commands = {
     "cpyupdater": Command("Copy updater to each build", CopyUpdater, "Enter the path to the build dir of updater: "), #updaterbuildpath arg
     "cpyffmpeg": Command("Copy ffmpeg executables to builds", CopyFFmpeg, False),
     "cpympv": Command("Copy libmpv to builds", CopyMpvLib, False),
-    "zip": Command("Zip each build", ZipBuilds, False)
+    "zip": Command("Zip each build", ZipBuilds, False),
+    "cpymediainfo": Command("Copy mediainfo executables to builds", CopyMediaInfo, False)
 }
 
 def ParseArgs(args: list[str]) -> list[Command]:

@@ -15,7 +15,7 @@ read -p 'Enter version number: ' VERSION
 
 if [ $VERSION != "n" ]
 then
-    py build.py -version $VERSION -compile "osx-arm64-single;osx-arm64-multi;" -cpymds -cpyffmpeg -cpympv -cpyupdater $UPDATER_DIR -rmpdbs -delbinrel
+    py build.py -version $VERSION -compile "osx-arm64-single;osx-arm64-multi;" -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater $UPDATER_DIR -rmpdbs -delbinrel
 fi
 
 

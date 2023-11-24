@@ -39,7 +39,9 @@ public class FFmpeg : IDisposable
             .CreateLogger();
         _log.CleanupLogFiles(BuildConfig.LogDirectory, "ffmpeg_output*.log", 10);
         
-        var ffmpegPath = GenStatic.GetFullPathFromRelative(Path.Combine("ffmpeg", "ffmpeg"));
+        var ffmpegPath = string.IsNullOrWhiteSpace(settings.FFmpegDir) ?
+            GenStatic.GetFullPathFromRelative(Path.Combine("ffmpeg", "ffmpeg"))
+            : Path.Combine(settings.FFmpegDir, "ffmpeg");
         GenStatic.GetOSRespectiveExecutablePath(ref ffmpegPath);
         _log.Information("Using ffmpeg path {Path}", ffmpegPath);
         
@@ -59,7 +61,9 @@ public class FFmpeg : IDisposable
         _ffmpegProcess.OutputDataReceived += FFmpegProcessOnOutputDataReceived;
         _ffmpegProcess.ErrorDataReceived += FFmpegProcessOnErrorDataReceived;
 
-        var ffprobePath = GenStatic.GetFullPathFromRelative(Path.Combine("ffmpeg", "ffprobe"));
+        var ffprobePath = string.IsNullOrWhiteSpace(settings.FFprobeDir) ?
+            GenStatic.GetFullPathFromRelative(Path.Combine("ffmpeg", "ffprobe"))
+            : Path.Combine(settings.FFprobeDir, "ffprobe");
         GenStatic.GetOSRespectiveExecutablePath(ref ffprobePath);
         _log.Information("Using ffprobe path {Path}", ffprobePath);
         

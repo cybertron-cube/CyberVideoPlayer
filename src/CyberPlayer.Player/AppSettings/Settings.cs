@@ -27,6 +27,10 @@ public class Settings
 
     public string MediaInfoDir { get; set; } = string.Empty;
 
+    public string FFmpegDir { get; set; } = string.Empty;
+
+    public string FFprobeDir { get; set; } = string.Empty;
+
     public string ExtraTrimArgs { get; set; } = "-avoid_negative_ts make_zero";
 
     public static Settings Import(string settingsPath)

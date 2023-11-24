@@ -13,7 +13,10 @@ fi
 
 read -p 'Enter version number: ' VERSION
 
-py build.py -version $VERSION -compile "osx.13-arm64-single;osx.13-arm64-multi;" -cpymds -cpyffmpeg -cpympv -cpyupdater $UPDATER_DIR -rmpdbs -delbinrel
+if [ $VERSION != "n" ]
+then
+    py build.py -version $VERSION -compile "osx-arm64-single;osx-arm64-multi;" -cpymds -cpyffmpeg -cpympv -cpyupdater $UPDATER_DIR -rmpdbs -delbinrel
+fi
 
 
 
@@ -30,7 +33,7 @@ fi
 
 
 APP_NAME="$SCRIPT_DIR/build/CyberVideoPlayer.app"
-PUBLISH_OUTPUT_DIRECTORY="$SCRIPT_DIR/build/osx.13-arm64-single/."
+PUBLISH_OUTPUT_DIRECTORY="$SCRIPT_DIR/build/osx-arm64-single/."
 INFO_PLIST="$SCRIPT_DIR/Info.plist"
 ICON_FILE="cyber-logo-sunset.icns"
 ICON_PATH="$SCRIPT_DIR/src/CyberPlayer.Player/Assets/Logo/$ICON_FILE"

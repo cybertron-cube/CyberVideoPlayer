@@ -121,7 +121,7 @@
 
   <Target Name="MediaInfoCopy" AfterTargets="LibMpvCopy">
     <Copy Condition=" $(DefineConstants.Contains(WINX64)) " SourceFiles="..\..\mediainfo\win\MediaInfo.dll" DestinationFolder="$(OutDir)\mediainfo" SkipUnchangedFiles="true" />
-    <Copy Condition=" $(DefineConstants.Contains(LINUXX64)) " SourceFiles="..\..\mediainfo\linux\libmediainfo.so.0.0.0;..\..\mediainfo\linux\libzen.so.0.4.41;..\..\mediainfo\linux\libzen.so.0" DestinationFolder="$(OutDir)\mediainfo" SkipUnchangedFiles="true" />
+    <Copy Condition=" $(DefineConstants.Contains(LINUXX64)) " SourceFiles="..\..\mediainfo\linux\libmediainfo.so.0.0.0;..\..\mediainfo\linux\libzen.so.0.4.41" DestinationFolder="$(OutDir)\mediainfo" SkipUnchangedFiles="true" />
     <Copy Condition=" $(DefineConstants.Contains(OSXX64)) " SourceFiles="..\..\mediainfo\osx\libmediainfo.dylib" DestinationFolder="$(OutDir)\mediainfo" SkipUnchangedFiles="true" />
   </Target>
 </Project>

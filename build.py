@@ -205,6 +205,10 @@ def RemovePDBs():
     for file in ListFiles(BuildDirPath, True):
         if file.endswith(".pdb"):
             os.remove(file)
+        elif file.endswith(".dbg"):
+            os.remove(file)
+        elif file.endswith(".dsym"):
+            os.remove(file)
 
 #Make lib dir courtesy of https://github.com/nulastudio/NetBeauty2
 def MakeLibraryDir(chosenTargets: str):

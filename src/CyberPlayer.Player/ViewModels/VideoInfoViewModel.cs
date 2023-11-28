@@ -105,14 +105,8 @@ public class VideoInfoViewModel : ViewModelBase
         FormatOptions = new[] { "1", "2", "3" };
         _currentFormat = "1";
         ExportCommand = ReactiveCommand.CreateFromTask(Export);
-        
-        var currentDir = AppDomain.CurrentDomain.BaseDirectory;
-        while (Path.GetFileName(currentDir) != "src")
-        {
-            currentDir = Path.GetDirectoryName(currentDir);
-        }
 
-        RawText = File.ReadAllText(Path.Combine(currentDir, "Tests", "mediainfodefaultoutput.txt"));
+        RawText = BuildConfig.GetTestInfo("mediainfo-default-output.txt");
     }
 #endif
     

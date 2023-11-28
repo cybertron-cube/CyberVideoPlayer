@@ -43,17 +43,12 @@ public class JsonTreeViewModel : ViewModelBase
     
     public JsonTreeViewModel()
     {
+#if DEBUG
         if (Design.IsDesignMode)
         {
-            Title = "Design Mode";
-            var currentDir = AppDomain.CurrentDomain.BaseDirectory;
-            while (Path.GetFileName(currentDir) != "src")
-            {
-                currentDir = Path.GetDirectoryName(currentDir);
-            }
-
-            RawText = File.ReadAllText(Path.Combine(currentDir, "Tests", "mediainfojsonoutput.json"));
+            RawText = BuildConfig.GetTestInfo("mediainfo-json-output.json");
         }
+#endif
     }
 
     public static IEnumerable<Node> ConvertJsonToNodes(string text)

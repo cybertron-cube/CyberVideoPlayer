@@ -52,4 +52,17 @@ public static class BuildConfig
     public const string AssetIdentifierInstance = "single";
     public const string Guid = "{8EC49017-B0B5-4EDE-83EE-7E2799BCB935}";
 #endif
+
+#if DEBUG
+    public static string GetTestInfo(string fileName)
+    {
+        var currentDir = AppDomain.CurrentDomain.BaseDirectory;
+        while (Path.GetFileName(currentDir) != "src")
+        {
+            currentDir = Path.GetDirectoryName(currentDir);
+        }
+
+        return File.ReadAllText(Path.Combine(currentDir, "Tests", fileName));
+    }
+#endif
 }

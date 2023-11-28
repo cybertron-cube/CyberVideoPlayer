@@ -61,7 +61,6 @@ public class MediaInfo : IDisposable
     public MediaInfoFunctions.MediaInfo_Delete MediaInfo_Delete { get; private set; } = null!;
     public MediaInfoFunctions.MediaInfo_Open MediaInfo_Open { get; private set; } = null!;
     public MediaInfoFunctions.MediaInfoA_Open MediaInfoA_Open { get; private set; } = null!;
-    //public MediaInfoFunctions.MediaInfoA_Open2 MediaInfoA_Open2 { get; private set; }
     public MediaInfoFunctions.MediaInfo_Open_Buffer_Init MediaInfo_Open_Buffer_Init { get; private set; } = null!;
     public MediaInfoFunctions.MediaInfo_Open_Buffer_Continue MediaInfo_Open_Buffer_Continue { get; private set; } = null!;
     public MediaInfoFunctions.MediaInfoA_Open_Buffer_Continue MediaInfoA_Open_Buffer_Continue { get; private set; } = null!;
@@ -206,6 +205,17 @@ public class MediaInfo : IDisposable
         Marshal.FreeHGlobal(valuePtr);
         return toReturn;
     }
+
+    private static string GetOsFilePath(string dir)
+    {
+        if (OperatingSystem.IsWindows())
+            return Path.Combine(dir, "MediaInfo.dll");
+        if (OperatingSystem.IsMacOS())
+            return Path.Combine(dir, "libmediainfo.dylib");
+        if (OperatingSystem.IsLinux())
+            return Path.Combine(dir, "libmediainfo.so.0.0.0");
+        throw new PlatformNotSupportedException();
+    }
     
     private void ReleaseUnmanagedResources()
     {
@@ -214,7 +224,6 @@ public class MediaInfo : IDisposable
         NativeLibrary.Free(_lib);
     }
     
-    //TODO Test on linux and clean this method up
     private void FindAndLoadLibrary(Settings settings)
     {
         var mediaInfoDir = settings.MediaInfoDir;
@@ -223,13 +232,7 @@ public class MediaInfo : IDisposable
         if (string.IsNullOrWhiteSpace(mediaInfoDir))
         {
             libPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "mediainfo");
-            if (OperatingSystem.IsWindows())
-                libPath = Path.Combine(libPath, "MediaInfo.dll");
-            else if (OperatingSystem.IsMacOS())
-                libPath = Path.Combine(libPath, "libmediainfo.dylib");
-            else if (OperatingSystem.IsLinux())
-                libPath = Path.Combine(libPath, "libmediainfo.so.0.0.0");
-            else throw new PlatformNotSupportedException();
+            libPath = GetOsFilePath(libPath);
         }
         else
         {
@@ -238,17 +241,8 @@ public class MediaInfo : IDisposable
                 index = mediaInfoDir.IndexOf('.', index);
             else
                 throw new Exception("MediaInfo path format error");
-            if (index == -1)
-            {
-                if (OperatingSystem.IsWindows())
-                    libPath = Path.Combine(mediaInfoDir, "MediaInfo.dll");
-                else if (OperatingSystem.IsMacOS())
-                    libPath = Path.Combine(mediaInfoDir, "libmediainfo.dylib");
-                else if (OperatingSystem.IsLinux())
-                    libPath = Path.Combine(mediaInfoDir, "libmediainfo.so.0.0.0");
-                else throw new PlatformNotSupportedException();
-            }
-            else libPath = mediaInfoDir;
+            
+            libPath = index == -1 ? GetOsFilePath(mediaInfoDir) : mediaInfoDir;
         }
 
         if (!File.Exists(libPath))

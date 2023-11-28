@@ -42,22 +42,22 @@ public class VideoInfoViewModel : ViewModelBase
         "flat"
     }.ToFrozenSet();
 
-    public static readonly FrozenDictionary<string, string> FileTypes = new Dictionary<string, string>
+    public static readonly FrozenDictionary<string, string> FileExtensions = new Dictionary<string, string>
     {
-        { "default", "txt" },
+        { "default", "default.txt" },
         { "xml", "xml" },
         { "html", "html" },
         { "json", "json" },
-        { "mpeg-7", "xml" },
-        { "pbcore", "xml" },
-        { "pbcore2", "xml" },
-        { "ebucore", "xml" },
-        { "fims_1.1", "xml" },
-        { "mixml", "xml" },
+        { "mpeg-7", "MPEG-7.xml" },
+        { "pbcore", "PBCore.xml" },
+        { "pbcore2", "PBCore2.xml" },
+        { "ebucore", "EBUCore.xml" },
+        { "fims_1.1", "FIMS.xml" },
+        { "mixml", "miXML.xml" },
         { "csv", "csv" },
         { "ini", "ini" },
-        { "compact", "txt" },
-        { "flat", "txt" }
+        { "compact", "compact.txt" },
+        { "flat", "flat.txt" }
     }.ToFrozenDictionary();
     
     public VideoInfoType VideoInfoType { get; init; }
@@ -154,14 +154,25 @@ public class VideoInfoViewModel : ViewModelBase
     {
         if (Sidecar)
         {
-            await File.WriteAllTextAsync($"{_mpvPlayer.MediaPath}.{FileTypes[CurrentFormat.ToLower()]}", RawText);
+            //Temporary solution? For now (and likely for a long time) these are
+            //the only overlapping file extensions
+            //TODO Should probably subclass different VideoInfoTypes eventually which would solve this
+            //Subclasses would override Options and FileExtensions properties,
+            //getters => private static readonly frozen fields
+            var extension = FileExtensions[CurrentFormat.ToLower()];
+            if (extension is "default" or "xml" or "json")
+            {
+                extension = $"{VideoInfoType.ToString().ToLower()}.{extension}";
+            }
+            
+            await File.WriteAllTextAsync($"{_mpvPlayer.MediaPath}.{extension}", RawText);
         }
         else
         {
             var saveFile = await this.SaveFileDialog(new FilePickerSaveOptions
             {
                 Title = $"Save {VideoInfoType} Output",
-                DefaultExtension = FileTypes[CurrentFormat.ToLower()],
+                DefaultExtension = FileExtensions[CurrentFormat.ToLower()],
                 SuggestedStartLocation = _lastFolderLocation,
                 SuggestedFileName = "untitled"
             });

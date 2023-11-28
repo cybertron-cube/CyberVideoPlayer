@@ -81,22 +81,7 @@ public class FFmpeg : IDisposable
         };
     }
 
-    public struct FFmpegResult
-    {
-        public readonly int ExitCode;
-        public readonly string? ErrorMessage;
-
-        public FFmpegResult(int exitCode, string? errorMessage)
-        {
-            ExitCode = exitCode;
-            ErrorMessage = errorMessage;
-        }
-        
-        public FFmpegResult(int exitCode)
-        {
-            ExitCode = exitCode;
-        }
-    }
+    public readonly record struct FFmpegResult(int ExitCode, string? ErrorMessage = null);
     
     public async Task<FFmpegResult> TrimAsync(TimeCode startTime, TimeCode endTime, CancellationToken ct)
     {

@@ -10,5 +10,4 @@ public class ViewLocator : ViewLocatorBase
         viewModel.GetType().FullName!.Replace("ViewModel", "View");
 
     public static MainWindow Main => Locator.Current.GetService<MainWindow>()!;
-    public static ProgressView Progress => Locator.Current.GetService<ProgressView>()!;
 }

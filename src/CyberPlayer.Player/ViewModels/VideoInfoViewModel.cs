@@ -7,7 +7,6 @@ using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using CyberPlayer.Player.AppSettings;
-using CyberPlayer.Player.Business;
 using CyberPlayer.Player.Services;
 using DynamicData.Binding;
 using ReactiveUI;
@@ -15,50 +14,9 @@ using ReactiveUI.Fody.Helpers;
 
 namespace CyberPlayer.Player.ViewModels;
 
-public class VideoInfoViewModel : ViewModelBase
+public abstract class VideoInfoViewModel : ViewModelBase
 {
-    public static readonly FrozenSet<string> MediaInfoOptions = new[]
-    {
-        "Default",
-        "XML",
-        "HTML",
-        "JSON",
-        "MPEG-7",
-        "PBCore",
-        "PBCore2",
-        "EBUCore",
-        "FIMS_1.1",
-        "MIXML"
-    }.ToFrozenSet();
-
-    public static readonly FrozenSet<string> FFprobeOptions = new[]
-    {
-        "default",
-        "csv",
-        "ini",
-        "json",
-        "xml",
-        "compact",
-        "flat"
-    }.ToFrozenSet();
-
-    public static readonly FrozenDictionary<string, string> FileExtensions = new Dictionary<string, string>
-    {
-        { "default", "default.txt" },
-        { "xml", "xml" },
-        { "html", "html" },
-        { "json", "json" },
-        { "mpeg-7", "MPEG-7.xml" },
-        { "pbcore", "PBCore.xml" },
-        { "pbcore2", "PBCore2.xml" },
-        { "ebucore", "EBUCore.xml" },
-        { "fims_1.1", "FIMS.xml" },
-        { "mixml", "miXML.xml" },
-        { "csv", "csv" },
-        { "ini", "ini" },
-        { "compact", "compact.txt" },
-        { "flat", "flat.txt" }
-    }.ToFrozenDictionary();
+    protected abstract FrozenDictionary<string, string> FileExtensions { get; }
     
     public VideoInfoType VideoInfoType { get; init; }
     
@@ -68,8 +26,7 @@ public class VideoInfoViewModel : ViewModelBase
     [Reactive]
     public bool JsonTreeView { get; set; }
     
-    [Reactive]
-    public IEnumerable<string> FormatOptions { get; set; }
+    public abstract IEnumerable<string> FormatOptions { get; }
     
     [Reactive]
     public bool Sidecar { get; set; }
@@ -94,15 +51,15 @@ public class VideoInfoViewModel : ViewModelBase
     
     public Subject<Unit> ExportFinished { get; }
 
-    private readonly MpvPlayer _mpvPlayer;
-    private readonly Settings _settings;
+    protected readonly MpvPlayer _mpvPlayer;
+    protected readonly Settings _settings;
     private IStorageFolder? _lastFolderLocation;
 
 #if DEBUG
     //Previewer constructor
     public VideoInfoViewModel()
     {
-        FormatOptions = new[] { "1", "2", "3" };
+        //FormatOptions = new[] { "1", "2", "3" };
         _currentFormat = "1";
         ExportCommand = ReactiveCommand.CreateFromTask(Export);
 
@@ -110,33 +67,18 @@ public class VideoInfoViewModel : ViewModelBase
     }
 #endif
     
-    public VideoInfoViewModel(VideoInfoType videoInfoType, MpvPlayer mpvPlayer, Settings settings)
+    public VideoInfoViewModel(VideoInfoType videoInfoType, string currentFormat, MpvPlayer mpvPlayer, Settings settings)
     {
         VideoInfoType = videoInfoType;
         _mpvPlayer = mpvPlayer;
         _settings = settings;
+        _currentFormat = currentFormat;
 
         ExportCommand = ReactiveCommand.CreateFromTask(Export);
         ExportFinished = new Subject<Unit>();
         
-        JsonTreeView = true;
-        switch (videoInfoType)
-        {
-            case VideoInfoType.MediaInfo:
-                FormatOptions = MediaInfoOptions;
-                _currentFormat = "JSON";
-                break;
-            case VideoInfoType.FFprobe:
-                FormatOptions = FFprobeOptions;
-                _currentFormat = "json";
-                break;
-            case VideoInfoType.Mpv:
-                FormatOptions = new[] { "json" };
-                _currentFormat = "json";
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(videoInfoType), videoInfoType, null);
-        }
+        if (_currentFormat.Equals("json", StringComparison.CurrentCultureIgnoreCase))
+            JsonTreeView = true;
         
         //TODO This probably won't work for mpv as the TrackListJson property most likely
         //... will not be changed until after RawText is set (loaded event will take too long)
@@ -148,17 +90,7 @@ public class VideoInfoViewModel : ViewModelBase
     {
         if (Sidecar)
         {
-            //Temporary solution? For now (and likely for a long time) these are
-            //the only overlapping file extensions
-            //TODO Should probably subclass different VideoInfoTypes eventually which would solve this
-            //Subclasses would override Options and FileExtensions properties,
-            //getters => private static readonly frozen fields
-            var extension = FileExtensions[CurrentFormat.ToLower()];
-            if (extension is "default" or "xml" or "json")
-            {
-                extension = $"{VideoInfoType.ToString().ToLower()}.{extension}";
-            }
-            
+            var extension = FileExtensions[CurrentFormat];
             await File.WriteAllTextAsync($"{_mpvPlayer.MediaPath}.{extension}", RawText);
         }
         else
@@ -183,31 +115,5 @@ public class VideoInfoViewModel : ViewModelBase
         ExportFinished.OnNext(Unit.Default);
     }
 
-    private void SetFormat()
-    {
-        switch (VideoInfoType)
-        {
-            case VideoInfoType.MediaInfo:
-                using (var mediaInfo = new MediaInfo(_settings))
-                {
-                    //TODO Complete should be an option
-                    //Complete information is automatically shown if requesting json though
-                    //mediaInfo.Option("Complete", "1");
-                    mediaInfo.Option("output", CurrentFormat);
-                    mediaInfo.Open(_mpvPlayer.MediaPath);
-                    RawText = mediaInfo.Inform();
-                }
-                break;
-            case VideoInfoType.FFprobe:
-                using (var ffmpeg = new FFmpeg(_mpvPlayer.MediaPath, _settings))
-                {
-                    RawText = CurrentFormat == "default" ? ffmpeg.Probe() : ffmpeg.ProbeFormat(CurrentFormat);
-                }
-                break;
-            case VideoInfoType.Mpv:
-                if (!string.IsNullOrWhiteSpace(_mpvPlayer.TrackListJson))
-                    RawText = $"{{\"Track \":{_mpvPlayer.TrackListJson}}}";
-                break;
-        }
-    }
+    protected abstract void SetFormat();
 }

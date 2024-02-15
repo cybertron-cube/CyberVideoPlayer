@@ -71,6 +71,18 @@ public partial class VideoInfoWindow : ReactiveWindow<VideoInfoViewModel>
         _animateCheckInRenderTransformTransition = (TransformOperationsTransition)CheckPath.Transitions![0];
         _animateCheckInStrokeTransition = (DoubleTransition)CheckPath.Transitions[1];
         _animateCircleInRenderTransformTransition = (TransformOperationsTransition)CirclePath.Transitions![0];
+        
+#if DEBUG
+        var testButton = new Button
+        {
+            Content = "Test"
+        };
+        ButtonStack.Children.Add(testButton);
+        testButton.Click += (_, _) =>
+        {
+            ExportFinishedAnimation();
+        };
+#endif
     }
 
     private void VideoInfoWindow_Opened(object? sender, EventArgs e)

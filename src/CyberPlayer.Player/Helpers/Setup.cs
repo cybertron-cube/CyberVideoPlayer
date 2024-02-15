@@ -89,12 +89,16 @@ public static class Setup
         container.RegisterLazySingleton(() => new MainWindow());
         container.Register(() => new ProgressView());
         container.Register(() => new MessagePopupView());
+        container.Register(() => new VideoInfoWindow());
         
         container.Register(() => new ProgressViewModel());
         container.Register(() => new MessagePopupViewModel());
         
         SplatRegistrations.RegisterLazySingleton<MpvPlayer>();
         SplatRegistrations.RegisterLazySingleton<MainWindowViewModel>();
+        SplatRegistrations.RegisterLazySingleton<MediaInfoViewModel>();
+        SplatRegistrations.RegisterLazySingleton<FFprobeInfoViewModel>();
+        SplatRegistrations.RegisterLazySingleton<MpvInfoViewModel>();
         
         SplatRegistrations.SetupIOC();
     }

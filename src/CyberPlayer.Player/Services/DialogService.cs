@@ -43,7 +43,15 @@ public static class DialogService
         if (VideoInfoActive[videoInfoType] != null) return;
         
         var videoInfoView = new VideoInfoWindow();
-        var videoInfoViewModel = new VideoInfoViewModel(videoInfoType, viewModel.MpvPlayer, viewModel.Settings);
+        
+        var videoInfoViewModel = videoInfoType switch
+        {
+            VideoInfoType.MediaInfo => (VideoInfoViewModel)Locator.Current.GetService<MediaInfoViewModel>()!,
+            VideoInfoType.FFprobe => Locator.Current.GetService<FFprobeInfoViewModel>()!,
+            VideoInfoType.Mpv => Locator.Current.GetService<MpvInfoViewModel>()!,
+            _ => throw new ArgumentOutOfRangeException(nameof(videoInfoType), videoInfoType, null)
+        };
+        
         videoInfoView.DataContext = videoInfoViewModel;
         videoInfoView.Closed += (_, _) => VideoInfoActive[videoInfoType] = null;
         VideoInfoActive[videoInfoType] = videoInfoView;

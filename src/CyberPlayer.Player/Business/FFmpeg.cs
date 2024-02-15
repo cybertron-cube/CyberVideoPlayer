@@ -82,18 +82,28 @@ public class FFmpeg : IDisposable
     }
 
     public readonly record struct FFmpegResult(int ExitCode, string? ErrorMessage = null);
+
+    public void Transcode(string extension)
+    {
+        throw new NotImplementedException();
+    }
     
-    public async Task<FFmpegResult> TrimAsync(TimeCode startTime, TimeCode endTime, CancellationToken ct)
+    public async Task<FFmpegResult> TrimAsync(TimeCode startTime, TimeCode endTime, CancellationToken ct) =>
+        await FFmpegCommandAsync(startTime, endTime,
+            "trim",
+            $"-ss {startTime.FormattedString} -to {endTime.FormattedString} -i \"{_videoPath}\" -map 0 -codec copy {_settings.ExtraTrimArgs} \"{GenStatic.AppendFileName(_videoPath, "-trim")}\"",
+            ct);
+
+    public async Task<FFmpegResult> FFmpegCommandAsync(TimeCode startTime, TimeCode endTime, string commandName, string args, CancellationToken ct)
     {
         _startTimeMs = startTime.GetExactUnits(TimeUnit.Millisecond);
         _endTimeMs = endTime.GetExactUnits(TimeUnit.Millisecond);
         _spanTimeMs = _endTimeMs - _startTimeMs;
 
-        SetTrimArgs(startTime.FormattedString, endTime.FormattedString,
-            GenStatic.AppendFileName(_videoPath, "-trim"));
+        SetArgs(args);
         
-        _log.Information("Starting trim of video {VideoPath} from {StartTime} to {EndTime}",
-            _videoPath, startTime.FormattedString, endTime.FormattedString);
+        _log.Information("Starting {CommandName} of video {VideoPath} from {StartTime} to {EndTime}",
+            commandName, _videoPath, startTime.FormattedString, endTime.FormattedString);
         
         _ffmpegProcess.Start();
         _ffmpegProcess.BeginOutputReadLine();
@@ -104,18 +114,13 @@ public class FFmpeg : IDisposable
         }
         catch (TaskCanceledException)
         {
-            _log.Information("Trim canceled");
+            _log.Information($"{commandName} canceled");
             await _ffmpegProcess.StandardInput.WriteAsync('q');
             await _ffmpegProcess.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
         }
 
         _log.Information("Exit code: {ExitCode}", _ffmpegProcess.ExitCode);
         return new FFmpegResult(_ffmpegProcess.ExitCode, _lastStdErrLine);
-    }
-
-    public void Transcode(string extension)
-    {
-        throw new NotImplementedException();
     }
 
     public string Probe(string args = "")
@@ -173,10 +178,10 @@ public class FFmpeg : IDisposable
         _log.Error(_lastStdErrLine);
     }
 
-    private void SetTrimArgs(string startTimeCode, string endTimeCode, string videoDestination)
+    private void SetArgs(string args)
     {
         _ffmpegProcess.StartInfo.Arguments =
-            $"-progress pipe:1 -y -ss {startTimeCode} -to {endTimeCode} -i \"{_videoPath}\" -map 0 -codec copy {_settings.ExtraTrimArgs} \"{videoDestination}\"";
+            $"-progress pipe:1 -y {args}";
         _log.Information("FFmpeg arguments: {Args}", _ffmpegProcess.StartInfo.Arguments);
     }
 }

@@ -15,6 +15,7 @@ using Splat;
 using CyberPlayer.Player.Business;
 using CyberPlayer.Player.Models;
 using CyberPlayer.Player.Services;
+using CyberPlayer.Player.Views;
 using LibMpv.Client;
 using ReactiveUI.Fody.Helpers;
 using Serilog;
@@ -194,6 +195,15 @@ public class MainWindowViewModel : ViewModelBase
         //TODO CHECK IF FILE ALREADY EXISTS - ffmpeg args contain -y so will overwrite but should make prompt
         //TODO subscribe to progress change event to update progressbar
         //TODO show error if not zero
+    }
+
+    public void Export()
+    {
+        var viewModel = new ExportWindowViewModel(MpvPlayer, Settings);
+        viewModel.AudioTrackInfos = MpvPlayer.AudioTrackInfos;
+        var view = new ExportWindow();
+        view.ViewModel = viewModel;
+        view.Show();
     }
 
     private async Task MediaPicker()

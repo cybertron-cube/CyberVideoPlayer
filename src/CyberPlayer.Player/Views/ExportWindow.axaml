@@ -1,0 +1,36 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:CyberPlayer.Player.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="CyberPlayer.Player.Views.ExportWindow"
+        x:DataType="vm:ExportWindowViewModel"
+        x:CompileBindings="True"
+        Title="Export">
+    
+    <Design.DataContext>
+        <vm:ExportWindowViewModel />
+    </Design.DataContext>
+    
+    <Grid RowDefinitions="*, Auto">
+        <TabControl Grid.Row="0">
+            <TabItem Header="Audio Tracks">
+                <ListBox Name="AudioTrackListBox" SelectionMode="Multiple, Toggle" ItemsSource="{Binding AudioTrackInfos}" SelectedItems="{Binding AudioTrackSelection}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <CheckBox IsChecked="{Binding IncludeInExport}" Content="{Binding Description}" IsHitTestVisible="False" Focusable="False" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </TabItem>
+            <TabItem Header="Transcode/Remux">
+                <TextBox Watermark="Extension" MaxLines="1" AcceptsReturn="False" Height="10" Text="{Binding Extension}" />
+            </TabItem>
+        </TabControl>
+        <DockPanel Grid.Row="1" LastChildFill="False" Margin="11, 10">
+            <Button Name="CancelButton" DockPanel.Dock="Left">Cancel</Button>
+            <Button DockPanel.Dock="Right" Command="{Binding ExportCommand}">Export</Button>
+        </DockPanel>
+    </Grid>
+</Window>

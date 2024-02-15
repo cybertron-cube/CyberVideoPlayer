@@ -4,7 +4,7 @@ using ReactiveUI.Fody.Helpers;
 
 namespace CyberPlayer.Player.Models;
 
-public class TrackInfo
+public class TrackInfo : ReactiveObject
 {
     [JsonPropertyName("id")]
     public int Id { get; set; }
@@ -81,6 +81,13 @@ public class TrackInfo
     
     [JsonPropertyName("demux-bitrate")]
     public int? AudioDemuxBitrate { get; set; }
+
+    [Reactive]
+    [JsonIgnore]
+    public bool IncludeInExport { get; set; } = true;
+
+    [JsonIgnore]
+    public string Description => ToString();
     
     public override string ToString()
     {

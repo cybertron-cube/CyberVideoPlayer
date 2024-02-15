@@ -10,10 +10,10 @@ namespace CyberPlayer.Player.RendererVideoViews;
 
 public class OpenGlVideoView : OpenGlControlBase
 {
-    delegate IntPtr GetProcAddress(string proc);
+    private delegate IntPtr GetProcAddress(string proc);
 
-    private GetProcAddress _getProcAddress;
-    private MpvContext? _mpvContext = null;
+    private GetProcAddress? _getProcAddress;
+    private MpvContext? _mpvContext;
 
     public static readonly DirectProperty<OpenGlVideoView, MpvContext?> MpvContextProperty =
            AvaloniaProperty.RegisterDirect<OpenGlVideoView, MpvContext?>(
@@ -66,6 +66,6 @@ public class OpenGlVideoView : OpenGlControlBase
 
     private void UpdateVideoView()
     {
-        Dispatcher.UIThread.InvokeAsync(RequestNextFrameRendering, DispatcherPriority.Background);
+        Dispatcher.UIThread.Post(RequestNextFrameRendering, DispatcherPriority.Render);
     }
 }

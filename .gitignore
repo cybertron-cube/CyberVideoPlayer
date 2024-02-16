@@ -384,13 +384,14 @@ FodyWeavers.xsd
 *.sln.iml
 .idea/
 
-mpv/android
-build/
-ffmpeg/
-avalonia version changes.txt
-/mpv/android
+# Custom
+/mpv/android/
 /build/
 /ffmpeg/
-/avalonia version changes.txt
+/build/
+/ffmpeg/
+/win-installer/
+/ignore/
+/.venv/
+/src/CyberPlayer.Player/.avalonia-build-tasks/id
 *.DS_Store
-win-installer/

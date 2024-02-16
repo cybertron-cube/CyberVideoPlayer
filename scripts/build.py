@@ -6,24 +6,26 @@ import zipfile
 import collections
 import tqdm
 import re
+import platform
+
+RepoPath = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+BuildDirPath = os.path.join(RepoPath, "build")
 
 CompileTargets = {
-    "win-x64-multi": f"-o {os.path.join('build', 'win-x64-multi')} -r win-x64 -c release-win-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "win-x64-single": f"-o {os.path.join('build', 'win-x64-single')} -r win-x64 -c release-win-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "linux-x64-multi": f"-o {os.path.join('build', 'linux-x64-multi')} -r linux-x64 -c release-linux-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "linux-x64-single": f"-o {os.path.join('build', 'linux-x64-single')} -r linux-x64 -c release-linux-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "osx-x64-multi": f"-o {os.path.join('build', 'osx-x64-multi')} -r osx-x64 -c release-osx-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "osx-x64-single": f"-o {os.path.join('build', 'osx-x64-single')} -r osx-x64 -c release-osx-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "osx-arm64-multi": f"-o {os.path.join('build', 'osx-arm64-multi')} -r osx-arm64 -c release-osx-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "osx-arm64-single": f"-o {os.path.join('build', 'osx-arm64-single')} -r osx-arm64 -c release-osx-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "portable-multi": f"-o {os.path.join('build', 'portable-multi')} -c release-portable-multi --sc false -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "portable-single": f"-o {os.path.join('build', 'portable-single')} -c release-portable-single --sc false -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "win-x64-installer": f"-o {os.path.join('build', 'win-x64-installer')} -r win-x64 -c release-win-x64-single --sc false -p:PublishReadyToRun=true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "win-x64-multi": f"-o {os.path.join(BuildDirPath, 'win-x64-multi')} -r win-x64 -c release-win-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "win-x64-single": f"-o {os.path.join(BuildDirPath, 'win-x64-single')} -r win-x64 -c release-win-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "linux-x64-multi": f"-o {os.path.join(BuildDirPath, 'linux-x64-multi')} -r linux-x64 -c release-linux-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "linux-x64-single": f"-o {os.path.join(BuildDirPath, 'linux-x64-single')} -r linux-x64 -c release-linux-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "osx-x64-multi": f"-o {os.path.join(BuildDirPath, 'osx-x64-multi')} -r osx-x64 -c release-osx-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "osx-x64-single": f"-o {os.path.join(BuildDirPath, 'osx-x64-single')} -r osx-x64 -c release-osx-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "osx-arm64-multi": f"-o {os.path.join(BuildDirPath, 'osx-arm64-multi')} -r osx-arm64 -c release-osx-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "osx-arm64-single": f"-o {os.path.join(BuildDirPath, 'osx-arm64-single')} -r osx-arm64 -c release-osx-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "portable-multi": f"-o {os.path.join(BuildDirPath, 'portable-multi')} -c release-portable-multi --sc false -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "portable-single": f"-o {os.path.join(BuildDirPath, 'portable-single')} -c release-portable-single --sc false -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "win-x64-installer": f"-o {os.path.join(BuildDirPath, 'win-x64-installer')} -r win-x64 -c release-win-x64-single --sc false -p:PublishReadyToRun=true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
     "sc": "all self contained",
     "all": "all of the above"
 }
-
-BuildDirPath = os.path.join(os.getcwd(), "build")
 
 class cd:
     """Context manager for changing the current working directory"""
@@ -113,7 +115,7 @@ def SetVersion(version: str):
         newVersion += v + ', '
     newVersion = newVersion[:-2]
     newVersionLine = f"public static readonly Version Version = new({newVersion});"
-    with cd(os.path.join(os.getcwd(), "src", "CyberPlayer.Player")):
+    with cd(os.path.join(RepoPath, "src", "CyberPlayer.Player")):
         with open("BuildConfig.cs", 'r') as file:
             data = file.read()
             data = data.replace(versionLine, newVersionLine)
@@ -123,35 +125,37 @@ def SetVersion(version: str):
     plistVersionNew = f"<key>CFBundleVersion</key>\n    <string>{version}</string>"
     plistShortVersionLine = "<key>CFBundleShortVersionString</key>\n    <string>1.0</string>"
     plistShortVersionNew = f"<key>CFBundleShortVersionString</key>\n    <string>{versionArray[0] + '.' + versionArray[1]}</string>"
-    with open("Info.plist", 'r') as file:
-        plistData = file.read()
-        plistData = plistData.replace(plistVersionLine, plistVersionNew)
-        plistData = plistData.replace(plistShortVersionLine, plistShortVersionNew)
-    with open("Info.plist", 'w') as file:
-        file.write(plistData)
+    with cd(RepoPath):
+        with open("Info.plist", 'r') as file:
+            plistData = file.read()
+            plistData = plistData.replace(plistVersionLine, plistVersionNew)
+            plistData = plistData.replace(plistShortVersionLine, plistShortVersionNew)
+        with open("Info.plist", 'w') as file:
+            file.write(plistData)
 
 def ResetVersion():
     for target in CompileTargets:
         CompileTargets[target] = re.sub(r'-p:AssemblyVersion=.*', '-p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0', CompileTargets[target])
-    with cd(os.path.join(os.getcwd(), "src", "CyberPlayer.Player")):
+    with cd(os.path.join(RepoPath, "src", "CyberPlayer.Player")):
         with open("BuildConfig.cs", 'r') as file:
             data = file.read()
             data = re.sub(r'public static readonly Version Version = new[^;]*', 'public static readonly Version Version = new(1, 0, 0, 0)', data)
         with open("BuildConfig.cs", 'w') as file:
             file.write(data)
-    with open("Info.plist", 'r') as file:
-        plistData = file.read()
-        plistData = re.sub(r"<key>CFBundleVersion<\/key>\n.*<\/string>", "<key>CFBundleVersion</key>\n    <string>1.0.0</string>", plistData)
-        plistData = re.sub(r"<key>CFBundleShortVersionString<\/key>\n.*<\/string>", "<key>CFBundleShortVersionString</key>\n    <string>1.0</string>", plistData)
-    with open("Info.plist", 'w') as file:
-        file.write(plistData)
+    with cd(RepoPath):
+        with open("Info.plist", 'r') as file:
+            plistData = file.read()
+            plistData = re.sub(r"<key>CFBundleVersion<\/key>\n.*<\/string>", "<key>CFBundleVersion</key>\n    <string>1.0.0</string>", plistData)
+            plistData = re.sub(r"<key>CFBundleShortVersionString<\/key>\n.*<\/string>", "<key>CFBundleShortVersionString</key>\n    <string>1.0</string>", plistData)
+        with open("Info.plist", 'w') as file:
+            file.write(plistData)
 
 def Compile(chosenTargets: str):
     if chosenTargets == "all":
         for compileTarget in CompileTargets:
             if compileTarget == "sc" or compileTarget == "all":
                 continue
-            cmds = f"dotnet publish {os.path.join('src', 'CyberPlayer.Player', 'CyberPlayer.Player.csproj')} {CompileTargets[compileTarget]}"
+            cmds = f"dotnet publish \"{os.path.join(RepoPath, 'src', 'CyberPlayer.Player', 'CyberPlayer.Player.csproj')}\" {CompileTargets[compileTarget]}"
             subprocess.call(ParseCmds(cmds))
     elif ";" in chosenTargets:
         if chosenTargets.endswith(";"):
@@ -165,28 +169,28 @@ def Compile(chosenTargets: str):
                 if "--sc true" in CompileTargets[target] and target not in chosenTargets:
                     chosenTargets.append(target)
         for target in chosenTargets:
-            cmds = f"dotnet publish {os.path.join('src', 'CyberPlayer.Player', 'CyberPlayer.Player.csproj')} {CompileTargets[target]}"
+            cmds = f"dotnet publish \"{os.path.join(RepoPath, 'src', 'CyberPlayer.Player', 'CyberPlayer.Player.csproj')}\" {CompileTargets[target]}"
             subprocess.call(ParseCmds(cmds))
     else:
-        cmds = f"dotnet publish {os.path.join('src', 'CyberPlayer.Player', 'CyberPlayer.Player.csproj')} {CompileTargets[chosenTargets]}"
+        cmds = f"dotnet publish \"{os.path.join(RepoPath, 'src', 'CyberPlayer.Player', 'CyberPlayer.Player.csproj')}\" {CompileTargets[chosenTargets]}"
         subprocess.call(ParseCmds(cmds))
 
 def CopyFFmpeg():
     for build in ListDirs(BuildDirPath):
         ffmpegPath = os.path.join(build, "ffmpeg")
         if "win" in os.path.basename(build):
-            CopyFilesProgress(ListFiles(os.path.join(os.getcwd(), "ffmpeg", "win")), ffmpegPath)
+            CopyFilesProgress(ListFiles(os.path.join(RepoPath, "ffmpeg", "win")), ffmpegPath)
         elif "linux" in os.path.basename(build):
-            CopyFilesProgress(ListFiles(os.path.join(os.getcwd(), "ffmpeg", "linux")), ffmpegPath)
+            CopyFilesProgress(ListFiles(os.path.join(RepoPath, "ffmpeg", "linux")), ffmpegPath)
         elif "osx" in os.path.basename(build):
-            CopyFilesProgress(ListFiles(os.path.join(os.getcwd(), "ffmpeg", "osx")), ffmpegPath)
+            CopyFilesProgress(ListFiles(os.path.join(RepoPath, "ffmpeg", "osx")), ffmpegPath)
         elif "portable" in os.path.basename(build):
-            CopyFilesProgress(ListFiles(os.path.join(os.getcwd(), "ffmpeg", "win")), ffmpegPath)
-            CopyFilesProgress(ListFiles(os.path.join(os.getcwd(), "ffmpeg", "linux")), ffmpegPath)
+            CopyFilesProgress(ListFiles(os.path.join(RepoPath, "ffmpeg", "win")), ffmpegPath)
+            CopyFilesProgress(ListFiles(os.path.join(RepoPath, "ffmpeg", "linux")), ffmpegPath)
             with cd(ffmpegPath):
                 os.rename("ffmpeg", "ffmpeg-linux")
                 os.rename("ffprobe", "ffprobe-linux")
-            CopyFilesProgress(ListFiles(os.path.join(os.getcwd(), "ffmpeg", "osx")), ffmpegPath)
+            CopyFilesProgress(ListFiles(os.path.join(RepoPath, "ffmpeg", "osx")), ffmpegPath)
             with cd(ffmpegPath):
                 os.rename("ffmpeg", "ffmpeg-osx")
                 os.rename("ffprobe", "ffprobe-osx")
@@ -195,11 +199,11 @@ def CopyMediaInfo():
     for build in ListDirs(BuildDirPath):
         mediaInfoPath = os.path.join(build, "mediainfo")
         if "win" in os.path.basename(build):
-            CopyFilesProgress(ListFiles(os.path.join(os.getcwd(), "mediainfo", "win")), mediaInfoPath)
+            CopyFilesProgress(ListFiles(os.path.join(RepoPath, "mediainfo", "win")), mediaInfoPath)
         elif "linux" in os.path.basename(build):
-            CopyFilesProgress(ListFiles(os.path.join(os.getcwd(), "mediainfo", "linux")), mediaInfoPath)
+            CopyFilesProgress(ListFiles(os.path.join(RepoPath, "mediainfo", "linux")), mediaInfoPath)
         elif "osx" in os.path.basename(build):
-            CopyFilesProgress(ListFiles(os.path.join(os.getcwd(), "mediainfo", "osx")), mediaInfoPath)
+            CopyFilesProgress(ListFiles(os.path.join(RepoPath, "mediainfo", "osx")), mediaInfoPath)
 
 def RemovePDBs():
     for file in ListFiles(BuildDirPath, True):
@@ -265,11 +269,11 @@ def ZipBuilds():
     with cd(BuildDirPath):
         for build in ListDirs(BuildDirPath):
             print(f"Zipping {build}")
-            cmds = f"7z a -tzip {os.path.abspath(build)}.zip {build}"
+            cmds = f"7z a -tzip \"{os.path.abspath(build)}.zip\" \"{build}\""
             subprocess.call(ParseCmds(cmds))
 
 def DeleteBinReleaseDirs():
-    dirs = ListDirs(os.path.join(os.getcwd(), "src", "CyberPlayer.Player", "bin"))
+    dirs = ListDirs(os.path.join(RepoPath, "src", "CyberPlayer.Player", "bin"))
     for dir in dirs:
         if "release" in os.path.basename(dir):
             shutil.rmtree(dir)
@@ -281,19 +285,22 @@ def DeleteBuildDirs():
 def CopyMpvLib():
     for build in ListDirs(BuildDirPath):
         if "win" in os.path.basename(build):
-            CopyFilesProgress(os.path.join(os.getcwd(), "mpv", "win", "libmpv-2.dll"), build)
+            CopyFilesProgress(os.path.join(RepoPath, "mpv", "win", "libmpv-2.dll"), build)
         elif "linux" in os.path.basename(build):
-            CopyFilesProgress(os.path.join(os.getcwd(), "mpv", "linux-2.1.0", "libmpv.so.2"), build)
+            CopyFilesProgress(os.path.join(RepoPath, "mpv", "linux-2.1.0", "libmpv.so.2"), build)
         elif "osx.13-arm64" in os.path.basename(build):
-            CopyFilesProgress(os.path.join(os.getcwd(), "mpv", "osx-arm64-2.1.0", "libmpv.2.dylib"), build)
+            CopyFilesProgress(os.path.join(RepoPath, "mpv", "osx-arm64-2.1.0", "libmpv.2.dylib"), build)
         elif "portable" in os.path.basename(build):
-            CopyFilesProgress(os.path.join(os.getcwd(), "mpv", "win", "libmpv-2.dll"), build)
-            CopyFilesProgress(os.path.join(os.getcwd(), "mpv", "linux-2.1.0", "libmpv.so.2"), build)
-            #CopyFilesProgress(os.path.join(os.getcwd(), "mpv", "osx-2.1.0", "libmpv.2.dylib"), build)
+            CopyFilesProgress(os.path.join(RepoPath, "mpv", "win", "libmpv-2.dll"), build)
+            CopyFilesProgress(os.path.join(RepoPath, "mpv", "linux-2.1.0", "libmpv.so.2"), build)
+            #CopyFilesProgress(os.path.join(RepoPath, "mpv", "osx-2.1.0", "libmpv.2.dylib"), build)
 
 def BuildUpdater():
-    with cd(os.path.join(os.getcwd(), 'cyber-lib')):
-        subprocess.call("py build.py")
+    with cd(os.path.join(RepoPath, 'cyber-lib')):
+        if platform.system() == 'Windows':
+            subprocess.call("py build.py")
+        else:
+            subprocess.call("python3 build.py")
 
 Command = collections.namedtuple('Command', ['description', 'function', 'hasParam'])
 

@@ -1,14 +1,15 @@
 #!/bin/sh
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+REPO_DIR=$( dirname "$SCRIPT_DIR" )
 
-UPDATER_DIR="$SCRIPT_DIR/cyber-lib/build"
+UPDATER_DIR="$REPO_DIR/cyber-lib/build"
 
 read -p 'Build updater? [y/n]: ' BUILD_UPDATE
 
 if [ $BUILD_UPDATE = "y" ]
 then
-    dotnet publish "$SCRIPT_DIR/cyber-lib/UpdaterAvalonia/UpdaterAvalonia.csproj" -o "$UPDATER_DIR/linux-x64" -r linux-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true -c release --sc true
+    dotnet publish "$REPO_DIR/cyber-lib/UpdaterAvalonia/UpdaterAvalonia.csproj" -o "$UPDATER_DIR/linux-x64" -r linux-x64 -p:PublishSingleFile=true -p:PublishTrimmed=true -c release --sc true
 fi
 
 read -p 'Enter version number: ' VERSION

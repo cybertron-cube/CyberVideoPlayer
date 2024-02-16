@@ -13,7 +13,7 @@
 | Up | Increase volume |
 | Down | Decrease volume |
 | M | Mute |
-| Ctrl+T | Switch to trim control |
+| Ctrl+T | Toggle trim control |
 | I | Set the start time for trimming |
 | O | Set the end time for trimming |
 

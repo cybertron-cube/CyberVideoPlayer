@@ -5,6 +5,9 @@ REPO_DIR=$( dirname "$SCRIPT_DIR" )
 
 UPDATER_DIR="$REPO_DIR/cyber-lib/build"
 
+git pull
+git submodule update --recursive --remote
+
 read -p 'Build updater? [y/n]: ' BUILD_UPDATE
 
 if [ $BUILD_UPDATE = "y" ]

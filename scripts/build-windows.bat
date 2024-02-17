@@ -1,9 +1,18 @@
 @echo off
 
+git pull
+git submodule update --recursive --remote
+
+set /p Choice=Build updater? (y/n): 
+
+if %Choice%==y (
+    py build.py -buildupdater
+)
+
 set /p Version=Enter version number: 
 
 set UpdaterDir=%~dp0..\cyber-lib\build
 
-call py %~dp0build.py -version %Version% -compile win-x64-installer -resetversion -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater %UpdaterDir% -rmpdbs -delbinrel
+py build.py -del -version %Version% -compile win-x64-installer -resetversion -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater %UpdaterDir% -rmpdbs -delbinrel -zip
 
 pause

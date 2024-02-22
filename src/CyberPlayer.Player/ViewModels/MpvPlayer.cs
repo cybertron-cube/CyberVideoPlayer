@@ -56,13 +56,14 @@ public class MpvPlayer : ViewModelBase
         _timeCodeLength = _settings.TimeCodeLength;
         WindowWidth = double.NaN;
         WindowHeight = double.NaN;
+        TrackListJson = string.Empty;
 
         FrameStepCommand = ReactiveCommand.Create<string>(FrameStep);
         SeekCommand = ReactiveCommand.Create<double>(Seek);
         VolumeCommand = ReactiveCommand.Create<double>(ChangeVolume);
 
-        UpdateSliderTaskCTS = new CancellationTokenSource();
-        Task.Run(() => UpdateSliderValueLoop(UpdateSliderTaskCTS.Token));
+        UpdateSliderTaskCts = new CancellationTokenSource();
+        Task.Run(() => UpdateSliderValueLoop(UpdateSliderTaskCts.Token));
     }
 
     private void MpvContext_EndFile(object? sender, MpvEndFileEventArgs e)
@@ -126,7 +127,7 @@ public class MpvPlayer : ViewModelBase
     
     public ReactiveCommand<double, Unit> VolumeCommand { get; }
 
-    private readonly ManualResetEvent _updateSliderMRE = new(false);
+    private readonly ManualResetEvent _updateSliderMre = new(false);
     
     private bool _initialFileLoaded = false;
     
@@ -185,7 +186,7 @@ public class MpvPlayer : ViewModelBase
     [Reactive]
     public bool IsFileLoaded { get; set; }
     
-    public CancellationTokenSource UpdateSliderTaskCTS { get; }
+    public CancellationTokenSource UpdateSliderTaskCts { get; }
 
     private double _duration = 1;
     
@@ -218,11 +219,11 @@ public class MpvPlayer : ViewModelBase
             this.RaisePropertyChanged();
             if (value)
             {
-                _updateSliderMRE.Set();
+                _updateSliderMre.Set();
             }
             else
             {
-                _updateSliderMRE.Reset();
+                _updateSliderMre.Reset();
             }
         }
     }
@@ -650,20 +651,15 @@ public class MpvPlayer : ViewModelBase
     private async Task UpdateSliderValueLoop(CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
+        double timePos;
         while (!ct.IsCancellationRequested)
         {
             try
             {
-                _updateSliderMRE.WaitOne();
-                double result = MpvContext.GetPropertyDouble(MpvProperties.TimePosition);
-                if (result >= 0)
-                {
-                    await Dispatcher.UIThread.InvokeAsync(() =>
-                    {
-                        if (!IsSeeking)
-                            SetSliderValueNoSeek(result);
-                    });
-                }
+                _updateSliderMre.WaitOne();
+                timePos = MpvContext.GetPropertyDouble(MpvProperties.TimePosition);
+                if (timePos >= 0)
+                    await Dispatcher.UIThread.InvokeAsync(Callback);
                 await Task.Delay(_settings.SeekRefreshRate, ct);
             }
             catch (MpvException mpvException)
@@ -681,5 +677,11 @@ public class MpvPlayer : ViewModelBase
             }
         }
         ct.ThrowIfCancellationRequested();
+        return;
+
+        void Callback()
+        {
+            if (!IsSeeking) SetSliderValueNoSeek(timePos);
+        }
     }
 }

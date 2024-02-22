@@ -82,7 +82,7 @@ public class MainWindowViewModel : ViewModelBase
 
         AppExiting.Subscribe(_ =>
         {
-            MpvPlayer.UpdateSliderTaskCTS.Cancel();
+            MpvPlayer.UpdateSliderTaskCts.Cancel();
             MpvPlayer.MpvContext.Dispose();
             Settings.Export(BuildConfig.SettingsPath);
         });

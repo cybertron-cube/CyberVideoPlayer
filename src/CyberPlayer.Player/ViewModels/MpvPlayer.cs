@@ -99,6 +99,7 @@ public class MpvPlayer : ViewModelBase
         {
             Duration = MpvContext.GetPropertyDouble(MpvProperties.Duration);
             TrimEndTime = Duration;
+            TrimStartTime = 0;
             if (_durationTimeCode.Hours == 0)
             {
                 _timeCodeStartIndex = 3;

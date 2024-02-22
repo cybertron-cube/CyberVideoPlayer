@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using CyberPlayer.Player.RendererVideoViews;
 using Serilog;
@@ -22,7 +23,7 @@ public class Settings
 
     public double VolumeChange { get; set; } = 10;
 
-    public string LibMpvDir { get; set; } = OperatingSystem.IsMacOS() ? "/opt/homebrew/Cellar/mpv/0.36.0/lib"
+    public string LibMpvDir { get; set; } = OperatingSystem.IsMacOS() ? GetMacMpvDir()
         : string.Empty;
 
     public string MediaInfoDir { get; set; } = string.Empty;
@@ -47,6 +48,15 @@ public class Settings
         }
 
         return settings ?? new Settings();
+    }
+    
+    private static string GetMacMpvDir()
+    {
+        // example: "/opt/homebrew/Cellar/mpv/0.36.0/lib"
+        var homebrewMpv = new DirectoryInfo("/opt/homebrew/Cellar/mpv");
+        var orderedVersions = homebrewMpv.EnumerateDirectories().OrderBy(x => x.Name);
+        var macMpvDir = orderedVersions.LastOrDefault()?.FullName;
+        return macMpvDir is not null ? Path.Combine(macMpvDir, "lib") : string.Empty;
     }
 
     public void Export(string settingsPath)

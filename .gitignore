@@ -394,4 +394,6 @@ FodyWeavers.xsd
 /ignore/
 /.venv/
 /src/CyberPlayer.Player/.avalonia-build-tasks/id
+*.mkv
+*.mp4
 *.DS_Store

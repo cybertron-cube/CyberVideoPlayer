@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using Cybertron;
 
 namespace CyberPlayer.Player;
@@ -54,15 +55,24 @@ public static class BuildConfig
 #endif
 
 #if DEBUG
-    public static string GetTestInfo(string fileName)
+    public static string GetSrcDir()
     {
-        var currentDir = AppDomain.CurrentDomain.BaseDirectory;
-        while (Path.GetFileName(currentDir) != "src")
+        var srcDir = AppDomain.CurrentDomain.BaseDirectory;
+        while (Path.GetFileName(srcDir) != "src")
         {
-            currentDir = Path.GetDirectoryName(currentDir);
+            srcDir = Path.GetDirectoryName(srcDir);
         }
 
-        return File.ReadAllText(Path.Combine(currentDir, "Tests", fileName));
+        return srcDir;
+    }
+
+    public static string GetTestInfo(string fileName) => File.ReadAllText(Path.Combine(GetSrcDir(), "Tests", fileName));
+
+    public static string GetTestMedia()
+    {
+        var testFiles = new DirectoryInfo(Path.Combine(GetSrcDir(), "Tests")).EnumerateFiles();
+        return testFiles.First(x => x.Extension.Equals(".mkv", StringComparison.OrdinalIgnoreCase) ||
+                                    x.Extension.Equals(".mp4", StringComparison.OrdinalIgnoreCase)).FullName;
     }
 #endif
 }

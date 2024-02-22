@@ -270,10 +270,7 @@ public class MpvPlayer : ViewModelBase
     }
     
 #if DEBUG
-    private string _mediaPath = @"D:\Editing\My Clips\Dynasty Double Canswap.mp4";
-    //D:\Editing\My Clips\Dynasty Double Canswap.mp4
-    //H:\makemkv\12 Monkeys- Season Two (Disc 1)\12 Monkeys- Season Two (Disc 1)_t05.mkv
-    //H:\makemkv\John Wick\John Wick-FPL_MainFeature_t05.mkv
+    private string _mediaPath = BuildConfig.GetTestMedia();
 #else
     private string _mediaPath = string.Empty;
 #endif

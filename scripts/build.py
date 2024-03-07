@@ -67,12 +67,13 @@ def ParseCmds(cmds: str) -> list[str]:
     for c in cmds:
         if c == '"':
             firstQuote = not firstQuote
-            s += c
         elif c == ' ' and firstQuote == False:
             r.append(s)
             s = ""
         else:
             s += c
+    if not s.isspace():
+        r.append(s)
     return r
 
 def ZipDirProgress(path: str, zipHandle: zipfile.ZipFile):
@@ -269,7 +270,7 @@ def ZipBuilds():
     with cd(BuildDirPath):
         for build in ListDirs(BuildDirPath):
             print(f"Zipping {build}")
-            cmds = f"7z a -tzip \"{os.path.abspath(build)}.zip\" \"{build}\""
+            cmds = f"7z a -tzip \"{os.path.basename(build)}\""
             subprocess.call(ParseCmds(cmds))
 
 def DeleteBinReleaseDirs():

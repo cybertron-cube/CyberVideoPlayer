@@ -397,3 +397,4 @@ FodyWeavers.xsd
 *.mkv
 *.mp4
 *.DS_Store
+!/src/Tests/VideoPlaybackTest.mp4

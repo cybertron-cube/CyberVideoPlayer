@@ -197,13 +197,60 @@ public class MainWindowViewModel : ViewModelBase
         //TODO show error if not zero
     }
 
-    public void Export()
+    public void ExportWindow()
     {
         var viewModel = new ExportWindowViewModel(MpvPlayer, Settings);
         viewModel.AudioTrackInfos = MpvPlayer.AudioTrackInfos;
         var view = new ExportWindow();
         view.ViewModel = viewModel;
         view.Show();
+    }
+
+    public async Task Export(string args)
+    {
+        FFmpeg.FFmpegResult result;
+        CancellationTokenSource cts = new();
+        var dialog = this.GetProgressPopup(new PopupParams());
+        dialog.ProgressLabel = "Exporting...";
+        var closed = false;
+        dialog.Closing.Subscribe(x =>
+        {
+            if (x)
+            {
+                cts.Cancel();
+                closed = true;
+            }
+        });
+            
+        using (var ffmpeg = new FFmpeg(MpvPlayer.MediaPath, Settings))
+        {
+            ffmpeg.ProgressChanged += progress =>
+            {
+                dialog.ProgressValue = progress;
+                Debug.WriteLine("PROGRESS: " + progress);
+            };
+
+            await dialog.OpenAsync();
+                
+            result = await ffmpeg.FFmpegCommandAsync(MpvPlayer.TrimStartTimeCode,
+                MpvPlayer.TrimEndTimeCode,
+                "CustomCommand",
+                args,
+                cts.Token);
+        }
+
+        if (!closed)
+        {
+            await dialog.CloseAsync();
+        }
+            
+        Debug.WriteLine(result.ExitCode);
+        Debug.WriteLine(result.ErrorMessage);
+        _log.Information("FFmpeg result: {ExitCode} , {ErrorMessage}", result.ExitCode, result.ErrorMessage);
+            
+        //TODO CHECK IF FILE ALREADY EXISTS - ffmpeg args contain -y so will overwrite but should make prompt
+        //TODO subscribe to progress change event to update progressbar
+        //TODO show error if not zero
     }
 
     private async Task MediaPicker()

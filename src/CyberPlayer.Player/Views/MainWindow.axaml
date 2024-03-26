@@ -68,7 +68,7 @@
 					<NativeMenuItem Header="Trim" Command="{Binding Trim}" />
 					<NativeMenuItem Header="Audio Track Selection" />
 					<NativeMenuItem Header="Remux" />
-					<NativeMenuItem Header="Export" Command="{Binding Export}" />
+					<NativeMenuItem Header="Export" Command="{Binding ExportWindow}" />
 				</NativeMenu>
 			</NativeMenuItem>
 			<NativeMenuItem Header="View">
@@ -98,7 +98,7 @@
 				<MenuItem Header="_Trim" Command="{Binding Trim}" />
 				<MenuItem Header="_Audio Track Selection" />
 				<MenuItem Header="_Remux" />
-				<MenuItem Header="_Export" Command="{Binding Export}" />
+				<MenuItem Header="_Export" Command="{Binding ExportWindow}" />
 			</MenuItem>
 			<MenuItem Header="_View">
 				<MenuItem Header="MediaInfo" Command="{Binding ViewVideoInfoCommand}" CommandParameter="{x:Static services:VideoInfoType.MediaInfo}" />

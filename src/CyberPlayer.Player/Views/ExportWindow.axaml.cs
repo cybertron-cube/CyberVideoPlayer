@@ -34,5 +34,6 @@ public partial class ExportWindow : ReactiveWindow<ExportWindowViewModel>
     {
         AudioTrackListBox.SelectAll();
         ViewModel!.WhenPropertyChanged(x => x.AudioTrackInfos).Subscribe(_ => AudioTrackListBox.SelectAll());
+        ViewModel!.Close.Subscribe(_ => Close());
     }
 }

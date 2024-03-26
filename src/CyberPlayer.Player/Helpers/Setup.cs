@@ -16,11 +16,11 @@ namespace CyberPlayer.Player.Helpers;
 public static class Setup
 {
 #if SINGLE
-    public static readonly Mutex Mutex = new(true, BuildConfig.Guid);
+    public static readonly Mutex GlobalMutex = new(true, BuildConfig.MutexId);
     
     public static void CheckInstance(string[] args)
     {
-        if (Mutex.WaitOne(TimeSpan.Zero, true))
+        if (GlobalMutex.WaitOne(TimeSpan.Zero, true))
         {
             var server = new NamedPipeServerStream(BuildConfig.Guid);
             var cts = new CancellationTokenSource();

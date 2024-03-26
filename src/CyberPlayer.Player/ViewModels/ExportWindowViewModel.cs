@@ -201,10 +201,11 @@ public class ExportWindowViewModel : ViewModelBase
     public async Task Export()
     {
         var audioStreamArgs = "";
-        if (AudioTrackSelection.Count < AudioTrackInfos?.Last().Id)
+        if (AudioTrackSelection.Count < AudioTrackInfos?.Count())
         {
+            var negativeMappings = AudioTrackInfos.Where(x => x.IncludeInExport == false);
             StringBuilder sb = new();
-            foreach (var audioTrack in AudioTrackSelection)
+            foreach (var audioTrack in negativeMappings)
             {
                 sb.Append($" -map -0:a:{audioTrack.Id - 1}");
             }

@@ -17,7 +17,6 @@ using DynamicData.Binding;
 using LibMpv.Client;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
-using Avalonia.Rendering;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using CyberPlayer.Player.RendererVideoViews;
@@ -74,6 +73,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         {
             Content = "Test",
         };
+        var test = true;
+        VideoOverlayWindow? overlay = null;
         testButton.Click += (object? sender, RoutedEventArgs e) =>
         {
             Debug.WriteLine($"Screen Width: {Screens.Primary.Bounds.Width}");
@@ -93,6 +94,18 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
             Log.Debug($"ClientSize Width: {ClientSize.Width}");
             Log.Debug($"ClientSize Height: {ClientSize.Height}");
             Log.Debug($"Render Scaling: {((IRenderRoot)this).RenderScaling}");
+            if (test)
+            {
+                overlay = new VideoOverlayWindow(this);
+                overlay.Show(this);
+                Activate();
+                test = false;
+            }
+            else
+            {
+                overlay?.Close();
+                test = true;
+            }
         };
 
         Button loadButton = new()
@@ -148,7 +161,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         }
     }
 
-    private bool _menuBarActivated = true;
+    public bool _menuBarActivated = true;
     
     private void ToggleMenuBar(bool? toggle = null, bool resizeWindow = true)
     {
@@ -303,7 +316,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
 #endif
     }
 
-    private void VideoPanel_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    public void VideoPanel_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {

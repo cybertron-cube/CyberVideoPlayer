@@ -27,12 +27,15 @@ namespace CyberPlayer.Player.Views;
 
 public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPanelView
 {
+    private readonly ILogger _log;
     public Panel MainPanel => MainGrid;
 
     public MainWindow()
     {
             
         InitializeComponent();
+
+        _log = Log.ForContext<MainWindow>();
 
         Loaded += MainWindow_Loaded;
         Opened += MainWindow_Opened;
@@ -76,23 +79,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         };
         testButton.Click += (object? sender, RoutedEventArgs e) =>
         {
-            Debug.WriteLine($"Screen Width: {Screens.Primary.Bounds.Width}");
-            Debug.WriteLine($"Screen Height: {Screens.Primary.Bounds.Height}");
-            Debug.WriteLine($"Width: {Width}");
-            Debug.WriteLine($"Height: {Height}");
-            Debug.WriteLine($"ClientSize Width: {ClientSize.Width}");
-            Debug.WriteLine($"ClientSize Height: {ClientSize.Height}");
-            Debug.WriteLine($"WorkingArea Width: {Screens.Primary.WorkingArea.Width}");
-            Debug.WriteLine($"WorkingArea Height: {Screens.Primary.WorkingArea.Height}");
-            Debug.WriteLine($"Render Scaling: {((IRenderRoot)this).RenderScaling}");
             
-            Log.Debug($"Screen Width: {Screens.Primary.Bounds.Width}");
-            Log.Debug($"Screen Height: {Screens.Primary.Bounds.Height}");
-            Log.Debug($"WorkingArea Width: {Screens.Primary.WorkingArea.Width}");
-            Log.Debug($"WorkingArea Height: {Screens.Primary.WorkingArea.Height}");
-            Log.Debug($"ClientSize Width: {ClientSize.Width}");
-            Log.Debug($"ClientSize Height: {ClientSize.Height}");
-            Log.Debug($"Render Scaling: {((IRenderRoot)this).RenderScaling}");
         };
 
         Button loadButton = new()
@@ -226,7 +213,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         {
             _defaultRendererSet = true;
         }
-            
+        
+        _log.Information("Using {RendererType} renderer", renderer);
+        
         switch (renderer)
         {
             case Renderer.Native:

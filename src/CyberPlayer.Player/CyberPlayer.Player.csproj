@@ -92,6 +92,7 @@
     <PackageReference Include="ReactiveUI.Fody" Version="19.4.1" PrivateAssets="all" />
     <PackageReference Include="Serilog" Version="3.0.1" />
     <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
+    <PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0" PrivateAssets="all" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="Splat.DependencyInjection.SourceGenerator" Version="1.1.93" PrivateAssets="all" />
     <PackageReference Include="Splat.Serilog" Version="14.7.1" />

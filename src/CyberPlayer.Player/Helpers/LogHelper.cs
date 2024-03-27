@@ -18,10 +18,18 @@ public static class LogHelper
         var timeStamp = DateTime.Now.ToString(DateTimeFormat);
         var filePath = Path.Combine(BuildConfig.LogDirectory, $"debug_{timeStamp}.log");
         //buffered: true
+#if DEBUG
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.Debug()
+            .WriteTo.Async(s => s.File(filePath, shared: true))
+            .CreateLogger();
+#else
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
             .WriteTo.Async(s => s.File(filePath, shared: true))
             .CreateLogger();
+#endif
 
         AppDomain.CurrentDomain.ProcessExit += (_, _) =>
         {

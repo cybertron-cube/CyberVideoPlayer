@@ -156,7 +156,7 @@ def Compile(chosenTargets: str):
         for compileTarget in CompileTargets:
             if compileTarget == "sc" or compileTarget == "all":
                 continue
-            os.makedirs(os.path.join(BuildDirPath, compileTarget))
+            os.makedirs(os.path.join(BuildDirPath, compileTarget), exist_ok=True)
             cmds = f"dotnet publish \"{os.path.join(RepoPath, 'src', 'CyberPlayer.Player', 'CyberPlayer.Player.csproj')}\" {CompileTargets[compileTarget]}"
             subprocess.call(ParseCmds(cmds))
     elif ";" in chosenTargets:
@@ -171,11 +171,11 @@ def Compile(chosenTargets: str):
                 if "--sc true" in CompileTargets[target] and target not in chosenTargets:
                     chosenTargets.append(target)
         for target in chosenTargets:
-            os.makedirs(os.path.join(BuildDirPath, target))
+            os.makedirs(os.path.join(BuildDirPath, target), exist_ok=True)
             cmds = f"dotnet publish \"{os.path.join(RepoPath, 'src', 'CyberPlayer.Player', 'CyberPlayer.Player.csproj')}\" {CompileTargets[target]}"
             subprocess.call(ParseCmds(cmds))
     else:
-        os.makedirs(os.path.join(BuildDirPath, chosenTargets))
+        os.makedirs(os.path.join(BuildDirPath, chosenTargets), exist_ok=True)
         cmds = f"dotnet publish \"{os.path.join(RepoPath, 'src', 'CyberPlayer.Player', 'CyberPlayer.Player.csproj')}\" {CompileTargets[chosenTargets]}"
         subprocess.call(ParseCmds(cmds))
 

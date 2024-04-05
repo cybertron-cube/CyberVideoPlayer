@@ -1,4 +1,4 @@
-﻿namespace LibMpv.Client;
+﻿namespace LibMpv.Context;
 
 public static class MpvCommands
 {

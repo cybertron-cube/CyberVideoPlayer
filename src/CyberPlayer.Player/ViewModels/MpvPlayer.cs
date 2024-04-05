@@ -13,7 +13,7 @@ using Avalonia.Threading;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Models;
 using Cybertron;
-using LibMpv.Client;
+using LibMpv.Context;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Serilog;

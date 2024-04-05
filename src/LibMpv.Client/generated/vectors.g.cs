@@ -54,13 +54,9 @@ public static unsafe partial class vectors
     
     [SuppressUnmanagedCodeSecurity]
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int mpv_command_string_delegate(mpv_handle* @ctx,     
-    #if NETSTANDARD2_1_OR_GREATER
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    #else
-    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
-    #endif
-    string @args);
+    public delegate int mpv_command_string_delegate(mpv_handle* @ctx,
+        [MarshalAs(UnmanagedType.LPUTF8Str)]
+        string @args);
     public static mpv_command_string_delegate mpv_command_string;
     
     [SuppressUnmanagedCodeSecurity]
@@ -70,35 +66,23 @@ public static unsafe partial class vectors
     
     [SuppressUnmanagedCodeSecurity]
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate mpv_handle* mpv_create_client_delegate(mpv_handle* @ctx,     
-    #if NETSTANDARD2_1_OR_GREATER
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    #else
-    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
-    #endif
-    string @name);
+    public delegate mpv_handle* mpv_create_client_delegate(mpv_handle* @ctx,
+        [MarshalAs(UnmanagedType.LPUTF8Str)]
+        string @name);
     public static mpv_create_client_delegate mpv_create_client;
     
     [SuppressUnmanagedCodeSecurity]
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate mpv_handle* mpv_create_weak_client_delegate(mpv_handle* @ctx,     
-    #if NETSTANDARD2_1_OR_GREATER
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    #else
-    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
-    #endif
-    string @name);
+    public delegate mpv_handle* mpv_create_weak_client_delegate(mpv_handle* @ctx,
+        [MarshalAs(UnmanagedType.LPUTF8Str)]
+        string @name);
     public static mpv_create_weak_client_delegate mpv_create_weak_client;
     
     [SuppressUnmanagedCodeSecurity]
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int mpv_del_property_delegate(mpv_handle* @ctx,     
-    #if NETSTANDARD2_1_OR_GREATER
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    #else
-    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
-    #endif
-    string @name);
+    public delegate int mpv_del_property_delegate(mpv_handle* @ctx,
+        [MarshalAs(UnmanagedType.LPUTF8Str)]
+        string @name);
     public static mpv_del_property_delegate mpv_del_property;
     
     [SuppressUnmanagedCodeSecurity]
@@ -135,46 +119,31 @@ public static unsafe partial class vectors
     
     [SuppressUnmanagedCodeSecurity]
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int mpv_get_property_delegate(mpv_handle* @ctx,     
-    #if NETSTANDARD2_1_OR_GREATER
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    #else
-    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
-    #endif
-    string @name, mpv_format @format, void* @data);
+    public delegate int mpv_get_property_delegate(mpv_handle* @ctx,
+        [MarshalAs(UnmanagedType.LPUTF8Str)]
+        string @name,
+        mpv_format @format, void* @data);
     public static mpv_get_property_delegate mpv_get_property;
     
     [SuppressUnmanagedCodeSecurity]
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int mpv_get_property_async_delegate(mpv_handle* @ctx, ulong @reply_userdata,     
-    #if NETSTANDARD2_1_OR_GREATER
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    #else
-    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
-    #endif
-    string @name, mpv_format @format);
+    public delegate int mpv_get_property_async_delegate(mpv_handle* @ctx, ulong @reply_userdata,
+        [MarshalAs(UnmanagedType.LPUTF8Str)]
+        string @name, mpv_format @format);
     public static mpv_get_property_async_delegate mpv_get_property_async;
     
     [SuppressUnmanagedCodeSecurity]
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate byte* mpv_get_property_osd_string_delegate(mpv_handle* @ctx,     
-    #if NETSTANDARD2_1_OR_GREATER
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    #else
-    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
-    #endif
-    string @name);
+    public delegate byte* mpv_get_property_osd_string_delegate(mpv_handle* @ctx,
+        [MarshalAs(UnmanagedType.LPUTF8Str)]
+        string @name);
     public static mpv_get_property_osd_string_delegate mpv_get_property_osd_string;
     
     [SuppressUnmanagedCodeSecurity]
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate byte* mpv_get_property_string_delegate(mpv_handle* @ctx,     
-    #if NETSTANDARD2_1_OR_GREATER
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    #else
-    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
-    #endif
-    string @name);
+    public delegate byte* mpv_get_property_string_delegate(mpv_handle* @ctx,
+        [MarshalAs(UnmanagedType.LPUTF8Str)]
+        string @name);
     public static mpv_get_property_string_delegate mpv_get_property_string;
     
     [SuppressUnmanagedCodeSecurity]
@@ -189,13 +158,10 @@ public static unsafe partial class vectors
     
     [SuppressUnmanagedCodeSecurity]
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int mpv_hook_add_delegate(mpv_handle* @ctx, ulong @reply_userdata,     
-    #if NETSTANDARD2_1_OR_GREATER
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    #else
-    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
-    #endif
-    string @name, int @priority);
+    public delegate int mpv_hook_add_delegate(mpv_handle* @ctx, ulong @reply_userdata,
+        [MarshalAs(UnmanagedType.LPUTF8Str)]
+        string @name,
+        int @priority);
     public static mpv_hook_add_delegate mpv_hook_add;
     
     [SuppressUnmanagedCodeSecurity]
@@ -210,24 +176,17 @@ public static unsafe partial class vectors
     
     [SuppressUnmanagedCodeSecurity]
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int mpv_load_config_file_delegate(mpv_handle* @ctx,     
-    #if NETSTANDARD2_1_OR_GREATER
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    #else
-    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
-    #endif
-    string @filename);
+    public delegate int mpv_load_config_file_delegate(mpv_handle* @ctx,
+        [MarshalAs(UnmanagedType.LPUTF8Str)]
+        string @filename);
     public static mpv_load_config_file_delegate mpv_load_config_file;
     
     [SuppressUnmanagedCodeSecurity]
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int mpv_observe_property_delegate(mpv_handle* @mpv, ulong @reply_userdata,     
-    #if NETSTANDARD2_1_OR_GREATER
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    #else
-    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
-    #endif
-    string @name, mpv_format @format);
+    public delegate int mpv_observe_property_delegate(mpv_handle* @mpv, ulong @reply_userdata,
+        [MarshalAs(UnmanagedType.LPUTF8Str)]
+        string @name,
+        mpv_format @format);
     public static mpv_observe_property_delegate mpv_observe_property;
     
     [SuppressUnmanagedCodeSecurity]
@@ -277,80 +236,51 @@ public static unsafe partial class vectors
     
     [SuppressUnmanagedCodeSecurity]
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int mpv_request_log_messages_delegate(mpv_handle* @ctx,     
-    #if NETSTANDARD2_1_OR_GREATER
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    #else
-    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
-    #endif
-    string @min_level);
+    public delegate int mpv_request_log_messages_delegate(mpv_handle* @ctx, 
+        [MarshalAs(UnmanagedType.LPUTF8Str)] 
+        string @min_level);
     public static mpv_request_log_messages_delegate mpv_request_log_messages;
     
     [SuppressUnmanagedCodeSecurity]
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int mpv_set_option_delegate(mpv_handle* @ctx,     
-    #if NETSTANDARD2_1_OR_GREATER
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    #else
-    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
-    #endif
-    string @name, mpv_format @format, void* @data);
+    public delegate int mpv_set_option_delegate(mpv_handle* @ctx, 
+        [MarshalAs(UnmanagedType.LPUTF8Str)] 
+        string @name,
+        mpv_format @format, void* @data);
     public static mpv_set_option_delegate mpv_set_option;
     
     [SuppressUnmanagedCodeSecurity]
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int mpv_set_option_string_delegate(mpv_handle* @ctx,     
-    #if NETSTANDARD2_1_OR_GREATER
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    #else
-    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
-    #endif
-    string @name,     
-    #if NETSTANDARD2_1_OR_GREATER
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    #else
-    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
-    #endif
-    string @data);
+    public delegate int mpv_set_option_string_delegate(mpv_handle* @ctx, 
+        [MarshalAs(UnmanagedType.LPUTF8Str)] 
+        string @name, 
+        [MarshalAs(UnmanagedType.LPUTF8Str)] 
+        string @data);
     public static mpv_set_option_string_delegate mpv_set_option_string;
     
     [SuppressUnmanagedCodeSecurity]
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int mpv_set_property_delegate(mpv_handle* @ctx,     
-    #if NETSTANDARD2_1_OR_GREATER
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    #else
-    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
-    #endif
-    string @name, mpv_format @format, void* @data);
+    public delegate int mpv_set_property_delegate(mpv_handle* @ctx, 
+        [MarshalAs(UnmanagedType.LPUTF8Str)] 
+        string @name,
+        mpv_format @format, void* @data);
     public static mpv_set_property_delegate mpv_set_property;
     
     [SuppressUnmanagedCodeSecurity]
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int mpv_set_property_async_delegate(mpv_handle* @ctx, ulong @reply_userdata,     
-    #if NETSTANDARD2_1_OR_GREATER
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    #else
-    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
-    #endif
-    string @name, mpv_format @format, void* @data);
+    public delegate int mpv_set_property_async_delegate(mpv_handle* @ctx, ulong @reply_userdata, 
+        [MarshalAs(UnmanagedType.LPUTF8Str)] 
+        string @name,
+        mpv_format @format, void* @data);
     public static mpv_set_property_async_delegate mpv_set_property_async;
     
     [SuppressUnmanagedCodeSecurity]
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int mpv_set_property_string_delegate(mpv_handle* @ctx,     
-    #if NETSTANDARD2_1_OR_GREATER
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    #else
-    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
-    #endif
-    string @name,     
-    #if NETSTANDARD2_1_OR_GREATER
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    #else
-    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
-    #endif
-    string @data);
+    public delegate int mpv_set_property_string_delegate(mpv_handle* @ctx, 
+        [MarshalAs(UnmanagedType.LPUTF8Str)] 
+        string @name,
+        [MarshalAs(UnmanagedType.LPUTF8Str)]
+        string @data);
     public static mpv_set_property_string_delegate mpv_set_property_string;
     
     [SuppressUnmanagedCodeSecurity]
@@ -360,13 +290,10 @@ public static unsafe partial class vectors
     
     [SuppressUnmanagedCodeSecurity]
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int mpv_stream_cb_add_ro_delegate(mpv_handle* @ctx,     
-    #if NETSTANDARD2_1_OR_GREATER
-    [MarshalAs(UnmanagedType.LPUTF8Str)]
-    #else
-    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
-    #endif
-    string @protocol, void* @user_data, mpv_stream_cb_add_ro_open_fn_func @open_fn);
+    public delegate int mpv_stream_cb_add_ro_delegate(mpv_handle* @ctx,
+        [MarshalAs(UnmanagedType.LPUTF8Str)]
+        string @protocol,
+        void* @user_data, mpv_stream_cb_add_ro_open_fn_func @open_fn);
     public static mpv_stream_cb_add_ro_delegate mpv_stream_cb_add_ro;
     
     [SuppressUnmanagedCodeSecurity]

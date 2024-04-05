@@ -1,6 +1,4 @@
-﻿using System.Collections.Frozen;
-using System.Reactive.Linq;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text;
 using LibMpv.Client;
 using static LibMpv.Client.libmpv;

@@ -25,7 +25,7 @@ public sealed unsafe partial class MpvContext
     public event EventHandler<MpvReplyEventArgs>? AsyncSetPropertyReply;
     public event EventHandler<MpvLogMessageEventArgs>? LogMessage;
 
-    private Dictionary<mpv_event_id, MpvEventHandler> _eventHandlers;
+    private Dictionary<mpv_event_id, MpvEventHandler> _eventHandlers = null!;
 
     private void InitEventHandlers()
     {
@@ -159,7 +159,7 @@ public sealed unsafe partial class MpvContext
 
     private MpvLogMessageEventArgs ToLogMessageEventArgs(mpv_event @event)
     {
-        mpv_event_log_message logMessage = MarshalHelper.PtrToStructure<mpv_event_log_message>((nint)@event.data);
+        var logMessage = MarshalHelper.PtrToStructure<mpv_event_log_message>((nint)@event.data);
         return new MpvLogMessageEventArgs(
             MarshalHelper.PtrToStringUTF8OrEmpty((nint)logMessage.prefix),
             MarshalHelper.PtrToStringUTF8OrEmpty((nint)logMessage.level),
@@ -171,7 +171,7 @@ public sealed unsafe partial class MpvContext
 
     private MpvPropertyEventArgs ToPropertyChangedEventArgs(mpv_event @event)
     {
-        mpv_event_property property = MarshalHelper.PtrToStructure<mpv_event_property>((nint)@event.data);
+        var property = MarshalHelper.PtrToStructure<mpv_event_property>((nint)@event.data);
 
         object? value;
 

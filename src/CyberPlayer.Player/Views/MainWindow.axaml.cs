@@ -14,14 +14,13 @@ using Avalonia.Media;
 using CyberPlayer.Player.Controls;
 using Cybertron;
 using DynamicData.Binding;
-using LibMpv.Client;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
-using Avalonia.Rendering;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using CyberPlayer.Player.RendererVideoViews;
 using Serilog;
+using LibMpv.Context;
 
 namespace CyberPlayer.Player.Views;
 

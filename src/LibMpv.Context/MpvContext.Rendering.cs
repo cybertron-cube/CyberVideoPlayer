@@ -1,20 +1,21 @@
 ﻿using System.Runtime.InteropServices;
+using LibMpv.Client;
 using static LibMpv.Client.libmpv;
 
-namespace LibMpv.Client;
+namespace LibMpv.Context;
 
 public delegate nint GetProcAddress(string name);
 public delegate void UpdateCallback();
 
-public unsafe partial class MpvContext
+public sealed unsafe partial class MpvContext
 {
     public void StartOpenGlRendering(GetProcAddress getProcAddress, UpdateCallback updateCallback)
     {
-        if (disposed) return;
-        this.StopRendering();
+        if (_disposed) return;
+        StopRendering();
 
-        this.getProcAddress  = new mpv_opengl_init_params_get_proc_address(  (_,name)=>(void*)getProcAddress(name) );
-        this.updateCallback  = new mpv_render_context_set_update_callback_callback( (_)=>updateCallback() );
+        this.getProcAddress  = (_, name)=>(void*)getProcAddress(name);
+        this.updateCallback  = _ =>updateCallback();
 
         using MarshalHelper marshalHelper = new MarshalHelper();
 
@@ -23,12 +24,12 @@ public unsafe partial class MpvContext
             new()
             {
                 type = mpv_render_param_type.MPV_RENDER_PARAM_API_TYPE,
-                data = (void*)marshalHelper.StringToHGlobalAnsi(libmpv.MPV_RENDER_API_TYPE_OPENGL)
+                data = (void*)marshalHelper.StringToHGlobalAnsi(MPV_RENDER_API_TYPE_OPENGL)
             },
             new()
             {
                 type = mpv_render_param_type.MPV_RENDER_PARAM_OPENGL_INIT_PARAMS,
-                data = (void*)marshalHelper.AllocHGlobal<mpv_opengl_init_params>(new mpv_opengl_init_params()
+                data = (void*)marshalHelper.AllocHGlobal(new mpv_opengl_init_params()
                 {
                     get_proc_address = this.getProcAddress,
                     get_proc_address_ctx = null
@@ -47,18 +48,18 @@ public unsafe partial class MpvContext
             }
         };
 
-        int errorCode = 0;
+        int errorCode;
 
         mpv_render_context* contextPtr = null;
         fixed (mpv_render_param* parametersPtr = parameters)
         {
-            errorCode = mpv_render_context_create((mpv_render_context**) &contextPtr, ctx, parametersPtr);
+            errorCode = mpv_render_context_create(&contextPtr, _ctx, parametersPtr);
         }
 
         if (errorCode >= 0)
         {
-            this.renderContext = (mpv_render_context*)contextPtr;
-            mpv_render_context_set_update_callback(this.renderContext, this.updateCallback, null);
+            renderContext = contextPtr;
+            mpv_render_context_set_update_callback(renderContext, this.updateCallback, null);
         }
 
         CheckCode(errorCode);
@@ -66,10 +67,10 @@ public unsafe partial class MpvContext
 
     public void OpenGlRender(int width, int height, int fb = 0, int flipY = 0)
     {
-        if (disposed) return;
+        if (_disposed) return;
         if (renderContext == null) return;
 
-        using MarshalHelper marshalHelper = new MarshalHelper();
+        using var marshalHelper = new MarshalHelper();
 
         var fbo = new mpv_opengl_fbo()
         {
@@ -78,7 +79,7 @@ public unsafe partial class MpvContext
             fbo = fb
         };
         
-        GCHandle handle = GCHandle.Alloc(fbo,GCHandleType.Pinned);
+        var handle = GCHandle.Alloc(fbo,GCHandleType.Pinned);
 
         var parameters = new mpv_render_param[]
         {
@@ -98,7 +99,7 @@ public unsafe partial class MpvContext
             },
         };
 
-        int errorCode = 0;
+        int errorCode;
         fixed (mpv_render_param* parametersPtr = parameters)
         {
             errorCode = mpv_render_context_render(renderContext, parametersPtr);
@@ -111,10 +112,10 @@ public unsafe partial class MpvContext
 
     public void StartSoftwareRendering(UpdateCallback updateCallback)
     {
-        if (disposed) return;
-        this.StopRendering();
+        if (_disposed) return;
+        StopRendering();
 
-        this.updateCallback = new mpv_render_context_set_update_callback_callback((_) => updateCallback());
+        this.updateCallback = _ => updateCallback();
 
         using MarshalHelper marshalHelper = new MarshalHelper();
 
@@ -142,7 +143,7 @@ public unsafe partial class MpvContext
         mpv_render_context* contextPtr = null;
         fixed (mpv_render_param* parametersPtr = parameters)
         {
-            errorCode = mpv_render_context_create((mpv_render_context**)&contextPtr, ctx, parametersPtr);
+            errorCode = mpv_render_context_create((mpv_render_context**)&contextPtr, _ctx, parametersPtr);
         }
 
         if (errorCode >= 0)
@@ -156,7 +157,7 @@ public unsafe partial class MpvContext
 
     public void SoftwareRender(int width, int height, nint surfaceAddress, string format)
     {
-        if (disposed) return;
+        if (_disposed) return;
         if (renderContext == null) return;
 
         using MarshalHelper marshalHelper = new MarshalHelper();
@@ -208,13 +209,13 @@ public unsafe partial class MpvContext
 
     public void StartNativeRendering(long hw)
     {
-        if (disposed) return;
-        this.SetPropertyLong("wid", hw);
+        if (_disposed) return;
+        SetPropertyLong("wid", hw);
     }
 
     public void StopRendering()
     {
-        this.Command("stop");
+        Command("stop");
         if (renderContext != null)
         {
             mpv_render_context_free(renderContext);
@@ -222,7 +223,7 @@ public unsafe partial class MpvContext
         }
         else
         {
-            this.SetPropertyLong("wid", 0);
+            SetPropertyLong("wid", 0);
         }
     }
 

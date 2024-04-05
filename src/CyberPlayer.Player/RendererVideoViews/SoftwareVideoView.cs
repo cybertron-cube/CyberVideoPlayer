@@ -5,15 +5,15 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
-using LibMpv.Client;
+using LibMpv.Context;
 
 namespace CyberPlayer.Player.RendererVideoViews;
 
 public class SoftwareVideoView : Control
 {
-    WriteableBitmap renderTarget;
+    private WriteableBitmap? _renderTarget;
 
-    private MpvContext? _mpvContext = null;
+    private MpvContext? _mpvContext;
 
     public static readonly DirectProperty<SoftwareVideoView, MpvContext?> MpvContextProperty =
            AvaloniaProperty.RegisterDirect<SoftwareVideoView, MpvContext?>(
@@ -24,7 +24,7 @@ public class SoftwareVideoView : Control
 
     public MpvContext? MpvContext
     {
-        get { return _mpvContext; }
+        get => _mpvContext;
         set
         {
             if (ReferenceEquals(value, _mpvContext)) return;
@@ -46,20 +46,18 @@ public class SoftwareVideoView : Control
 
         var bitmapSize = GetPixelSize();
 
-        if (renderTarget == null || renderTarget.PixelSize.Width != bitmapSize.Width || renderTarget.PixelSize.Height != bitmapSize.Height)
-            renderTarget = new WriteableBitmap(bitmapSize, new Vector(96.0, 96.0), PixelFormat.Bgra8888, AlphaFormat.Premul);
+        if (_renderTarget == null || _renderTarget.PixelSize.Width != bitmapSize.Width || _renderTarget.PixelSize.Height != bitmapSize.Height)
+            _renderTarget = new WriteableBitmap(bitmapSize, new Vector(96.0, 96.0), PixelFormat.Bgra8888, AlphaFormat.Premul);
 
-        using (ILockedFramebuffer lockedBitmap = renderTarget.Lock())
+        using (var lockedBitmap = _renderTarget.Lock())
         {
             _mpvContext.SoftwareRender(lockedBitmap.Size.Width, lockedBitmap.Size.Height, lockedBitmap.Address, "bgra");
         }
-        context.DrawImage(renderTarget, new Rect(0, 0, renderTarget.PixelSize.Width, renderTarget.PixelSize.Height));
+        context.DrawImage(_renderTarget, new Rect(0, 0, _renderTarget.PixelSize.Width, _renderTarget.PixelSize.Height));
     }
 
     private PixelSize GetPixelSize()
     {
-        var scaling = VisualRoot!.RenderScaling;
-        //return new PixelSize(Math.Max(1, (int)(Bounds.Width * scaling)),Math.Max(1, (int)(Bounds.Height * scaling)));
         return new PixelSize((int)Bounds.Width, (int)Bounds.Height);
     }
 

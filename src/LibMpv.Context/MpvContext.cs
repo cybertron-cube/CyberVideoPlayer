@@ -1,67 +1,58 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Collections.Frozen;
+using System.Reactive.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
+using LibMpv.Client;
 using static LibMpv.Client.libmpv;
 
-namespace LibMpv.Client;
-
-public enum MpvEventLoop
-{
-    Default,
-    Thread,
-    Weak
-}
+namespace LibMpv.Context;
 
 public unsafe partial class MpvContext : IDisposable
 {
-    public MpvContext():this(MpvEventLoop.Default)
-    {
-    }
+    private readonly mpv_handle* _ctx;
+    private readonly MpvEventLoop _eventLoop;
+    private bool _disposed;
     
-    public MpvContext(MpvEventLoop mpvEventLoop)
+    public MpvContext()
     {
-        ctx = mpv_create();
+        _ctx = mpv_create();
         
-        if (ctx == null)
+        if (_ctx == null)
             throw new MpvException("Unable to create mpv_context. Currently, this can happen in the following situations - out of memory or LC_NUMERIC is not set to \"C\"");
         
-        var code = mpv_initialize(ctx);
+        var code = mpv_initialize(_ctx);
         CheckCode(code);
 
         InitEventHandlers();
 
-        if (mpvEventLoop == MpvEventLoop.Default)
-            eventLoop = new MpvSimpleEventLoop(ctx, this.HandleEvent);
-        else if (mpvEventLoop == MpvEventLoop.Thread)
-            eventLoop = new MpvThreadEventLoop(ctx, this.HandleEvent);
-        else
-            eventLoop = new MpvWeakEventLoop(ctx, this.HandleEvent);
+        _eventLoop = new MpvEventLoop(_ctx, HandleEvent);
 
-        eventLoop.Start();
+        _eventLoop.Start();
     }
 
     ~MpvContext()
     {
-        Dispose(false);
+        ReleaseUnmanagedResources();
     }
 
     public void RequestLogMessages(string level)
     {
         CheckDisposed();
-        mpv_request_log_messages(ctx, level);
+        mpv_request_log_messages(_ctx, level);
     }
 
     #region Properties
     public string GetPropertyString(string name)
     {
         CheckDisposed();
-        var value = mpv_get_property_string(ctx, name);
+        var value = mpv_get_property_string(_ctx, name);
         return UTF8Marshaler.FromNative(Encoding.UTF8, value);
     }
 
     public void SetPropertyString(string name, string newValue)
     {
         CheckDisposed();
-        int code = mpv_set_property_string(ctx, name, newValue);
+        var code = mpv_set_property_string(_ctx, name, newValue);
         CheckCode(code);
     }
 
@@ -69,23 +60,23 @@ public unsafe partial class MpvContext : IDisposable
     {
         CheckDisposed();
         int code;
-        var value= new int[1] { 0 };
+        var value = new[] { 0 };
         fixed(int* valuePtr = value)
         {
-            code = mpv_get_property(ctx, name, mpv_format.MPV_FORMAT_FLAG, valuePtr );
+            code = mpv_get_property(_ctx, name, mpv_format.MPV_FORMAT_FLAG, valuePtr);
         }
         CheckCode(code);
-        return value[0] == 1 ? true : false;
+        return value[0] == 1;
     }
 
     public void SetPropertyFlag(string name, bool newValue)
     {
         CheckDisposed();
         int code;
-        var value = new int[1] { newValue ? 1:0 };
+        var value = new[] { newValue ? 1 : 0 };
         fixed (int* valuePtr = value)
         {
-            code = mpv_set_property(ctx, name, mpv_format.MPV_FORMAT_FLAG, valuePtr);
+            code = mpv_set_property(_ctx, name, mpv_format.MPV_FORMAT_FLAG, valuePtr);
         }
         CheckCode(code);
     }
@@ -94,10 +85,10 @@ public unsafe partial class MpvContext : IDisposable
     {
         CheckDisposed();
         int code;
-        var value = new long[1] { 0 };
+        var value = new long[] { 0 };
         fixed (long* valuePtr = value)
         {
-            code = mpv_get_property(ctx, name, mpv_format.MPV_FORMAT_INT64, valuePtr);
+            code = mpv_get_property(_ctx, name, mpv_format.MPV_FORMAT_INT64, valuePtr);
         }
         CheckCode(code);
         return value[0];
@@ -107,10 +98,10 @@ public unsafe partial class MpvContext : IDisposable
     {
         CheckDisposed();
         int code;
-        var value = new long[1] { newValue };
+        var value = new[] { newValue };
         fixed (long* valuePtr = value)
         {
-            code = mpv_set_property(ctx, name, mpv_format.MPV_FORMAT_INT64, valuePtr);
+            code = mpv_set_property(_ctx, name, mpv_format.MPV_FORMAT_INT64, valuePtr);
         }
         CheckCode(code);
     }
@@ -119,10 +110,10 @@ public unsafe partial class MpvContext : IDisposable
     {
         CheckDisposed();
         int code;
-        var value = new double[1] { 0 };
+        var value = new double[] { 0 };
         fixed (double* valuePtr = value)
         {
-            code = mpv_get_property(ctx, name, mpv_format.MPV_FORMAT_DOUBLE, valuePtr);
+            code = mpv_get_property(_ctx, name, mpv_format.MPV_FORMAT_DOUBLE, valuePtr);
         }
         CheckCode(code);
         return value[0];
@@ -132,25 +123,25 @@ public unsafe partial class MpvContext : IDisposable
     {
         CheckDisposed();
         int code;
-        var value = new double[1] { 0 };
+        var value = new double[] { 0 };
         fixed (double* valuePtr = value)
         {
-            code = mpv_set_property(ctx, name, mpv_format.MPV_FORMAT_DOUBLE, valuePtr);
+            code = mpv_set_property(_ctx, name, mpv_format.MPV_FORMAT_DOUBLE, valuePtr);
         }
         CheckCode(code);
     }
 
-    public void ObserveProperty(string name, mpv_format format, ulong userData)
+    public void ObserveProperty(ulong userData, string name, mpv_format format)
     {
         CheckDisposed();
-        int code = mpv_observe_property(ctx, userData, name, format);
+        var code = mpv_observe_property(_ctx, userData, name, format);
         CheckCode(code);
     }
 
     public void UnobserveProperty(ulong userData)
     {
         CheckDisposed();
-        int code = mpv_unobserve_property(ctx, userData);
+        var code = mpv_unobserve_property(_ctx, userData);
         CheckCode(code);
     }
 
@@ -164,7 +155,7 @@ public unsafe partial class MpvContext : IDisposable
         CheckDisposed();
 
         using var helper = new MarshalHelper();
-        int code = mpv_command(ctx, (byte**)helper.CStringArrayForManagedUTF8StringArray(args));
+        var code = mpv_command(_ctx, (byte**)helper.CStringArrayForManagedUTF8StringArray(args));
         
         CheckCode(code);
     }
@@ -178,7 +169,7 @@ public unsafe partial class MpvContext : IDisposable
         CheckDisposed();
 
         using var helper = new MarshalHelper();
-        int code = mpv_command_async(ctx, userData, (byte**)helper.CStringArrayForManagedUTF8StringArray(args));
+        var code = mpv_command_async(_ctx, userData, (byte**)helper.CStringArrayForManagedUTF8StringArray(args));
 
         CheckCode(code);
     }
@@ -186,14 +177,14 @@ public unsafe partial class MpvContext : IDisposable
     public void SetOptionString(string name, string data)
     {
         CheckDisposed();
-        int code = mpv_set_option_string(ctx, name, data);
+        var code = mpv_set_option_string(_ctx, name, data);
         CheckCode(code);
     }
 
     public void RequestEvent(mpv_event_id @event, bool enabled)
     {
         CheckDisposed();
-        int code = mpv_request_event(ctx, @event, enabled ? 1 : 0);
+        var code = mpv_request_event(_ctx, @event, enabled ? 1 : 0);
         CheckCode(code);
     }
 
@@ -204,39 +195,33 @@ public unsafe partial class MpvContext : IDisposable
 
     public void Dispose()
     {
-        Dispose(true);
+        ReleaseUnmanagedResources();
         GC.SuppressFinalize(this);
     }
 
-    public virtual void Dispose(bool disposing)
+    public void ReleaseUnmanagedResources()
     {
-        if (!disposed)
+        if (!_disposed)
         {
             StopRendering();
-            eventLoop.Stop();
-            if (eventLoop is IDisposable disposable)
-                disposable.Dispose();
-            mpv_terminate_destroy(ctx);
-            disposed = true;
+            _eventLoop.Stop();
+            _eventLoop.Dispose();
+            mpv_terminate_destroy(_ctx);
+            _disposed = true;
         }
     }
     
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected int CheckCode(int code)
+    private static void CheckCode(int code)
     {
-        if (code >= 0)
-            return code;
+        if (code >= 0) return;
         throw MpvException.FromCode(code);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected void CheckDisposed()
+    private void CheckDisposed()
     {
-        if (disposed) throw new ObjectDisposedException(nameof(MpvContext));
+        ObjectDisposedException.ThrowIf(_disposed, nameof(MpvContext));
     }
-
-    protected bool disposed = false;
-    protected mpv_handle* ctx;
-    private IEventLoop eventLoop;
 }

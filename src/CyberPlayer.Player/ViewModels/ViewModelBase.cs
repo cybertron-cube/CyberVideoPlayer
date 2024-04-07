@@ -31,7 +31,7 @@ public class ViewModelBase : ReactiveObject
     static ViewModelBase()
     {
         MainWindow = Locator.Current.GetService<MainWindow>()!;
-        AppExiting = MainWindow.Events().Closed;
+        AppExiting = MainWindow.Events().Closing;
     }
 
     protected static void ExitApp(EventArgs? args = null)

@@ -287,7 +287,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         Dispatcher.UIThread.Post(() =>
         {
             ViewModel!.MpvPlayer.LoadFile();
-        });
+        }, DispatcherPriority.Input);
 #endif
     }
 

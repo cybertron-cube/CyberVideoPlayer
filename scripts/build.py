@@ -10,6 +10,7 @@ import platform
 
 RepoPath = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 BuildDirPath = os.path.join(RepoPath, "build")
+Version: str | None = None
 
 CompileTargets = {
     "win-x64-multi": f"-o {os.path.join(BuildDirPath, 'win-x64-multi')} -r win-x64 -c release-win-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
@@ -103,6 +104,8 @@ def DeleteBuildDir():
         shutil.rmtree(BuildDirPath)
 
 def SetVersion(version: str):
+    global Version
+    Version = version
     for target in CompileTargets:
         CompileTargets[target] = CompileTargets[target].replace("-p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0", f"-p:AssemblyVersion={version} -p:Version={version}")
     versionArray = version.split('.')
@@ -133,6 +136,8 @@ def SetVersion(version: str):
             file.write(plistData)
 
 def ResetVersion():
+    global Version
+    Version = None
     for target in CompileTargets:
         CompileTargets[target] = re.sub(r'-p:AssemblyVersion=.*', '-p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0', CompileTargets[target])
     with cd(os.path.join(RepoPath, "src", "CyberPlayer.Player")):
@@ -304,6 +309,13 @@ def BuildUpdater():
         else:
             subprocess.call("python3 build.py")
 
+def CreateWindowsInstaller():
+    setupScriptPath = os.path.join(RepoPath, "scripts", "win-setup.iss")
+    if Version == None:
+        subprocess.call(["iscc", setupScriptPath])
+    else:
+        subprocess.call(["iscc", f"-DMyAppVersion={Version}", setupScriptPath])
+
 Command = collections.namedtuple('Command', ['description', 'function', 'hasParam'])
 
 Commands = {
@@ -320,8 +332,9 @@ Commands = {
     "cpyupdater": Command("Copy updater to each build", CopyUpdater, "Enter the path to the build dir of updater: "), #updaterbuildpath arg
     "cpyffmpeg": Command("Copy ffmpeg executables to builds", CopyFFmpeg, False),
     "cpympv": Command("Copy libmpv to builds", CopyMpvLib, False),
+    "cpymediainfo": Command("Copy mediainfo executables to builds", CopyMediaInfo, False),
     "zip": Command("Zip each build", ZipBuilds, False),
-    "cpymediainfo": Command("Copy mediainfo executables to builds", CopyMediaInfo, False)
+    "winpkg": Command("Creates a windows installer with innosetup", CreateWindowsInstaller, False)
 }
 
 def ParseArgs(args: list[str]) -> list[Command]:

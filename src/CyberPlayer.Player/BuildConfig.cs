@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Cybertron;
+using static System.Environment;
 
 namespace CyberPlayer.Player;
 
@@ -20,14 +21,19 @@ public static class BuildConfig
 
     public static readonly Version Version = new(1, 0, 0, 0);
 
-    public static readonly string SettingsPath = OperatingSystem.IsMacOS()
-        ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library",
-            "Application Support", "CyberVideoPlayer", SettingsFileName)
+    public static readonly string SettingsPath =
+        OperatingSystem.IsMacOS() ?
+            Path.Combine(GetFolderPath(SpecialFolder.UserProfile), "Library", "Application Support",
+                "CyberVideoPlayer", SettingsFileName)
+        : OperatingSystem.IsWindows() ?
+            Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), "CyberVideoPlayer", SettingsFileName)
         : GenStatic.GetFullPathFromRelative(SettingsFileName);
     
-    public static readonly string LogDirectory = OperatingSystem.IsMacOS() ?
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Logs",
-            "CyberVideoPlayer")
+    public static readonly string LogDirectory =
+        OperatingSystem.IsMacOS() ?
+            Path.Combine(GetFolderPath(SpecialFolder.UserProfile), "Library", "Logs", "CyberVideoPlayer")
+        : OperatingSystem.IsWindows() ?
+            Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), "CyberVideoPlayer", "Logs")
         : GenStatic.GetFullPathFromRelative("logs");
     
     public static readonly string AssetIdentifierArchitecture = RuntimeInformation.OSArchitecture.ToString().ToLower();

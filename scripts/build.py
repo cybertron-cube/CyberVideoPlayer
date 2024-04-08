@@ -248,7 +248,7 @@ def MakeLibraryDir(chosenTargets: str):
 
 #Copy licenses, readme, etc.
 def CopyMDs():
-    mdFiles = ListFiles(filter=".md")
+    mdFiles = ListFiles(RepoPath, filter=".md")
     for build in ListDirs(BuildDirPath):
         CopyFilesProgress(mdFiles, build)
 

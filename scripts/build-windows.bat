@@ -13,6 +13,6 @@ set /p Version=Enter version number:
 
 set UpdaterDir=%~dp0..\cyber-lib\build
 
-py build.py -del -version %Version% -compile win-x64-installer -resetversion -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater %UpdaterDir% -rmpdbs -delbinrel -zip
+py build.py -del -version %Version% -compile win-x64-single -resetversion -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater %UpdaterDir% -rmpdbs -delbinrel -zip
 
 pause

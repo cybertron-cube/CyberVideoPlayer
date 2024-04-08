@@ -12,18 +12,16 @@ RepoPath = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 BuildDirPath = os.path.join(RepoPath, "build")
 
 CompileTargets = {
-    "win-x64-multi": f"-o {os.path.join(BuildDirPath, 'win-x64-multi')} -r win-x64 -c release-win-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "win-x64-single": f"-o {os.path.join(BuildDirPath, 'win-x64-single')} -r win-x64 -c release-win-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "linux-x64-multi": f"-o {os.path.join(BuildDirPath, 'linux-x64-multi')} -r linux-x64 -c release-linux-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "linux-x64-single": f"-o {os.path.join(BuildDirPath, 'linux-x64-single')} -r linux-x64 -c release-linux-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "osx-x64-multi": f"-o {os.path.join(BuildDirPath, 'osx-x64-multi')} -r osx-x64 -c release-osx-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "osx-x64-single": f"-o {os.path.join(BuildDirPath, 'osx-x64-single')} -r osx-x64 -c release-osx-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "osx-arm64-multi": f"-o {os.path.join(BuildDirPath, 'osx-arm64-multi')} -r osx-arm64 -c release-osx-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "osx-arm64-single": f"-o {os.path.join(BuildDirPath, 'osx-arm64-single')} -r osx-arm64 -c release-osx-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "win-x64-multi": f"-o {os.path.join(BuildDirPath, 'win-x64-multi')} -r win-x64 -c release-win-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "win-x64-single": f"-o {os.path.join(BuildDirPath, 'win-x64-single')} -r win-x64 -c release-win-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "linux-x64-multi": f"-o {os.path.join(BuildDirPath, 'linux-x64-multi')} -r linux-x64 -c release-linux-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "linux-x64-single": f"-o {os.path.join(BuildDirPath, 'linux-x64-single')} -r linux-x64 -c release-linux-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "osx-x64-multi": f"-o {os.path.join(BuildDirPath, 'osx-x64-multi')} -r osx-x64 -c release-osx-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "osx-x64-single": f"-o {os.path.join(BuildDirPath, 'osx-x64-single')} -r osx-x64 -c release-osx-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "osx-arm64-multi": f"-o {os.path.join(BuildDirPath, 'osx-arm64-multi')} -r osx-arm64 -c release-osx-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "osx-arm64-single": f"-o {os.path.join(BuildDirPath, 'osx-arm64-single')} -r osx-arm64 -c release-osx-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
     "portable-multi": f"-o {os.path.join(BuildDirPath, 'portable-multi')} -c release-portable-multi --sc false -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
     "portable-single": f"-o {os.path.join(BuildDirPath, 'portable-single')} -c release-portable-single --sc false -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "win-x64-installer": f"-o {os.path.join(BuildDirPath, 'win-x64-installer')} -r win-x64 -c release-win-x64-single --sc false -p:PublishReadyToRun=true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "sc": "all self contained",
     "all": "all of the above"
 }
 

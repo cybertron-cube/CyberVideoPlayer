@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Cybertron;
 
 namespace CyberPlayer.Player;
@@ -28,8 +29,10 @@ public static class BuildConfig
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Logs",
             "CyberVideoPlayer")
         : GenStatic.GetFullPathFromRelative("logs");
+    
+    public static readonly string AssetIdentifierArchitecture = RuntimeInformation.OSArchitecture.ToString().ToLower();
 
-#if WINX64
+#if WINDOWS
     public const string UpdaterPath = @"updater\CybertronUpdater";
 #elif PORTABLE
     public static readonly string UpdaterPath = $"updater{Path.DirectorySeparatorChar}CybertronUpdater";
@@ -39,12 +42,12 @@ public static class BuildConfig
 
 #if PORTABLE
     public const string AssetIdentifierPlatform = "portable";
-#elif WINX64
-    public const string AssetIdentifierPlatform = "win-x64";
-#elif LINUXX64
-    public const string AssetIdentifierPlatform = "linux-x64";
-#elif OSXX64
-    public const string AssetIdentifierPlatform = "osx-x64";
+#elif WINDOWS
+    public const string AssetIdentifierPlatform = "win";
+#elif LINUX
+    public const string AssetIdentifierPlatform = "linux";
+#elif OSX
+    public const string AssetIdentifierPlatform = "osx";
 #endif
 
 #if MULTI

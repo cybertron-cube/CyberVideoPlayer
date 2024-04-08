@@ -11,10 +11,6 @@ public class Settings
 {
     public bool UpdaterIncludePreReleases { get; set; } = false;
 
-    public int SeekRefreshRate { get; set; } = 100;
-
-    public int FrameStepUpdateDelay { get; set; } = 100;
-
     public int TimeCodeLength { get; set; } = 8;
 
     public Renderer Renderer { get; set; } = Renderer.Hardware;

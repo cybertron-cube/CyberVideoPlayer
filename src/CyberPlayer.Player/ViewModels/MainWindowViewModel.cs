@@ -82,11 +82,10 @@ public class MainWindowViewModel : ViewModelBase
 
         AppExiting.Subscribe(_ =>
         {
-            MpvPlayer.UpdateSliderTaskCts.Cancel();
             MpvPlayer.MpvContext.Dispose();
             Settings.Export(BuildConfig.SettingsPath);
         });
-            
+        
         CheckForUpdatesCommand = ReactiveCommand.CreateFromTask(CheckForUpdates);
         MediaPickerCommand = ReactiveCommand.CreateFromTask(MediaPicker);
         OpenWebLinkCommand = ReactiveCommand.Create<string>(GenStatic.OpenWebLink);

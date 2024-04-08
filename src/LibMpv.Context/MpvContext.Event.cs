@@ -25,6 +25,8 @@ public sealed unsafe partial class MpvContext
     public event EventHandler<MpvReplyEventArgs>? AsyncSetPropertyReply;
     public event EventHandler<MpvLogMessageEventArgs>? LogMessage;
 
+    internal readonly Dictionary<(string, mpv_format), MpvPropertyObservable<object>> PropertyChangedObservables = new();
+
     private Dictionary<mpv_event_id, MpvEventHandler> _eventHandlers = null!;
 
     private void InitEventHandlers()
@@ -79,8 +81,15 @@ public sealed unsafe partial class MpvContext
 
     private void PropertyChangedHandler(mpv_event @event)
     {
-        if (@event.data != null)
-            PropertyChanged?.Invoke(this, ToPropertyChangedEventArgs(@event));
+        if (@event.data == null) return;
+        
+        var propertyChangedEvent = ToPropertyChangedEventArgs(@event);
+        PropertyChanged?.Invoke(this, propertyChangedEvent);
+        if (PropertyChangedObservables.TryGetValue((propertyChangedEvent.Name, propertyChangedEvent.Format),
+                out var observable))
+        {
+            observable.OnNextAll(propertyChangedEvent.Value!);
+        }
     }
 
     private void QueueOverflowHandler(mpv_event @event)

@@ -1,4 +1,6 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Collections.Frozen;
+using System.Reactive.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using LibMpv.Client;
 using static LibMpv.Client.libmpv;
@@ -9,6 +11,19 @@ public unsafe partial class MpvContext : IDisposable
 {
     private readonly mpv_handle* _ctx;
     private readonly MpvEventLoop _eventLoop;
+    private readonly FrozenDictionary<Type, mpv_format> _mpvFormatTypeMapping = new Dictionary<Type, mpv_format>
+    {
+        { typeof(object), mpv_format.MPV_FORMAT_NONE },
+        { typeof(string), mpv_format.MPV_FORMAT_STRING },
+        { typeof(bool), mpv_format.MPV_FORMAT_FLAG },
+        { typeof(long), mpv_format.MPV_FORMAT_INT64 },
+        { typeof(double), mpv_format.MPV_FORMAT_DOUBLE }
+    }.ToFrozenDictionary();
+
+    // TODO Reuse userdata values that have been unobserved
+    // Cap out at 18,446,744,073,709,551,615 from 0
+    // **Shouldn't** need to reuse userdata values with the limit so high
+    private ulong _propertyUserData;
     private bool _disposed;
     
     public MpvContext()
@@ -129,6 +144,31 @@ public unsafe partial class MpvContext : IDisposable
         CheckCode(code);
     }
 
+    // TODO Make a list of mpv property names and create matching properties in a class that inherits this
+    /// <summary>
+    /// Required to use the correct type for the property unless using object type
+    /// </summary>
+    /// <param name="propertyName">Use object for properties you don't want a return value</param>
+    /// <typeparam name="T">The C# type equivalent to the mpv property's return value</typeparam>
+    /// <returns></returns>
+    public IObservable<T> ObserveProperty<T>(string propertyName)
+    {
+        var mpvFormat = _mpvFormatTypeMapping[typeof(T)];
+        if (PropertyChangedObservables.TryGetValue((propertyName, mpvFormat),
+                out var mpvPropertyObservable))
+        {
+            return mpvPropertyObservable.Cast<T>();
+        }
+        else
+        {
+            var userData = _propertyUserData++;
+            ObserveProperty(userData, propertyName, mpvFormat);
+            var newObservable = new MpvPropertyObservable<object>(this, userData);
+            PropertyChangedObservables.Add((propertyName, mpvFormat), newObservable);
+            return newObservable.Cast<T>();
+        }
+    }
+
     public void ObserveProperty(ulong userData, string name, mpv_format format)
     {
         CheckDisposed();
@@ -136,11 +176,12 @@ public unsafe partial class MpvContext : IDisposable
         CheckCode(code);
     }
 
-    public void UnobserveProperty(ulong userData)
+    public int UnobserveProperty(ulong userData)
     {
         CheckDisposed();
         var code = mpv_unobserve_property(_ctx, userData);
         CheckCode(code);
+        return code;
     }
 
     #endregion
@@ -157,7 +198,6 @@ public unsafe partial class MpvContext : IDisposable
         
         CheckCode(code);
     }
-
 
     public void CommandAsync(ulong userData, params string[] args)
     {
@@ -209,7 +249,6 @@ public unsafe partial class MpvContext : IDisposable
         }
     }
     
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void CheckCode(int code)
     {

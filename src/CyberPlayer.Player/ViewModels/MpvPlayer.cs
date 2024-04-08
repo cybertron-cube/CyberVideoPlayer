@@ -4,9 +4,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
@@ -25,6 +25,8 @@ public class MpvPlayer : ViewModelBase
     private readonly Settings _settings;
 
     private readonly ILogger _log;
+
+    private CompositeDisposable? _disposables;
     
     private MpvContext _mpvContext;
 
@@ -33,9 +35,11 @@ public class MpvPlayer : ViewModelBase
         get => _mpvContext;
         set
         {
+            _disposables?.Dispose();
             this.RaiseAndSetIfChanged(ref _mpvContext, value);
-            MpvContext.FileLoaded += MpvContext_FileLoaded;
-            MpvContext.EndFile += MpvContext_EndFile;
+            _mpvContext.FileLoaded += MpvContext_FileLoaded;
+            _mpvContext.EndFile += MpvContext_EndFile;
+            ObserveProperties();
         }
     }
     
@@ -47,6 +51,7 @@ public class MpvPlayer : ViewModelBase
         _mpvContext = new MpvContext();
         MpvContext.FileLoaded += MpvContext_FileLoaded;
         MpvContext.EndFile += MpvContext_EndFile;
+        ObserveProperties();
 
         _seekTimeCode = new TimeCode(0);
         _durationTimeCode = new TimeCode(1);
@@ -61,9 +66,22 @@ public class MpvPlayer : ViewModelBase
         FrameStepCommand = ReactiveCommand.Create<string>(FrameStep);
         SeekCommand = ReactiveCommand.Create<double>(Seek);
         VolumeCommand = ReactiveCommand.Create<double>(ChangeVolume);
+    }
 
-        UpdateSliderTaskCts = new CancellationTokenSource();
-        Task.Run(() => UpdateSliderValueLoop(UpdateSliderTaskCts.Token));
+    private void ObserveProperties()
+    {
+        _disposables?.Dispose();
+        _disposables = new CompositeDisposable
+        {
+            _mpvContext.ObserveProperty<double>(MpvProperties.TimePosition).Subscribe(x =>
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    if (!IsSeeking)
+                        SetSliderValueNoSeek(x);
+                });
+            })
+        };
     }
 
     private void MpvContext_EndFile(object? sender, MpvEndFileEventArgs e)
@@ -127,8 +145,6 @@ public class MpvPlayer : ViewModelBase
     public ReactiveCommand<double, Unit> SeekCommand { get; }
     
     public ReactiveCommand<double, Unit> VolumeCommand { get; }
-
-    private readonly ManualResetEvent _updateSliderMre = new(false);
     
     private bool _initialFileLoaded = false;
     
@@ -186,8 +202,6 @@ public class MpvPlayer : ViewModelBase
 
     [Reactive]
     public bool IsFileLoaded { get; set; }
-    
-    public CancellationTokenSource UpdateSliderTaskCts { get; }
 
     private double _duration = 1;
     
@@ -213,20 +227,7 @@ public class MpvPlayer : ViewModelBase
     public bool IsPlaying
     {
         get => _isPlaying;
-        set
-        {
-            if (_isPlaying == value) return;
-            _isPlaying = value;
-            this.RaisePropertyChanged();
-            if (value)
-            {
-                _updateSliderMre.Set();
-            }
-            else
-            {
-                _updateSliderMre.Reset();
-            }
-        }
+        set => this.RaiseAndSetIfChanged(ref _isPlaying, value);
     }
 
     private bool _wasPlaying;
@@ -522,12 +523,6 @@ public class MpvPlayer : ViewModelBase
         {
             MpvContext.Command(param);
         });
-        
-        Task.Run(() =>
-        {
-            Thread.Sleep(_settings.FrameStepUpdateDelay);
-            Dispatcher.UIThread.Post(UpdateSliderValue);
-        });
     }
 
     private void GetTracks()
@@ -639,47 +634,5 @@ public class MpvPlayer : ViewModelBase
         _seekTimeCode.SetExactUnits(val, TimeCode.TimeUnit.Second);
         this.RaisePropertyChanged(nameof(SeekValue));
         this.RaisePropertyChanged(nameof(SeekTimeCodeString));
-    }
-
-    private void UpdateSliderValue()
-    {
-        SetSliderValueNoSeek(MpvContext.GetPropertyDouble(MpvProperties.TimePosition));
-    }
-    
-    private async Task UpdateSliderValueLoop(CancellationToken ct)
-    {
-        ct.ThrowIfCancellationRequested();
-        double timePos;
-        while (!ct.IsCancellationRequested)
-        {
-            try
-            {
-                _updateSliderMre.WaitOne();
-                timePos = MpvContext.GetPropertyDouble(MpvProperties.TimePosition);
-                if (timePos >= 0)
-                    await Dispatcher.UIThread.InvokeAsync(Callback);
-                await Task.Delay(_settings.SeekRefreshRate, ct);
-            }
-            catch (MpvException mpvException)
-            {
-                //Dirty way to stop thread from aborting when file is unloaded
-                //This exception should only be caught once when unloading while the video is playing
-                //Unloaded event resets the mre but this method will be on the mpvcontext line throwing an exception already by the time the mre is reset
-                // (this thread is paused after the file is unloaded, therefore causing the exception)
-                Debug.WriteLine(mpvException);
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine(e);
-                throw;
-            }
-        }
-        ct.ThrowIfCancellationRequested();
-        return;
-
-        void Callback()
-        {
-            if (!IsSeeking) SetSliderValueNoSeek(timePos);
-        }
     }
 }

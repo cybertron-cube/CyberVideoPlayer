@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.IO;
 using System.Linq;
-using Cybertron;
 using Serilog;
 using Splat;
 using Splat.Serilog;
@@ -21,7 +21,7 @@ public static class LogHelper
 #if DEBUG
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
-            .WriteTo.Debug()
+            .WriteTo.Console()
             .WriteTo.Async(s => s.File(filePath, shared: true))
             .CreateLogger();
 #else
@@ -47,6 +47,8 @@ public static class LogHelper
         
         Locator.CurrentMutable.UseSerilogFullLogger(Log.Logger);
         Locator.CurrentMutable.RegisterConstant(Log.Logger);
+        
+        InitialLogging();
     }
     
     public static void CleanupLogFiles(this ILogger logger, string location, string searchPattern, int fileInstances)
@@ -68,5 +70,15 @@ public static class LogHelper
                 logger.Error(e, "File {FileName} is currently in use, skipping deletion", file.Name);
             }
         }
+    }
+
+    private static void InitialLogging()
+    {
+        Log.Debug("Launched with Command Line Arguments: {Args}", Environment.GetCommandLineArgs());
+
+        var sortedEntries = Environment.GetEnvironmentVariables().Cast<DictionaryEntry>();
+        var maxKeyLen = sortedEntries.Max(entry => ((string)entry.Key).Length);
+        var logMessage = sortedEntries.Aggregate("Environment Variables: ", (current, entry) => current + (Environment.NewLine + (entry.Key + ": ").PadRight(maxKeyLen + 2) + entry.Value));
+        Log.Debug(logMessage);
     }
 }

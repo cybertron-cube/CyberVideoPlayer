@@ -13,11 +13,12 @@ namespace CyberPlayer.Player
         [STAThread]
         public static void Main(string[] args)
         {
+            LogHelper.SetupSerilog();
+            
 #if SINGLE
             Setup.CheckInstance(args);
 #endif
             
-            LogHelper.SetupSerilog();
             Setup.Register();
             
             BuildAvaloniaApp()

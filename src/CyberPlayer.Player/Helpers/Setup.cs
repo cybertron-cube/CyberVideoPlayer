@@ -9,6 +9,7 @@ using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.ViewModels;
 using CyberPlayer.Player.Views;
 using LibMpv.Client;
+using Serilog;
 using Splat;
 
 namespace CyberPlayer.Player.Helpers;
@@ -78,11 +79,13 @@ public static class Setup
     
     public static void Register()
     {
-        var container = Locator.CurrentMutable;
         var settings = Settings.Import(BuildConfig.SettingsPath);
         if (!string.IsNullOrWhiteSpace(settings.LibMpvDir))
             libmpv.RootPath = settings.LibMpvDir;
+        Log.Information("Using libmpv from path: \"{LibPath}\"", libmpv.RootPath);
 
+        var container = Locator.CurrentMutable;
+        
         container.RegisterConstant(settings);
         container.RegisterLazySingleton(() => new HttpClient());
         

@@ -13,6 +13,7 @@
         x:Class="CyberPlayer.Player.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         x:CompileBindings="True"
+        WindowStartupLocation="CenterScreen"
         MinHeight="503"
         MinWidth="640"
         Width="{Binding MpvPlayer.WindowWidth}"

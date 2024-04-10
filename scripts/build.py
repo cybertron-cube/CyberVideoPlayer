@@ -254,7 +254,8 @@ def CopyMDs():
         CopyFilesProgress(mdFiles, build)
 
 #Copy updater
-def CopyUpdater(updaterBuildPath: str):
+def CopyUpdater():
+    updaterBuildPath = os.path.join(RepoPath, "cyber-lib", "build")
     for build in ListDirs(BuildDirPath):
         if "win-x64" in os.path.basename(build):
             CopyFilesProgress(ListFiles(f"{os.path.join(updaterBuildPath, 'win-x64')}", exclude=".pdb"), os.path.join(build, "updater"))
@@ -333,7 +334,7 @@ Commands = {
     "rmpdbs": Command("Remove all pdb files", RemovePDBs, False),
     "lib": Command("Makes a library directory for dlls", MakeLibraryDir, "Enter a compile target: "), #compiletarget/s arg
     "cpymds": Command("Copy all markdown files from working directory", CopyMDs, False),
-    "cpyupdater": Command("Copy updater to each build", CopyUpdater, "Enter the path to the build dir of updater: "), #updaterbuildpath arg
+    "cpyupdater": Command("Copy updater to each build", CopyUpdater, False),
     "cpyffmpeg": Command("Copy ffmpeg executables to builds", CopyFFmpeg, False),
     "cpympv": Command("Copy libmpv to builds", CopyMpvLib, False),
     "cpymediainfo": Command("Copy mediainfo executables to builds", CopyMediaInfo, False),

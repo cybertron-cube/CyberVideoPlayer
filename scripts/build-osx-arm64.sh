@@ -12,14 +12,14 @@ read -p 'Build updater? [y/n]: ' BUILD_UPDATE
 
 if [ $BUILD_UPDATE = "y" ]
 then
-    dotnet publish "$REPO_DIR/cyber-lib/UpdaterAvalonia/UpdaterAvalonia.csproj" -o "$UPDATER_DIR/osx-arm64" -r osx.13-arm64 -p:PublishSingleFile=true -p:PublishTrimmed=true -c release --sc true
+    dotnet publish "$REPO_DIR/cyber-lib/UpdaterAvalonia/UpdaterAvalonia.csproj" -o "$UPDATER_DIR/osx-arm64" -r osx-arm64 -p:PublishSingleFile=true -p:PublishTrimmed=true -c release --sc true
 fi
 
 read -p 'Enter version number: ' VERSION
 
 if [ $VERSION != "n" ]
 then
-    python3 build.py -version $VERSION -compile "osx-arm64-single;osx-arm64-multi;" -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater $UPDATER_DIR -rmpdbs -delbinrel
+    python3 build.py -version $VERSION -compile "osx-arm64-single" -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater $UPDATER_DIR -rmpdbs -delbinrel
 fi
 
 
@@ -55,6 +55,5 @@ mkdir "$APP_NAME/Contents/Resources"
 cp "$INFO_PLIST" "$APP_NAME/Contents/Info.plist"
 cp "$ICON_PATH" "$APP_NAME/Contents/Resources/$ICON_FILE"
 cp -a "$PUBLISH_OUTPUT_DIRECTORY" "$APP_NAME/Contents/MacOS"
-cp "$REPO_DIR/test.sh" "$APP_NAME/Contents/MacOS/test.sh"
 
 python3 build.py -resetversion

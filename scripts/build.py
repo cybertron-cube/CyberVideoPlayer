@@ -4,9 +4,9 @@ import sys
 import shutil
 import zipfile
 import collections
-import tqdm
 import re
-import platform
+
+PLIST_VERSION_PLACEHOLDER = r"${VERSION}"
 
 RepoPath = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 BuildDirPath = os.path.join(RepoPath, "build")
@@ -77,20 +77,22 @@ def ParseCmds(cmds: str) -> list[str]:
 
 def ZipDirProgress(path: str, zipHandle: zipfile.ZipFile):
     for root, dir, files in os.walk(path):
-        for file in tqdm.tqdm(files):
+        for file in files:
+            print(f"Zipping {file}")
             zipHandle.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), os.path.join(path, '..')))
-    print("Finished")
+    print("Finished zipping")
 
 def CopyFilesProgress(files: list[str] | str, dest: str):
     if not os.path.exists(dest) or not os.path.isdir(dest):
-        os.mkdir(dest)
+        os.makedirs(dest, exist_ok=True)
     if isinstance(files, str):
         print(f"Copying {files} to {dest}")
         shutil.copy(files, dest)
     else:
-        for file in tqdm.tqdm(files):
+        for file in files:
+            print(f"Copying {file}")
             shutil.copy(file, dest)
-    print("Finished")
+    print("Finished copying")
 
 #Commands
 def PrintTargetOptions():
@@ -123,15 +125,10 @@ def SetVersion(version: str):
             data = data.replace(versionLine, newVersionLine)
         with open("BuildConfig.cs", 'w') as file:
             file.write(data)
-    plistVersionLine = "<key>CFBundleVersion</key>\n    <string>1.0.0</string>"
-    plistVersionNew = f"<key>CFBundleVersion</key>\n    <string>{version}</string>"
-    plistShortVersionLine = "<key>CFBundleShortVersionString</key>\n    <string>1.0</string>"
-    plistShortVersionNew = f"<key>CFBundleShortVersionString</key>\n    <string>{versionArray[0] + '.' + versionArray[1]}</string>"
     with cd(RepoPath):
         with open("Info.plist", 'r') as file:
             plistData = file.read()
-            plistData = plistData.replace(plistVersionLine, plistVersionNew)
-            plistData = plistData.replace(plistShortVersionLine, plistShortVersionNew)
+            plistData = plistData.replace(PLIST_VERSION_PLACEHOLDER, version)
         with open("Info.plist", 'w') as file:
             file.write(plistData)
 
@@ -149,8 +146,7 @@ def ResetVersion():
     with cd(RepoPath):
         with open("Info.plist", 'r') as file:
             plistData = file.read()
-            plistData = re.sub(r"<key>CFBundleVersion<\/key>\n.*<\/string>", "<key>CFBundleVersion</key>\n    <string>1.0.0</string>", plistData)
-            plistData = re.sub(r"<key>CFBundleShortVersionString<\/key>\n.*<\/string>", "<key>CFBundleShortVersionString</key>\n    <string>1.0</string>", plistData)
+            plistData = re.sub(r"(?<=<key>CFBundleShortVersionString</key>\n        <string>).*?(?=</string>)", PLIST_VERSION_PLACEHOLDER, plistData)
         with open("Info.plist", 'w') as file:
             file.write(plistData)
 
@@ -295,20 +291,28 @@ def CopyMpvLib():
             CopyFilesProgress(os.path.join(RepoPath, "mpv", "win", "libmpv-2.dll"), build)
         elif "linux" in os.path.basename(build):
             CopyFilesProgress(os.path.join(RepoPath, "mpv", "linux-2.1.0", "libmpv.so.2"), build)
-        elif "osx.13-arm64" in os.path.basename(build):
+        elif bool(re.search("osx.*arm64.*", os.path.basename(build))):
             CopyFilesProgress(os.path.join(RepoPath, "mpv", "osx-arm64-2.1.0", "libmpv.2.dylib"), build)
         elif "portable" in os.path.basename(build):
             CopyFilesProgress(os.path.join(RepoPath, "mpv", "win", "libmpv-2.dll"), build)
             CopyFilesProgress(os.path.join(RepoPath, "mpv", "linux-2.1.0", "libmpv.so.2"), build)
             #CopyFilesProgress(os.path.join(RepoPath, "mpv", "osx-2.1.0", "libmpv.2.dylib"), build)
 
+# Call after Compile
 def BuildUpdater():
-    with cd(os.path.join(RepoPath, 'cyber-lib')):
-        if platform.system() == 'Windows':
-            subprocess.call("py build.py")
-        else:
-            subprocess.call("python3 build.py")
+    csproj = os.path.join(RepoPath, "cyber-lib", "UpdaterAvalonia", "UpdaterAvalonia.csproj")
+    buildDir = os.path.join(RepoPath, "cyber-lib", "build")
+    for build in ListDirs(BuildDirPath):
+        if "win-x64" in os.path.basename(build):
+            subprocess.call(["dotnet", "publish", csproj, "-o", os.path.join(buildDir, "win-x64"), "-r", "win-x64", "-p:PublishSingleFile=true", "-p:PublishTrimmed=true", "-c", "release", "--sc", "true"])
+        elif "linux-x64" in os.path.basename(build):
+            subprocess.call(["dotnet", "publish", csproj, "-o", os.path.join(buildDir, "linux-x64"), "-r", "linux-x64", "-p:PublishSingleFile=true", "-p:PublishTrimmed=true", "-c", "release", "--sc", "true"])
+        elif "osx-x64" in os.path.basename(build):
+            subprocess.call(["dotnet", "publish", csproj, "-o", os.path.join(buildDir, "osx-x64"), "-r", "osx-x64", "-p:PublishSingleFile=true", "-p:PublishTrimmed=true", "-c", "release", "--sc", "true"])
+        elif bool(re.search("osx.*arm64.*", os.path.basename(build))):
+            subprocess.call(["dotnet", "publish", csproj, "-o", os.path.join(buildDir, "osx-arm64"), "-r", "osx-arm64", "-p:PublishSingleFile=true", "-p:PublishTrimmed=true", "-c", "release", "--sc", "true"])
 
+# Call after specifying version or default of 1.0.0 will be used
 def CreateWindowsInstaller():
     setupScriptPath = os.path.join(RepoPath, "scripts", "win-setup.iss")
     if Version == None:
@@ -377,4 +381,5 @@ def Main(args: list[str]):
                 param = input(Commands[userInput].hasParam)
                 Commands[userInput].function(param)
 
-Main(sys.argv[1:])
+if __name__ == "__main__":
+    Main(sys.argv[1:])

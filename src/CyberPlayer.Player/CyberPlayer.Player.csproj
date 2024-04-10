@@ -68,6 +68,10 @@
     <TrimmerRootDescriptor Include="Roots.xml" />
   </ItemGroup>
 
+  <ItemGroup Condition=" $(DefineConstants.Contains(OSX)) ">
+    <LinkerArg Include="-Wl,-ld_classic" />
+  </ItemGroup>
+
   <ItemGroup>
     <AvaloniaResource Include="Assets\Logo\*.ico" />
     <AvaloniaResource Include="Assets\Images\*.svg" />

@@ -4,26 +4,25 @@ import sys
 import shutil
 import zipfile
 import collections
-import tqdm
 import re
-import platform
+
+PLIST_VERSION_PLACEHOLDER = r"${VERSION}"
 
 RepoPath = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 BuildDirPath = os.path.join(RepoPath, "build")
+Version: str | None = None
 
 CompileTargets = {
-    "win-x64-multi": f"-o {os.path.join(BuildDirPath, 'win-x64-multi')} -r win-x64 -c release-win-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "win-x64-single": f"-o {os.path.join(BuildDirPath, 'win-x64-single')} -r win-x64 -c release-win-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "linux-x64-multi": f"-o {os.path.join(BuildDirPath, 'linux-x64-multi')} -r linux-x64 -c release-linux-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "linux-x64-single": f"-o {os.path.join(BuildDirPath, 'linux-x64-single')} -r linux-x64 -c release-linux-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "osx-x64-multi": f"-o {os.path.join(BuildDirPath, 'osx-x64-multi')} -r osx-x64 -c release-osx-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "osx-x64-single": f"-o {os.path.join(BuildDirPath, 'osx-x64-single')} -r osx-x64 -c release-osx-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "osx-arm64-multi": f"-o {os.path.join(BuildDirPath, 'osx-arm64-multi')} -r osx-arm64 -c release-osx-x64-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "osx-arm64-single": f"-o {os.path.join(BuildDirPath, 'osx-arm64-single')} -r osx-arm64 -c release-osx-x64-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "win-x64-multi": f"-o {os.path.join(BuildDirPath, 'win-x64-multi')} -r win-x64 -c release-win-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "win-x64-single": f"-o {os.path.join(BuildDirPath, 'win-x64-single')} -r win-x64 -c release-win-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "linux-x64-multi": f"-o {os.path.join(BuildDirPath, 'linux-x64-multi')} -r linux-x64 -c release-linux-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "linux-x64-single": f"-o {os.path.join(BuildDirPath, 'linux-x64-single')} -r linux-x64 -c release-linux-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "osx-x64-multi": f"-o {os.path.join(BuildDirPath, 'osx-x64-multi')} -r osx-x64 -c release-osx-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "osx-x64-single": f"-o {os.path.join(BuildDirPath, 'osx-x64-single')} -r osx-x64 -c release-osx-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "osx-arm64-multi": f"-o {os.path.join(BuildDirPath, 'osx-arm64-multi')} -r osx-arm64 -c release-osx-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
+    "osx-arm64-single": f"-o {os.path.join(BuildDirPath, 'osx-arm64-single')} -r osx-arm64 -c release-osx-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
     "portable-multi": f"-o {os.path.join(BuildDirPath, 'portable-multi')} -c release-portable-multi --sc false -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
     "portable-single": f"-o {os.path.join(BuildDirPath, 'portable-single')} -c release-portable-single --sc false -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "win-x64-installer": f"-o {os.path.join(BuildDirPath, 'win-x64-installer')} -r win-x64 -c release-win-x64-single --sc false -p:PublishReadyToRun=true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "sc": "all self contained",
     "all": "all of the above"
 }
 
@@ -78,20 +77,22 @@ def ParseCmds(cmds: str) -> list[str]:
 
 def ZipDirProgress(path: str, zipHandle: zipfile.ZipFile):
     for root, dir, files in os.walk(path):
-        for file in tqdm.tqdm(files):
+        for file in files:
+            print(f"Zipping {file}")
             zipHandle.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), os.path.join(path, '..')))
-    print("Finished")
+    print("Finished zipping")
 
 def CopyFilesProgress(files: list[str] | str, dest: str):
     if not os.path.exists(dest) or not os.path.isdir(dest):
-        os.mkdir(dest)
+        os.makedirs(dest, exist_ok=True)
     if isinstance(files, str):
         print(f"Copying {files} to {dest}")
         shutil.copy(files, dest)
     else:
-        for file in tqdm.tqdm(files):
+        for file in files:
+            print(f"Copying {file}")
             shutil.copy(file, dest)
-    print("Finished")
+    print("Finished copying")
 
 #Commands
 def PrintTargetOptions():
@@ -105,6 +106,8 @@ def DeleteBuildDir():
         shutil.rmtree(BuildDirPath)
 
 def SetVersion(version: str):
+    global Version
+    Version = version
     for target in CompileTargets:
         CompileTargets[target] = CompileTargets[target].replace("-p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0", f"-p:AssemblyVersion={version} -p:Version={version}")
     versionArray = version.split('.')
@@ -122,19 +125,16 @@ def SetVersion(version: str):
             data = data.replace(versionLine, newVersionLine)
         with open("BuildConfig.cs", 'w') as file:
             file.write(data)
-    plistVersionLine = "<key>CFBundleVersion</key>\n    <string>1.0.0</string>"
-    plistVersionNew = f"<key>CFBundleVersion</key>\n    <string>{version}</string>"
-    plistShortVersionLine = "<key>CFBundleShortVersionString</key>\n    <string>1.0</string>"
-    plistShortVersionNew = f"<key>CFBundleShortVersionString</key>\n    <string>{versionArray[0] + '.' + versionArray[1]}</string>"
     with cd(RepoPath):
         with open("Info.plist", 'r') as file:
             plistData = file.read()
-            plistData = plistData.replace(plistVersionLine, plistVersionNew)
-            plistData = plistData.replace(plistShortVersionLine, plistShortVersionNew)
+            plistData = plistData.replace(PLIST_VERSION_PLACEHOLDER, version)
         with open("Info.plist", 'w') as file:
             file.write(plistData)
 
 def ResetVersion():
+    global Version
+    Version = None
     for target in CompileTargets:
         CompileTargets[target] = re.sub(r'-p:AssemblyVersion=.*', '-p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0', CompileTargets[target])
     with cd(os.path.join(RepoPath, "src", "CyberPlayer.Player")):
@@ -146,8 +146,7 @@ def ResetVersion():
     with cd(RepoPath):
         with open("Info.plist", 'r') as file:
             plistData = file.read()
-            plistData = re.sub(r"<key>CFBundleVersion<\/key>\n.*<\/string>", "<key>CFBundleVersion</key>\n    <string>1.0.0</string>", plistData)
-            plistData = re.sub(r"<key>CFBundleShortVersionString<\/key>\n.*<\/string>", "<key>CFBundleShortVersionString</key>\n    <string>1.0</string>", plistData)
+            plistData = re.sub(r"(?<=<key>CFBundleShortVersionString</key>\n        <string>).*?(?=</string>)", PLIST_VERSION_PLACEHOLDER, plistData)
         with open("Info.plist", 'w') as file:
             file.write(plistData)
 
@@ -250,12 +249,13 @@ def MakeLibraryDir(chosenTargets: str):
 
 #Copy licenses, readme, etc.
 def CopyMDs():
-    mdFiles = ListFiles(filter=".md")
+    mdFiles = ListFiles(RepoPath, filter=".md")
     for build in ListDirs(BuildDirPath):
         CopyFilesProgress(mdFiles, build)
 
 #Copy updater
-def CopyUpdater(updaterBuildPath: str):
+def CopyUpdater():
+    updaterBuildPath = os.path.join(RepoPath, "cyber-lib", "build")
     for build in ListDirs(BuildDirPath):
         if "win-x64" in os.path.basename(build):
             CopyFilesProgress(ListFiles(f"{os.path.join(updaterBuildPath, 'win-x64')}", exclude=".pdb"), os.path.join(build, "updater"))
@@ -292,19 +292,34 @@ def CopyMpvLib():
             CopyFilesProgress(os.path.join(RepoPath, "mpv", "win", "libmpv-2.dll"), build)
         elif "linux" in os.path.basename(build):
             CopyFilesProgress(os.path.join(RepoPath, "mpv", "linux-2.1.0", "libmpv.so.2"), build)
-        elif "osx.13-arm64" in os.path.basename(build):
+        elif bool(re.search("osx.*arm64.*", os.path.basename(build))):
             CopyFilesProgress(os.path.join(RepoPath, "mpv", "osx-arm64-2.1.0", "libmpv.2.dylib"), build)
         elif "portable" in os.path.basename(build):
             CopyFilesProgress(os.path.join(RepoPath, "mpv", "win", "libmpv-2.dll"), build)
             CopyFilesProgress(os.path.join(RepoPath, "mpv", "linux-2.1.0", "libmpv.so.2"), build)
             #CopyFilesProgress(os.path.join(RepoPath, "mpv", "osx-2.1.0", "libmpv.2.dylib"), build)
 
+# Call after Compile
 def BuildUpdater():
-    with cd(os.path.join(RepoPath, 'cyber-lib')):
-        if platform.system() == 'Windows':
-            subprocess.call("py build.py")
-        else:
-            subprocess.call("python3 build.py")
+    csproj = os.path.join(RepoPath, "cyber-lib", "UpdaterAvalonia", "UpdaterAvalonia.csproj")
+    buildDir = os.path.join(RepoPath, "cyber-lib", "build")
+    for build in ListDirs(BuildDirPath):
+        if "win-x64" in os.path.basename(build):
+            subprocess.call(["dotnet", "publish", csproj, "-o", os.path.join(buildDir, "win-x64"), "-r", "win-x64", "-p:PublishSingleFile=true", "-p:PublishTrimmed=true", "-c", "release", "--sc", "true"])
+        elif "linux-x64" in os.path.basename(build):
+            subprocess.call(["dotnet", "publish", csproj, "-o", os.path.join(buildDir, "linux-x64"), "-r", "linux-x64", "-p:PublishSingleFile=true", "-p:PublishTrimmed=true", "-c", "release", "--sc", "true"])
+        elif "osx-x64" in os.path.basename(build):
+            subprocess.call(["dotnet", "publish", csproj, "-o", os.path.join(buildDir, "osx-x64"), "-r", "osx-x64", "-p:PublishSingleFile=true", "-p:PublishTrimmed=true", "-c", "release", "--sc", "true"])
+        elif bool(re.search("osx.*arm64.*", os.path.basename(build))):
+            subprocess.call(["dotnet", "publish", csproj, "-o", os.path.join(buildDir, "osx-arm64"), "-r", "osx-arm64", "-p:PublishSingleFile=true", "-p:PublishTrimmed=true", "-c", "release", "--sc", "true"])
+
+# Call after specifying version or default of 1.0.0 will be used
+def CreateWindowsInstaller():
+    setupScriptPath = os.path.join(RepoPath, "scripts", "win-setup.iss")
+    if Version == None:
+        subprocess.call(["iscc", setupScriptPath])
+    else:
+        subprocess.call(["iscc", f"-DMyAppVersion={Version}", setupScriptPath])
 
 Command = collections.namedtuple('Command', ['description', 'function', 'hasParam'])
 
@@ -319,11 +334,12 @@ Commands = {
     "rmpdbs": Command("Remove all pdb files", RemovePDBs, False),
     "lib": Command("Makes a library directory for dlls", MakeLibraryDir, "Enter a compile target: "), #compiletarget/s arg
     "cpymds": Command("Copy all markdown files from working directory", CopyMDs, False),
-    "cpyupdater": Command("Copy updater to each build", CopyUpdater, "Enter the path to the build dir of updater: "), #updaterbuildpath arg
+    "cpyupdater": Command("Copy updater to each build", CopyUpdater, False),
     "cpyffmpeg": Command("Copy ffmpeg executables to builds", CopyFFmpeg, False),
     "cpympv": Command("Copy libmpv to builds", CopyMpvLib, False),
+    "cpymediainfo": Command("Copy mediainfo executables to builds", CopyMediaInfo, False),
     "zip": Command("Zip each build", ZipBuilds, False),
-    "cpymediainfo": Command("Copy mediainfo executables to builds", CopyMediaInfo, False)
+    "winpkg": Command("Creates a windows installer with innosetup", CreateWindowsInstaller, False)
 }
 
 def ParseArgs(args: list[str]) -> list[Command]:
@@ -366,4 +382,5 @@ def Main(args: list[str]):
                 param = input(Commands[userInput].hasParam)
                 Commands[userInput].function(param)
 
-Main(sys.argv[1:])
+if __name__ == "__main__":
+    Main(sys.argv[1:])

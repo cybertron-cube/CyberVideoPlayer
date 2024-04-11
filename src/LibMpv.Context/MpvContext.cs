@@ -237,7 +237,7 @@ public unsafe partial class MpvContext : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public void ReleaseUnmanagedResources()
+    private void ReleaseUnmanagedResources()
     {
         if (!_disposed)
         {

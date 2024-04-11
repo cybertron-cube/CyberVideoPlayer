@@ -2,14 +2,14 @@ namespace LibMpv.Context;
 
 public class MpvPropertyObservable<T> : IObservable<T>
 {
-    protected readonly List<IObserver<T>> Observers = new();
-    protected readonly MpvContext Mpv;
-    protected readonly ulong MpvUserData;
+    private readonly List<IObserver<T>> _observers = new();
+    private readonly MpvContext _mpv;
+    private readonly ulong _mpvUserData;
     
     public MpvPropertyObservable(MpvContext mpv, ulong mpvUserData)
     {
-        Mpv = mpv;
-        MpvUserData = mpvUserData;
+        _mpv = mpv;
+        _mpvUserData = mpvUserData;
     }
 
     private class Unsubscriber : IDisposable
@@ -25,11 +25,11 @@ public class MpvPropertyObservable<T> : IObservable<T>
 
         public void Dispose()
         {
-            _observable.Observers.Remove(_observer);
-            if (_observable.Observers.Count == 0)
+            _observable._observers.Remove(_observer);
+            if (_observable._observers.Count == 0)
             {
-                _observable.Mpv.UnobserveProperty(_observable.MpvUserData);
-                var propertyChangedObservables = _observable.Mpv.PropertyChangedObservables;
+                _observable._mpv.UnobserveProperty(_observable._mpvUserData);
+                var propertyChangedObservables = _observable._mpv.PropertyChangedObservables;
                 // This could be better by already having the key passed in
                 var observableKey = propertyChangedObservables.Single(x => ReferenceEquals(x.Value, _observable)).Key;
                 propertyChangedObservables.Remove(observableKey);
@@ -39,15 +39,15 @@ public class MpvPropertyObservable<T> : IObservable<T>
     
     public IDisposable Subscribe(IObserver<T> observer)
     {
-        if (!Observers.Contains(observer))
-            Observers.Add(observer);
+        if (!_observers.Contains(observer))
+            _observers.Add(observer);
 
         return new Unsubscriber(this, observer);
     }
 
     internal void OnNextAll(T nextVal)
     {
-        foreach (var observer in Observers)
+        foreach (var observer in _observers)
         {
             observer.OnNext(nextVal);
         }

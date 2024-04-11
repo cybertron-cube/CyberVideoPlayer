@@ -84,7 +84,7 @@ public sealed unsafe partial class MpvContext
             fbo = fb
         };
         
-        var handle = GCHandle.Alloc(fbo,GCHandleType.Pinned);
+        var handle = GCHandle.Alloc(fbo, GCHandleType.Pinned);
 
         var parameters = new mpv_render_param[]
         {
@@ -170,7 +170,7 @@ public sealed unsafe partial class MpvContext
         var size = new[] { width, height };
         var stride = new[] { (uint)width * 4 };
 
-        fixed(int* sizePtr  = size)
+        fixed(int* sizePtr = size)
         {
             fixed(uint * stridePtr = stride) 
             {
@@ -184,7 +184,7 @@ public sealed unsafe partial class MpvContext
                     new ()
                     {
                         type = mpv_render_param_type.MPV_RENDER_PARAM_SW_FORMAT,
-                        data = (void *) marshalHelper.CStringFromManagedUTF8String(format)
+                        data = (void*)marshalHelper.CStringFromManagedUTF8String(format)
                     },
                     new ()
                     {
@@ -199,7 +199,7 @@ public sealed unsafe partial class MpvContext
                     new ()
                     {
                         type = mpv_render_param_type.MPV_RENDER_PARAM_INVALID,
-                        data =null
+                        data = null
                     }
                 };
                 int errorCode;

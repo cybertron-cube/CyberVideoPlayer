@@ -220,6 +220,7 @@ public sealed unsafe partial class MpvContext
 
     public void StopRendering()
     {
+        if (_disposed) return;
         Command("stop");
         if (_renderContext != null)
         {

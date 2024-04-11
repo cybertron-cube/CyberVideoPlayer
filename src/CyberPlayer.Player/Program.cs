@@ -25,7 +25,8 @@ namespace CyberPlayer.Player
                 .StartWithClassicDesktopLifetime(args);
             
 #if SINGLE
-            Setup.Mutex.ReleaseMutex();
+            Setup.GlobalMutex.ReleaseMutex();
+            Setup.GlobalMutex.Dispose();
 #endif
         }
 

@@ -211,7 +211,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         }
         
         if (resizeWindow && WindowState != WindowState.FullScreen)
-            ViewModel!.MpvPlayer.SetWindowSize();
+            ViewModel!.MpvPlayer.ResizeAndCenterWindow();
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
@@ -371,7 +371,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
                 {
                     if (OperatingSystem.IsMacOS())
                         await Task.Delay(300);
-                    ViewModel.MpvPlayer.SetWindowSize();
+                    ViewModel.MpvPlayer.ResizeAndCenterWindow();
                 }
             });
                 

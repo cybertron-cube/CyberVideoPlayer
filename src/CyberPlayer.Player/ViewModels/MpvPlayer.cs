@@ -134,7 +134,7 @@ public class MpvPlayer : ViewModelBase
             
             GetTracks();
             if (GetMainWindowState() == WindowState.Normal)
-                SetWindowSize();
+                ResizeAndCenterWindow();
         }
         Debug.WriteLine(Duration);
     }
@@ -470,11 +470,14 @@ public class MpvPlayer : ViewModelBase
             WindowWidth = desiredWidth;
             WindowHeight = desiredHeight;
         });
-        
-        Dispatcher.UIThread.Post(() =>
-        {
-            mainWindow.CenterWindow();
-        });
+    }
+    
+    public static void CenterWindow() => Dispatcher.UIThread.Post(ViewLocator.Main.CenterWindow);
+
+    public void ResizeAndCenterWindow()
+    {
+        SetWindowSize();
+        CenterWindow();
     }
     
     ///Made to help with calls to mpv since information retrieval can be a bit wonky

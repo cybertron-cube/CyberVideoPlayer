@@ -390,6 +390,8 @@ public class MpvPlayer : ViewModelBase
 
     public void SetWindowSize()
     {
+        if (SelectedVideoTrack is null) return;
+        
         var mainWindow = ViewLocator.Main;
         var screen = mainWindow.GetMainWindowScreen();
         
@@ -421,7 +423,7 @@ public class MpvPlayer : ViewModelBase
         });
         _log.Verbose("panelHeightDiff: {A}", panelHeightDiff);
         
-        var videoSourceHeight = (int)SelectedVideoTrack!.VideoDemuxHeight!;
+        var videoSourceHeight = (int)SelectedVideoTrack.VideoDemuxHeight!;
         _log.Verbose("videoSourceHeight: {A}", videoSourceHeight);
         
         if (videoSourceHeight + panelHeightDiff + systemDecorations >= maxHeight)
@@ -433,7 +435,7 @@ public class MpvPlayer : ViewModelBase
         _log.Verbose("VideoHeight: {A}", VideoHeight);
         
         // Calculate aspect ratio
-        var displayAspectRatio = (double)SelectedVideoTrack!.VideoDemuxWidth! / (double)SelectedVideoTrack.VideoDemuxHeight!;
+        var displayAspectRatio = (double)SelectedVideoTrack.VideoDemuxWidth! / (double)SelectedVideoTrack.VideoDemuxHeight!;
         _log.Verbose("displayAspectRatio: {A}", displayAspectRatio);
         // Account for sample/pixel aspect ratio if needed
         if (SelectedVideoTrack.VideoDemuxPar != null)

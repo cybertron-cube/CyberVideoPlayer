@@ -20,7 +20,7 @@ public static class LogHelper
         //buffered: true
 #if DEBUG
         Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Debug()
+            .MinimumLevel.Verbose()
             .WriteTo.Console()
             .WriteTo.Async(s => s.File(filePath, shared: true))
             .CreateLogger();

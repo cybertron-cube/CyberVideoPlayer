@@ -403,7 +403,7 @@ public class MpvPlayer : ViewModelBase
         
         if (screen is null) throw new NullReferenceException();
         
-        var scaling = OperatingSystem.IsMacOS() ? 0 : mainWindow.DesktopScaling;
+        var scaling = mainWindow.DesktopScaling;
         _log.Verbose("scaling: {A}", scaling);
         
         // ClientSize = Only our part of the window
@@ -411,7 +411,7 @@ public class MpvPlayer : ViewModelBase
         // If window size doesn't set properly this is likely the culprit
         // This is because the platform may not supply the FrameSize to us
         var systemDecorations = mainWindow.FrameSize == null ? 0
-            : (mainWindow.FrameSize.Value.Height - mainWindow.ClientSize.Height) * scaling;
+            : (int)((mainWindow.FrameSize.Value.Height - mainWindow.ClientSize.Height) * scaling);
         _log.Verbose("systemDecorations: {A}", systemDecorations);
         
         // Screen working area is not scaled so no need to unscale these values
@@ -441,11 +441,10 @@ public class MpvPlayer : ViewModelBase
         
         if (getDemuxHeightResult == false) throw new Exception("Could not retrieve video height from mpv");
         
-        // TODO NOT SURE ABOUT INT CASTING ON SYSTEMS OTHER THAN WINDOWS
-        if (videoSourceHeight + panelHeightDiff + (int)systemDecorations >= maxHeight)
-        {
-            VideoHeight = maxHeight - (int)systemDecorations - panelHeightDiff;
-        }
+        if (videoSourceHeight + panelHeightDiff + systemDecorations >= maxHeight)
+            VideoHeight = maxHeight - systemDecorations - panelHeightDiff;
+        else
+            VideoHeight = videoSourceHeight;
         
         VideoHeight /= scaling;
         _log.Verbose("VideoHeight: {A}", VideoHeight);

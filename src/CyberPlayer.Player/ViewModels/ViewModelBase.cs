@@ -12,8 +12,6 @@ public class ViewModelBase : ReactiveObject
     protected static readonly IObservable<EventArgs?> AppExiting;
 
     private static readonly MainWindow MainWindow;
-
-    protected static WindowState GetMainWindowState() => Dispatcher.UIThread.Invoke(() => MainWindow.WindowState);
     
     static ViewModelBase()
     {

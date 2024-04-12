@@ -631,4 +631,6 @@ public class MpvPlayer : ViewModelBase
         this.RaisePropertyChanged(nameof(SeekValue));
         this.RaisePropertyChanged(nameof(SeekTimeCodeString));
     }
+
+    private static WindowState GetMainWindowState() => Dispatcher.UIThread.Invoke(() => ViewLocator.Main.WindowState);
 }

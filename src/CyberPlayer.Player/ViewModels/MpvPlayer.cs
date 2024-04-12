@@ -429,17 +429,8 @@ public class MpvPlayer : ViewModelBase
         });
         _log.Verbose("panelHeightDiff: {A}", panelHeightDiff);
         
-        // Get the height of the video scaled for the correct aspect ratio
-        // Sometimes the property is attempted to be retrieved before available
-        // (Even though this method is called in the fileloaded event the exception still occurs on windows)
-        long videoSourceHeight = 0;
-        var getDemuxHeightResult = ExecuteAndRetry(() =>
-        {
-            videoSourceHeight = _mpvContext.GetPropertyLong("video-params/dh");
-        }, exception => _log.Error(exception, ""));
+        var videoSourceHeight = (int)SelectedVideoTrack!.VideoDemuxHeight!;
         _log.Verbose("videoSourceHeight: {A}", videoSourceHeight);
-        
-        if (getDemuxHeightResult == false) throw new Exception("Could not retrieve video height from mpv");
         
         if (videoSourceHeight + panelHeightDiff + systemDecorations >= maxHeight)
             VideoHeight = maxHeight - systemDecorations - panelHeightDiff;
@@ -451,12 +442,13 @@ public class MpvPlayer : ViewModelBase
         
         // Calculate aspect ratio
         var displayAspectRatio = (double)SelectedVideoTrack!.VideoDemuxWidth! / (double)SelectedVideoTrack.VideoDemuxHeight!;
+        _log.Verbose("displayAspectRatio: {A}", displayAspectRatio);
         // Account for sample/pixel aspect ratio if needed
         if (SelectedVideoTrack.VideoDemuxPar != null)
         {
             displayAspectRatio *= (double)SelectedVideoTrack.VideoDemuxPar;
             _log.Verbose("VideoDemuxPar: {A}", (double)SelectedVideoTrack.VideoDemuxPar);
-        };
+        }
         _log.Verbose("displayAspectRatio: {A}", displayAspectRatio);
         
         var desiredWidth = VideoHeight * displayAspectRatio;

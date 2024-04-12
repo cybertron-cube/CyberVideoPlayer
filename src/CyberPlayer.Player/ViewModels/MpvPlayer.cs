@@ -58,8 +58,6 @@ public class MpvPlayer : ViewModelBase
         _trimEndTimeCode = new TimeCode(1);
         _timeCodeStartIndex = 0;
         _timeCodeLength = _settings.TimeCodeLength;
-        WindowWidth = double.NaN;
-        WindowHeight = double.NaN;
         TrackListJson = string.Empty;
 
         FrameStepCommand = ReactiveCommand.Create<string>(FrameStep);
@@ -388,12 +386,6 @@ public class MpvPlayer : ViewModelBase
     [Reactive]
     public string TrackListJson { get; set; }
 
-    [Reactive]
-    public double WindowWidth { get; set; }
-    
-    [Reactive]
-    public double WindowHeight { get; set; }
-
     public double VideoHeight { get; private set; }
 
     public void SetWindowSize()
@@ -467,8 +459,7 @@ public class MpvPlayer : ViewModelBase
         
         Dispatcher.UIThread.Invoke(() =>
         {
-            WindowWidth = desiredWidth;
-            WindowHeight = desiredHeight;
+            mainWindow.SetClientSize(desiredWidth, desiredHeight);
         });
     }
     

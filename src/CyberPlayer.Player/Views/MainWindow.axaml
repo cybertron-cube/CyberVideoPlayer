@@ -14,7 +14,7 @@
         x:DataType="vm:MainWindowViewModel"
         x:CompileBindings="True"
         WindowStartupLocation="CenterScreen"
-        MinHeight="503"
+        MinHeight="470"
         MinWidth="640"
         Width="{Binding MpvPlayer.WindowWidth}"
         Height="{Binding MpvPlayer.WindowHeight}"

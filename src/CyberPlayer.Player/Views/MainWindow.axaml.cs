@@ -17,6 +17,8 @@ using DynamicData.Binding;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Platform;
+using Avalonia.Rendering;
 using Avalonia.Threading;
 using CyberPlayer.Player.RendererVideoViews;
 using Serilog;
@@ -78,7 +80,20 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         };
         testButton.Click += (object? sender, RoutedEventArgs e) =>
         {
+            /*Log.Debug("{A}", MainGrid.RowDefinitions[0].ActualHeight);
+            Log.Debug("{A}", MainGrid.RowDefinitions[0].Height.Value);
+            Log.Debug("{A}", MainGrid.RowDefinitions[0].Height.Value / DesktopScaling);
+            Log.Debug("{A}", FrameSize.Value - ClientSize);
+            Log.Debug("{A}", FrameSize.Value);
+            Log.Debug("{A}", GetMainWindowScreen().WorkingArea);
+            Log.Debug("{A}", MainGrid.Bounds.Height);
+            Log.Debug("{A}", ClientSize.Height);*/
             
+            /*Log.Debug("{A}", MainGrid.Bounds.Height);
+            Log.Debug("{A}", MainGrid.RowDefinitions[0].ActualHeight + MainGrid.RowDefinitions[1].ActualHeight + MainGrid.RowDefinitions[2].ActualHeight);
+            Log.Debug("{A}", ClientSize.Height);*/
+            Log.Debug("{A}", FrameSize.Value);
+            Log.Debug("{A}", GetMainWindowScreen().WorkingArea);
         };
 
         Button loadButton = new()
@@ -94,7 +109,28 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         ControlsPanel.Children.Insert(0, testButton);
 #endif
     }
+    
+    public void CenterWindow()
+    {
+        // Use frame size, falling back to client size if the platform can't give it to us.
+        var rect = FrameSize.HasValue ?
+            new PixelRect(PixelSize.FromSize(FrameSize.Value, DesktopScaling)) :
+            new PixelRect(PixelSize.FromSize(ClientSize, DesktopScaling));
 
+        var screen = GetMainWindowScreen();
+        
+        if (screen is not null)
+        {
+            Position = screen.WorkingArea.CenterRect(rect).Position;
+        }
+    }
+
+    public Screen? GetMainWindowScreen()
+    {
+        return Screens.ScreenFromWindow(this)
+            ?? Screens.ScreenFromPoint(Position);
+    }
+    
     private static void DragOver(object sender, DragEventArgs e)
     {
         e.DragEffects = e.DragEffects & (DragDropEffects.Copy | DragDropEffects.Link);
@@ -331,7 +367,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
             //(So set the window size again if the height of the video panel has changed)
             Dispatcher.UIThread.Post(async () =>
             {
-                if (Math.Abs((int)VideoPanel.Bounds.Height - ViewModel!.MpvPlayer.VideoHeight) > 1)
+                if (Math.Abs(VideoPanel.Bounds.Height - ViewModel!.MpvPlayer.VideoHeight) > 1)
                 {
                     if (OperatingSystem.IsMacOS())
                         await Task.Delay(300);

@@ -7,7 +7,6 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Text.Json;
 using System.Threading;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using CyberPlayer.Player.AppSettings;
@@ -395,76 +394,85 @@ public class MpvPlayer : ViewModelBase
     [Reactive]
     public double WindowHeight { get; set; }
 
-    public int VideoHeight { get; private set; }
+    public double VideoHeight { get; private set; }
 
     public void SetWindowSize()
     {
-        //Mac scaling is unique
-        var maxWidth = OperatingSystem.IsMacOS() ? Screens.Primary!.WorkingArea.Width
-            : Screens.Primary!.WorkingArea.Width / RenderScaling;
-        var maxHeight = OperatingSystem.IsMacOS() ? Screens.Primary.WorkingArea.Height
-                : (int)(Screens.Primary.WorkingArea.Height / RenderScaling);
+        var mainWindow = ViewLocator.Main;
+        var screen = mainWindow.GetMainWindowScreen();
         
-        var panelHeightDifference = 0;
+        if (screen is null) throw new NullReferenceException();
+        
+        var scaling = OperatingSystem.IsMacOS() ? 0 : mainWindow.DesktopScaling;
+        _log.Verbose("scaling: {A}", scaling);
+        
+        // ClientSize = Only our part of the window
+        // FrameSize = The entire window, including system decorations
+        // If window size doesn't set properly this is likely the culprit
+        // This is because the platform may not supply the FrameSize to us
+        var systemDecorations = mainWindow.FrameSize == null ? 0
+            : (mainWindow.FrameSize.Value.Height - mainWindow.ClientSize.Height) * scaling;
+        _log.Verbose("systemDecorations: {A}", systemDecorations);
+        
+        // Screen working area is not scaled so no need to unscale these values
+        var maxWidth = screen.WorkingArea.Width;
+        var maxHeight = screen.WorkingArea.Height;
+        _log.Verbose("maxWidth: {A}", maxWidth);
+        _log.Verbose("maxHeight: {A}", maxHeight);
+        
+        double panelHeightDiff = 0;
         Dispatcher.UIThread.Invoke(() =>
         {
-            //INCLUDES SYSTEM DECORATIONS
-            //The height of the entire window without the video panel
-            panelHeightDifference = (int)PanelHeightDifference;
+            panelHeightDiff = mainWindow.MenuBar.IsVisible
+                ? (mainWindow.MainGrid.RowDefinitions[0].ActualHeight + mainWindow.MainGrid.RowDefinitions[2].ActualHeight) * scaling
+                : mainWindow.MainGrid.RowDefinitions[2].ActualHeight * scaling;
         });
+        _log.Verbose("panelHeightDiff: {A}", panelHeightDiff);
         
-        //Get the height of the video scaled for the correct aspect ratio
-        //Sometimes the property is attempted to be retrieved before available
-        //(Even though this method is called in the fileloaded event the exception still occurs on windows)
-        var videoSourceHeight = 0;
+        // Get the height of the video scaled for the correct aspect ratio
+        // Sometimes the property is attempted to be retrieved before available
+        // (Even though this method is called in the fileloaded event the exception still occurs on windows)
+        long videoSourceHeight = 0;
         var getDemuxHeightResult = ExecuteAndRetry(() =>
         {
-            videoSourceHeight = (int)_mpvContext.GetPropertyLong("video-params/dh");
+            videoSourceHeight = _mpvContext.GetPropertyLong("video-params/dh");
         }, exception => _log.Error(exception, ""));
-
+        _log.Verbose("videoSourceHeight: {A}", videoSourceHeight);
+        
         if (getDemuxHeightResult == false) throw new Exception("Could not retrieve video height from mpv");
-
-        //Calculate the height of the video and the height of the entire window
-        double desiredHeight;
         
-        if (SelectedVideoTrack!.VideoDemuxHeight + panelHeightDifference >= maxHeight)
+        // TODO NOT SURE ABOUT INT CASTING ON SYSTEMS OTHER THAN WINDOWS
+        if (videoSourceHeight + panelHeightDiff + (int)systemDecorations >= maxHeight)
         {
-            VideoHeight = maxHeight - panelHeightDifference;
-            desiredHeight = maxHeight - SystemDecorations;
-        }
-        else
-        {
-            VideoHeight = videoSourceHeight;
-            desiredHeight = videoSourceHeight + panelHeightDifference - SystemDecorations;
+            VideoHeight = maxHeight - (int)systemDecorations - panelHeightDiff;
         }
         
-        //Calculate aspect ratio
-        var displayAspectRatio = (double)SelectedVideoTrack.VideoDemuxWidth! / (double)SelectedVideoTrack.VideoDemuxHeight!;
-        //Account for sample/pixel aspect ratio if needed
+        VideoHeight /= scaling;
+        _log.Verbose("VideoHeight: {A}", VideoHeight);
+        
+        // Calculate aspect ratio
+        var displayAspectRatio = (double)SelectedVideoTrack!.VideoDemuxWidth! / (double)SelectedVideoTrack.VideoDemuxHeight!;
+        // Account for sample/pixel aspect ratio if needed
         if (SelectedVideoTrack.VideoDemuxPar != null)
+        {
             displayAspectRatio *= (double)SelectedVideoTrack.VideoDemuxPar;
+            _log.Verbose("VideoDemuxPar: {A}", (double)SelectedVideoTrack.VideoDemuxPar);
+        };
+        _log.Verbose("displayAspectRatio: {A}", displayAspectRatio);
         
         var desiredWidth = VideoHeight * displayAspectRatio;
+        _log.Verbose("desiredWidth: {A}", desiredWidth);
         
         if (desiredWidth > maxWidth)
         {
-            //change height to match new width
-            desiredHeight = maxWidth / displayAspectRatio;
+            VideoHeight = maxWidth / scaling / displayAspectRatio;
             desiredWidth = maxWidth;
+            _log.Verbose("VideoHeight: {A}", VideoHeight);
+            _log.Verbose("desiredWidth: {A}", desiredWidth);
         }
-
-        //Find centered x and y pixel points
-        //Assumes default taskbar locations for the most part (bottom and left side work properly)
-        var x = OperatingSystem.IsMacOS() ? (maxWidth - desiredWidth) / 2 + Screens.Primary.Bounds.Width - maxWidth
-            : (maxWidth * RenderScaling - desiredWidth * RenderScaling) / 2 + Screens.Primary.Bounds.Width / RenderScaling - maxWidth;
         
-        //This seems to be a tad inaccurate on mac (on the lower side) but not crazy noticeable
-        // - would have to find height of top bar and bottom bar in order to correct this
-        //On linux RenderScaling seems to always be one
-        // - if scaling is set to 200%, the window will not be centered vertically correctly (more towards bottom)
-        var y = OperatingSystem.IsMacOS() ? (maxHeight - desiredHeight + SystemDecorations) / 2 :
-            OperatingSystem.IsWindows() ? (maxHeight * RenderScaling - (desiredHeight + SystemDecorations) * RenderScaling) / 2
-            : (maxHeight - (desiredHeight + SystemDecorations)) / 2 + Screens.Primary.Bounds.Height - maxHeight;
+        var desiredHeight = panelHeightDiff / scaling + VideoHeight;
+        _log.Verbose("desiredHeight: {A}", desiredHeight);
         
         Dispatcher.UIThread.Invoke(() =>
         {
@@ -472,19 +480,16 @@ public class MpvPlayer : ViewModelBase
             WindowHeight = desiredHeight;
         });
         
-        //Position updates too early on linux occasionally
         Dispatcher.UIThread.Post(() =>
         {
-            MainWindow.Position = new PixelPoint((int)x, (int)y);
+            mainWindow.CenterWindow();
         });
-        
-        //with windows the width seems to be one pixel too much?
     }
     
     ///Made to help with calls to mpv since information retrieval can be a bit wonky
-    private static bool ExecuteAndRetry(Action work, Action<Exception>? onCaughtException = null, int retryCount = 2, int delay = 100)
+    private static bool ExecuteAndRetry(Action work, Action<Exception>? onCaughtException = null, int tryCount = 3, int delay = 100)
     {
-        for (int i = 0; i <= retryCount; i++)
+        for (int i = 0; i < tryCount; i++)
         {
             try
             {

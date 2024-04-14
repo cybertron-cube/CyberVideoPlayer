@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Text.Json;
-using System.Threading;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Models;
 using Cybertron;
+using LibMpv.Client;
 using LibMpv.Context;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -77,20 +76,23 @@ public class MpvPlayer : ViewModelBase
                     if (!IsSeeking)
                         SetSliderValueNoSeek(x);
                 });
+            }),
+            _mpvContext.ObserveProperty<bool>(MpvProperties.Paused).Subscribe(isPaused =>
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    IsPlaying = !isPaused;
+                });
             })
         };
     }
 
     private void MpvContext_EndFile(object? sender, MpvEndFileEventArgs e)
     {
-        if (_replacingFile)
-        {
-            _replacingFile = false;
-        }
-        else
-        {
-            IsPlaying = false;
-        }
+        // In mpv paused is not set to true when reaching the end of file
+        // but we still want the pause/play button to show the play symbol
+        if (e.Reason == mpv_end_file_reason.MPV_END_FILE_REASON_EOF)
+            MpvContext.SetPropertyFlag(MpvProperties.Paused, true);
         
         IsFileLoaded = false;
         SetSliderValueNoSeek(Duration);
@@ -98,17 +100,12 @@ public class MpvPlayer : ViewModelBase
 
     private void MpvContext_FileLoaded(object? sender, EventArgs e)
     {
-        Debug.WriteLine("File Loaded");
+        _log.Information("File loaded");
         IsFileLoaded = true;
-        if (_reloadFile)
-        {
-            _reloadFile = false;
-            IsPlaying = true;
-        }
-        else if (!double.IsNaN(_lastSeekValue))
+        
+        if (!double.IsNaN(_lastSeekValue)) //loading from seeking after hitting the end of the video
         {
             Seek();
-            MpvContext.SetPropertyFlag(MpvProperties.Paused, true);
         }
         else //loading new file
         {
@@ -134,7 +131,6 @@ public class MpvPlayer : ViewModelBase
             if (GetMainWindowState() == WindowState.Normal)
                 ResizeAndCenterWindow();
         }
-        Debug.WriteLine(Duration);
     }
     
     public ReactiveCommand<string, Unit> FrameStepCommand { get; }
@@ -142,12 +138,6 @@ public class MpvPlayer : ViewModelBase
     public ReactiveCommand<double, Unit> SeekCommand { get; }
     
     public ReactiveCommand<double, Unit> VolumeCommand { get; }
-    
-    private bool _initialFileLoaded = false;
-    
-    private bool _reloadFile = false;
-    
-    private bool _replacingFile = false;
     
     private double _lastSeekValue = double.NaN;
     
@@ -244,7 +234,6 @@ public class MpvPlayer : ViewModelBase
                 {
                     case true:
                         _wasPlaying = IsPlaying;
-                        IsPlaying = false;
                         MpvContext.SetPropertyFlag(MpvProperties.Paused, true);
                         return;
                     case false when SeekValue - Duration < 0:
@@ -253,7 +242,6 @@ public class MpvPlayer : ViewModelBase
                             _lastSeekValue = double.NaN;
                             return;
                         }
-                        IsPlaying = _wasPlaying;
                         MpvContext.SetPropertyFlag(MpvProperties.Paused, !_wasPlaying);
                         return;
                 }
@@ -490,11 +478,6 @@ public class MpvPlayer : ViewModelBase
 
     private void FrameStep(string param)
     {
-        if (IsPlaying)
-        {
-            IsPlaying = false;
-        }
-
         Dispatcher.UIThread.Invoke(() =>
         {
             MpvContext.Command(param);
@@ -520,17 +503,14 @@ public class MpvPlayer : ViewModelBase
                 MpvContext.Command(MpvCommands.Seek, "0", "absolute");
                 SetSliderValueNoSeek(0);
                 MpvContext.SetPropertyFlag(MpvProperties.Paused, false);
-                IsPlaying = true;
                 return;
             }
             MpvContext.Command(MpvCommands.Cycle, "pause");
-            IsPlaying = !IsPlaying;
         }
         else
         {
             if (!string.IsNullOrWhiteSpace(MediaPath))
             {
-                _reloadFile = true;
                 LoadFile();
             }
         }
@@ -585,23 +565,8 @@ public class MpvPlayer : ViewModelBase
         if (mediaPath != null)
             MediaPath = mediaPath;
         
-        if (!_reloadFile)
-            _replacingFile = true;
-        
         MpvContext.Command(MpvCommands.LoadFile, MediaPath, "replace");
-
-        if (_replacingFile)
-        {
-            MpvContext.SetPropertyFlag(MpvProperties.Paused, false);
-            IsPlaying = true; //TODO Make setting
-            return;
-        }
-
-        if (!_initialFileLoaded)
-        {
-            _initialFileLoaded = true;
-            IsPlaying = true; //TODO Make setting
-        }
+        MpvContext.SetPropertyFlag(MpvProperties.Paused, false);
     }
     
     private void SetSliderValueNoSeek(double val)

@@ -2,7 +2,13 @@
 using System.Collections;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using CyberPlayer.Player.AppSettings;
 using Serilog;
+using Serilog.Configuration;
+using Serilog.Enrichers;
+using Serilog.Events;
+using Serilog.Templates;
 using Splat;
 using Splat.Serilog;
 using ILogger = Serilog.ILogger;
@@ -12,25 +18,29 @@ namespace CyberPlayer.Player.Helpers;
 public static class LogHelper
 {
     public const string DateTimeFormat = "yyyy-MM-dd_HH-mm-ss";
+
+    public const string LogConsoleTemplate =
+        "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}";
+
+    public const string LogFileTemplate =
+        "{@t:yyyy-MM-dd HH:mm:ss.fff zzz} [{@l:u3}] {@m:lj} {#if Contains(@m, '\n')}\n{#end}" +
+        "({#if SourceContext is not null}<{Substring(SourceContext, LastIndexOf(SourceContext, '.') + 1)}> {#end}" +
+        "<ThreadId={ThreadId}> <ThreadName={ThreadName}> <MemoryUsage={MemoryUsage / 1048576:N2}MB>)" +
+        "{#if @x is not null}\n{@x}{#end}\n";
     
-    public static void SetupSerilog()
+    public static readonly ExpressionTemplate LogFileExpressionTemplate = new(LogFileTemplate);
+    
+    public static void SetupSerilog(Settings settings)
     {
+        Thread.CurrentThread.Name = "Main";
+        
         var timeStamp = DateTime.Now.ToString(DateTimeFormat);
         var filePath = Path.Combine(BuildConfig.LogDirectory, $"debug_{timeStamp}.log");
-        //buffered: true
-#if DEBUG
+        
         Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .WriteTo.Console()
-            .WriteTo.Async(s => s.File(filePath, shared: true))
+            .ConfigureDefaults(filePath, settings.LogLevel)
             .CreateLogger();
-#else
-        Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .WriteTo.Async(s => s.File(filePath, shared: true))
-            .CreateLogger();
-#endif
-
+        
         AppDomain.CurrentDomain.ProcessExit += (_, _) =>
         {
             Log.Information("Exiting");
@@ -43,7 +53,7 @@ public static class LogHelper
             Log.CloseAndFlush();
         };
         
-        Log.Logger.CleanupLogFiles(BuildConfig.LogDirectory, "debug*.log", 3);
+        Log.Logger.CleanupLogFiles(BuildConfig.LogDirectory, "debug*.log", settings.LogInstances);
         
         Locator.CurrentMutable.UseSerilogFullLogger(Log.Logger);
         Locator.CurrentMutable.RegisterConstant(Log.Logger);
@@ -72,8 +82,41 @@ public static class LogHelper
         }
     }
 
+    public static LoggerConfiguration ConfigureDefaults(this LoggerConfiguration loggerConfiguration, string filePath, LogEventLevel logLevel)
+    {
+        return loggerConfiguration
+#if DEBUG
+        .MinimumLevel.Verbose()
+#else
+        .MinimumLevel.Is(logLevel)
+#endif
+        .WriteTo.Console(outputTemplate: LogConsoleTemplate)
+        .WriteTo.Async(sink =>
+            sink.File(
+                path: filePath,
+                formatter: LogFileExpressionTemplate,
+                buffered: true,
+                flushToDiskInterval: TimeSpan.FromSeconds(10),
+                fileSizeLimitBytes: 52428800,
+                rollOnFileSizeLimit: true
+            )
+        )
+        .Enrich.FromLogContext()
+        .Enrich.WithThreadId()
+        .Enrich.WithThreadName()
+        .Enrich.WithProperty(ThreadNameEnricher.ThreadNamePropertyName, "None")
+        .Enrich.WithMemoryUsage();
+    }
+    
+    public static LoggerConfiguration WithMemoryUsage(this LoggerEnrichmentConfiguration loggerEnrichmentConfiguration)
+    {
+        return loggerEnrichmentConfiguration.With<LogMemoryEnricher>();
+    }
+
     private static void InitialLogging()
     {
+        if (Settings.ThrownImportException is not null)
+            Log.Error(Settings.ThrownImportException, "Failed to import settings");
         Log.Debug("Launched with Command Line Arguments: {Args}", Environment.GetCommandLineArgs());
 
         var sortedEntries = Environment.GetEnvironmentVariables().Cast<DictionaryEntry>();

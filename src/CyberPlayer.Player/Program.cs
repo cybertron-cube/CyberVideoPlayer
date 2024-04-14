@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.ReactiveUI;
 using System;
+using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Helpers;
 
 namespace CyberPlayer.Player;
@@ -13,13 +14,14 @@ internal class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        LogHelper.SetupSerilog();
+        var settings = Settings.Import(BuildConfig.SettingsPath);
+        LogHelper.SetupSerilog(settings);
             
 #if SINGLE
         Setup.CheckInstance(args);
 #endif
             
-        Setup.Register();
+        Setup.Register(settings);
             
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);

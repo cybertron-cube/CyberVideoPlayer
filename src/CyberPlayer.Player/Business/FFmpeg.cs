@@ -7,6 +7,7 @@ using CyberPlayer.Player.AppSettings;
 using Cybertron;
 using Serilog;
 using CyberPlayer.Player.Helpers;
+using Serilog.Core;
 using static Cybertron.TimeCode;
 
 namespace CyberPlayer.Player.Business;
@@ -16,7 +17,7 @@ public class FFmpeg : IDisposable
     public const string ProbeFormatArgs = "-v quiet -show_format -show_streams -print_format ";
     public event Action<double>? ProgressChanged;
     
-    private readonly ILogger _log;
+    private readonly Logger _log;
     private readonly Settings _settings;
     private readonly string _videoPath;
     private string? _lastStdErrLine;
@@ -34,8 +35,7 @@ public class FFmpeg : IDisposable
         var timeStamp = DateTime.Now.ToString(LogHelper.DateTimeFormat);
         var filePath = Path.Combine(BuildConfig.LogDirectory, $"ffmpeg_output_{timeStamp}.log");
         _log = new LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .WriteTo.Async(s => s.File(filePath))
+            .ConfigureDefaults(filePath, settings.LogLevel)
             .CreateLogger();
         _log.CleanupLogFiles(BuildConfig.LogDirectory, "ffmpeg_output*.log", 10);
         

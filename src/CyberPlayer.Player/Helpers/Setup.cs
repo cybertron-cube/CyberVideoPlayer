@@ -9,8 +9,8 @@ using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.ViewModels;
 using CyberPlayer.Player.Views;
 using LibMpv.Client;
-using Serilog;
 using Splat;
+using ILogger = Serilog.ILogger;
 
 namespace CyberPlayer.Player.Helpers;
 
@@ -18,6 +18,8 @@ public static class Setup
 {
 #if SINGLE
     public static readonly Mutex GlobalMutex = new(true, BuildConfig.MutexId);
+
+    private static readonly ILogger Log = Serilog.Log.ForContext(typeof(Setup));
     
     public static void CheckInstance(string[] args)
     {
@@ -59,9 +61,12 @@ public static class Setup
     {
         if (cancellationToken is not CancellationToken ct)
             throw new ArgumentException($"Must be of type {typeof(CancellationToken)}", nameof(cancellationToken));
+
+        Thread.CurrentThread.Name = "ServerPipe";
         
         var serverPipe = new NamedPipeServerStream(BuildConfig.Guid);
-
+        Log.Debug("Server pipe started");
+            
         try
         {
             while (!ct.IsCancellationRequested)
@@ -69,7 +74,8 @@ public static class Setup
                 await serverPipe.WaitForConnectionAsync(ct);
                 var sr = new StreamReader(serverPipe);
                 var filePath = await sr.ReadToEndAsync(ct);
-
+                Log.Information("Received file path, {FilePath}, from another instance", filePath);
+                
                 var player = Locator.Current.GetService<MpvPlayer>();
                 var mainWindow = Locator.Current.GetService<MainWindow>();
                 await Dispatcher.UIThread.InvokeAsync(() =>
@@ -85,9 +91,8 @@ public static class Setup
     }
 #endif
     
-    public static void Register()
+    public static void Register(Settings settings)
     {
-        var settings = Settings.Import(BuildConfig.SettingsPath);
         if (!string.IsNullOrWhiteSpace(settings.LibMpvDir))
             libmpv.RootPath = settings.LibMpvDir;
         Log.Information("Using libmpv from path: \"{LibPath}\"", libmpv.RootPath);

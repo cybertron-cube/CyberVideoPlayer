@@ -42,6 +42,12 @@ public class MainWindowViewModel : ViewModelBase
     
     public ReactiveCommand<VideoInfoType, Unit> ViewVideoInfoCommand { get; }
     
+    public ReactiveCommand<Unit, Unit> CenterResizeCommand { get; }
+    
+    public ReactiveCommand<Unit, Unit> CenterCommand { get; }
+    
+    public ReactiveCommand<Unit, Unit> ResizeCommand { get; }
+    
     [Reactive]
     public object? VideoContent { get; set; }
 
@@ -91,9 +97,15 @@ public class MainWindowViewModel : ViewModelBase
         OpenWebLinkCommand = ReactiveCommand.Create<string>(GenStatic.OpenWebLink);
         ExitAppCommand = ReactiveCommand.Create<EventArgs?>(ExitApp);
         ViewVideoInfoCommand = ReactiveCommand.Create<VideoInfoType>(this.ShowVideoInfo);
+        CenterResizeCommand = ReactiveCommand.Create(() => { MpvPlayer.SetWindowSize(); MpvPlayer.CenterWindow(); });
+        CenterCommand = ReactiveCommand.Create(MpvPlayer.CenterWindow);
+        ResizeCommand = ReactiveCommand.Create(MpvPlayer.SetWindowSize);
         
         CheckForUpdatesCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
         ViewVideoInfoCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
+        CenterResizeCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
+        CenterCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
+        ResizeCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
     }
 
     private async void HandleCommandExceptions(Exception ex)

@@ -36,11 +36,7 @@ public class FFmpeg : IDisposable
         var timeStamp = DateTime.Now.ToString(LogHelper.DateTimeFormat);
         var filePath = Path.Combine(BuildConfig.LogDirectory, $"ffmpeg_output_{timeStamp}.log");
         _log = new LoggerConfiguration()
-            .MinimumLevel.Verbose()
-#if DEBUG
-            .WriteTo.Console()
-#endif
-            .WriteTo.Async(s => s.File(filePath))
+            .ConfigureDefaults(filePath, settings.LogLevel)
             .CreateLogger();
         _log.CleanupLogFiles(BuildConfig.LogDirectory, "ffmpeg_output*.log", 10);
         

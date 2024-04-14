@@ -3,13 +3,17 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using CyberPlayer.Player.RendererVideoViews;
-using Serilog;
+using Serilog.Events;
 
 namespace CyberPlayer.Player.AppSettings;
 
 public class Settings
 {
     public bool UpdaterIncludePreReleases { get; set; } = false;
+
+    public LogEventLevel LogLevel { get; set; } = LogEventLevel.Information;
+
+    public int LogInstances { get; set; } = 5;
 
     public int TimeCodeLength { get; set; } = 8;
 
@@ -36,9 +40,10 @@ public class Settings
 
     public string ExtraTrimArgs { get; set; } = "-avoid_negative_ts make_zero";
 
-    public static Settings Import(string settingsPath)
+    public static (Settings, Exception?) Import(string settingsPath)
     {
         Settings? settings = null;
+        Exception? exception = null;
         try
         {
             var settingsJson = File.ReadAllText(settingsPath);
@@ -46,10 +51,11 @@ public class Settings
         }
         catch (Exception e)
         {
-            Log.Error(e, "Failed to import settings");
+            exception = e;
         }
-
-        return settings ?? new Settings();
+        
+        settings ??= new Settings();
+        return (settings, exception);
     }
     
     private static string GetMacMpvDir()

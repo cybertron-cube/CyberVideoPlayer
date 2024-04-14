@@ -469,28 +469,12 @@ public class MpvPlayer : ViewModelBase
 
     public void ResizeAndCenterWindow()
     {
-        SetWindowSize();
-        CenterWindow();
-    }
-    
-    ///Made to help with calls to mpv since information retrieval can be a bit wonky
-    private static bool ExecuteAndRetry(Action work, Action<Exception>? onCaughtException = null, int tryCount = 3, int delay = 100)
-    {
-        for (int i = 0; i < tryCount; i++)
-        {
-            try
-            {
-                work.Invoke();
-                return true;
-            }
-            catch (Exception e)
-            {
-                onCaughtException?.Invoke(e);
-                Thread.Sleep(delay);
-            }
-        }
-
-        return false;
+        if (_settings.AutoResize)
+            SetWindowSize();
+        if (_settings.AutoCenter)
+            CenterWindow();
+        if (_settings.AutoFocus)
+            Dispatcher.UIThread.Post(ViewLocator.Main.Activate);
     }
 
     private void ChangeVolume(double offset)

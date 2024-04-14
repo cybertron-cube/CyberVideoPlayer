@@ -97,7 +97,7 @@ public class MainWindowViewModel : ViewModelBase
         OpenWebLinkCommand = ReactiveCommand.Create<string>(GenStatic.OpenWebLink);
         ExitAppCommand = ReactiveCommand.Create<EventArgs?>(ExitApp);
         ViewVideoInfoCommand = ReactiveCommand.Create<VideoInfoType>(this.ShowVideoInfo);
-        CenterResizeCommand = ReactiveCommand.Create(MpvPlayer.ResizeAndCenterWindow);
+        CenterResizeCommand = ReactiveCommand.Create(() => { MpvPlayer.SetWindowSize(); MpvPlayer.CenterWindow(); });
         CenterCommand = ReactiveCommand.Create(MpvPlayer.CenterWindow);
         ResizeCommand = ReactiveCommand.Create(MpvPlayer.SetWindowSize);
         

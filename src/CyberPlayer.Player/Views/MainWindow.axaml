@@ -107,7 +107,7 @@
 				<MenuItem Header="MediaInfo" Command="{Binding ViewVideoInfoCommand}" CommandParameter="{x:Static services:VideoInfoType.MediaInfo}" />
 				<MenuItem Header="FFprobe" Command="{Binding ViewVideoInfoCommand}" CommandParameter="{x:Static services:VideoInfoType.FFprobe}" />
 				<MenuItem Header="Mpv" Command="{Binding ViewVideoInfoCommand}" CommandParameter="{x:Static services:VideoInfoType.Mpv}" />
-				<NativeMenuItemSeparator />
+				<Separator />
 				<MenuItem Header="Center/Resize" Command="{Binding CenterResizeCommand}" />
 				<MenuItem Header="Center" Command="{Binding CenterCommand}" />
 				<MenuItem Header="Resize" Command="{Binding ResizeCommand}" />

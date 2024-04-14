@@ -34,11 +34,10 @@ public class Settings
 
     public string ExtraTrimArgs { get; set; } = "-avoid_negative_ts make_zero";
 
-    public static Exception? ThrownImportException;
-
-    public static Settings Import(string settingsPath)
+    public static (Settings, Exception?) Import(string settingsPath)
     {
         Settings? settings = null;
+        Exception? exception = null;
         try
         {
             var settingsJson = File.ReadAllText(settingsPath);
@@ -46,10 +45,11 @@ public class Settings
         }
         catch (Exception e)
         {
-            ThrownImportException = e;
+            exception = e;
         }
-
-        return settings ?? new Settings();
+        
+        settings ??= new Settings();
+        return (settings, exception);
     }
     
     private static string GetMacMpvDir()

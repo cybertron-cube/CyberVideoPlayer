@@ -30,7 +30,7 @@ public static class LogHelper
     
     public static readonly ExpressionTemplate LogFileExpressionTemplate = new(LogFileTemplate);
     
-    public static void SetupSerilog(Settings settings)
+    public static void SetupSerilog(Settings settings, Exception? settingsImportException)
     {
         Thread.CurrentThread.Name = "Main";
         
@@ -58,7 +58,7 @@ public static class LogHelper
         Locator.CurrentMutable.UseSerilogFullLogger(Log.Logger);
         Locator.CurrentMutable.RegisterConstant(Log.Logger);
         
-        InitialLogging();
+        InitialLogging(settingsImportException);
     }
     
     public static void CleanupLogFiles(this ILogger logger, string location, string searchPattern, int fileInstances)
@@ -113,10 +113,10 @@ public static class LogHelper
         return loggerEnrichmentConfiguration.With<LogMemoryEnricher>();
     }
 
-    private static void InitialLogging()
+    private static void InitialLogging(Exception? settingsImportException)
     {
-        if (Settings.ThrownImportException is not null)
-            Log.Error(Settings.ThrownImportException, "Failed to import settings");
+        if (settingsImportException is not null)
+            Log.Error(settingsImportException, "Failed to import settings");
         Log.Debug("Launched with Command Line Arguments: {Args}", Environment.GetCommandLineArgs());
 
         var sortedEntries = Environment.GetEnvironmentVariables().Cast<DictionaryEntry>();

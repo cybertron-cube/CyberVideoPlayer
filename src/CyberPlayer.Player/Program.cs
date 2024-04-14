@@ -14,8 +14,8 @@ internal class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        var settings = Settings.Import(BuildConfig.SettingsPath);
-        LogHelper.SetupSerilog(settings);
+        var (settings, importException) = Settings.Import(BuildConfig.SettingsPath);
+        LogHelper.SetupSerilog(settings, importException);
             
 #if SINGLE
         Setup.CheckInstance(args);

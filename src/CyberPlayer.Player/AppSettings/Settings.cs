@@ -19,6 +19,12 @@ public class Settings
 
     public Renderer Renderer { get; set; } = Renderer.Hardware;
 
+    public bool AutoCenter { get; set; } = true;
+
+    public bool AutoResize { get; set; } = true;
+
+    public bool AutoFocus { get; set; } = true;
+
     public double SeekChange { get; set; } = 5;
 
     public double VolumeChange { get; set; } = 10;

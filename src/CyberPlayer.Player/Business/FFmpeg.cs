@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Threading;
 using CyberPlayer.Player.AppSettings;
 using Cybertron;
 using Serilog;
 using CyberPlayer.Player.Helpers;
 using Serilog.Core;
-using static Cybertron.TimeCode;
 
 namespace CyberPlayer.Player.Business;
 
@@ -57,9 +58,6 @@ public class FFmpeg : IDisposable
                 RedirectStandardOutput = true
             }
         };
-        
-        _ffmpegProcess.OutputDataReceived += FFmpegProcessOnOutputDataReceived;
-        _ffmpegProcess.ErrorDataReceived += FFmpegProcessOnErrorDataReceived;
 
         var ffprobePath = string.IsNullOrWhiteSpace(settings.FFprobeDir) ?
             GenStatic.GetFullPathFromRelative(Path.Combine("ffmpeg", "ffprobe"))
@@ -96,29 +94,23 @@ public class FFmpeg : IDisposable
 
     public async Task<FFmpegResult> FFmpegCommandAsync(TimeCode startTime, TimeCode endTime, string commandName, string args, CancellationToken ct)
     {
-        _startTimeMs = startTime.GetExactUnits(TimeUnit.Millisecond);
-        _endTimeMs = endTime.GetExactUnits(TimeUnit.Millisecond);
+        _startTimeMs = startTime.GetExactUnits(TimeCode.TimeUnit.Millisecond);
+        _endTimeMs = endTime.GetExactUnits(TimeCode.TimeUnit.Millisecond);
         _spanTimeMs = _endTimeMs - _startTimeMs;
-
-        SetArgs(args);
+        
+        SetArgsWithDefaults(args);
         
         _log.Information("Starting {CommandName} of video {VideoPath} from {StartTime} to {EndTime}",
             commandName, _videoPath, startTime.FormattedString, endTime.FormattedString);
         
         _ffmpegProcess.Start();
-        _ffmpegProcess.BeginOutputReadLine();
-        _ffmpegProcess.BeginErrorReadLine();
-        try
-        {
-            await _ffmpegProcess.WaitForExitAsync(ct);
-        }
-        catch (TaskCanceledException)
-        {
-            _log.Information($"{commandName} canceled");
-            await _ffmpegProcess.StandardInput.WriteAsync('q');
-            await _ffmpegProcess.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
-        }
-
+        
+        var outputTask = ReadStreamAsync(_ffmpegProcess.StandardOutput, "FF-STDOUT", ProgressChanged is null ? null : OnNewLineStandardOutput);
+        var errorTask = ReadStreamAsync(_ffmpegProcess.StandardError, "FF-STDERR", OnNewLineStandardError);
+        var exitTask = WaitFFmpegAsync(commandName, ct);
+        
+        await Task.WhenAll(outputTask, errorTask, exitTask);
+        
         _log.Information("Exit code: {ExitCode}", _ffmpegProcess.ExitCode);
         return new FFmpegResult(_ffmpegProcess.ExitCode, _lastStdErrLine);
     }
@@ -139,49 +131,117 @@ public class FFmpeg : IDisposable
 
     public void Dispose()
     {
-        //TODO Should make sure the ffmpegprocess is closed after this
         if (_ffmpegProcess is { HasStarted: true, HasExited: false })
-            _ffmpegProcess.StandardInput.Write('q');
+            QuitFFmpegProcess();
         _ffmpegProcess.Dispose();
         
         if (_ffprobeProcess is { HasStarted: true, HasExited: false })
             _ffprobeProcess.Kill();
         _ffprobeProcess.Dispose();
         
+        _log.Dispose();
+        
         GC.SuppressFinalize(this);
     }
 
-    private void FFmpegProcessOnOutputDataReceived(object sender, DataReceivedEventArgs e)
+    private async Task WaitFFmpegAsync(string commandName, CancellationToken ct)
     {
-        if (e.Data == null) return;
-        
-        if (e.Data.Contains("out_time="))
+        try
         {
-            var currentTimeMs = TimeCode.GetExactUnits(TimeUnit.Millisecond, e.Data.Split('=')[1].Replace("-", ""));
+            await _ffmpegProcess.WaitForExitAsync(ct);
+        }
+        catch (OperationCanceledException)
+        {
+            _log.Information("{Command} canceled", commandName);
+            await QuitFFmpegProcessAsync();
+        }
+    }
+
+    private async Task QuitFFmpegProcessAsync()
+    {
+        await _ffmpegProcess.StandardInput.WriteAsync('q');
+        await _ffmpegProcess.StandardInput.FlushAsync();
+        try
+        {
+            await _ffmpegProcess.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+        }
+        catch (TimeoutException ex)
+        {
+            _log.Error(ex, "FFmpeg would not gracefully exit, the process will now be killed");
+            _ffmpegProcess.Kill();
+        }
+    }
+    
+    private void QuitFFmpegProcess()
+    {
+        _ffmpegProcess.StandardInput.Write('q');
+        _ffmpegProcess.StandardInput.Flush();
+        try
+        {
+            _ffmpegProcess.WaitForExit(TimeSpan.FromSeconds(5));
+        }
+        catch (TimeoutException ex)
+        {
+            _log.Error(ex, "FFmpeg would not gracefully exit, the process will now be killed");
+            _ffmpegProcess.Kill();
+        }
+    }
+    
+    private async Task ReadStreamAsync(StreamReader stream, string name, Action<string>? onNewLine = null)
+    {
+        var buffer = new char[4096];
+        var sb = new StringBuilder();
+        int charRead;
+        while ((charRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+        {
+            _log.Verbose("[{StreamName}] Chars Read: {Chars} | Buffer Length: {Length}", name, charRead, buffer.Length);
+            if (charRead >= buffer.Length * 0.8)
+            {
+                _log.Warning("[{StreamName}] Buffer is approaching overflow -> Chars Read: {Chars} | Buffer Length: {Length}", name, charRead, buffer.Length);
+            }
             
-            var progress = currentTimeMs / _spanTimeMs;
-            ProgressChanged?.Invoke(progress);
+            for (int i = 0; i < charRead; i++)
+            {
+                if (buffer[i] == '\n')
+                {
+                    var line = buffer[i - 1] == '\r' ? sb.ToStringTrimEnd("\r") : sb.ToString();
+                    sb.Clear();
+                    _log.Information("[{StreamName}] {Data}", name, line);
+                    onNewLine?.Invoke(line);
+                }
+                else
+                {
+                    sb.Append(buffer[i]);
+                }
+            }
         }
-        else if (e.Data.Contains("progress=end"))
+    }
+    
+    private void OnNewLineStandardError(string line)
+    {
+        _lastStdErrLine = line;
+    }
+    
+    private void OnNewLineStandardOutput(string line)
+    {
+        // EX: out_time_ms=659434000
+        if (line.Contains("out_time_ms"))
         {
-            ProgressChanged?.Invoke(1);
+            // Ignore the last 3 characters since for some reason ffmpeg outputs microseconds instead of milliseconds
+            var currentTimeMs = Convert.ToDouble(line.Split('=')[1][..^3]);
+            if (currentTimeMs < 0) return;
+            var progress = currentTimeMs / _spanTimeMs;
+            Dispatcher.UIThread.Post(() => ProgressChanged!.Invoke(progress));
         }
-        
-        _log.Information(e.Data);
+        else if (line.Contains("progress=end"))
+        {
+            Dispatcher.UIThread.Post(() => ProgressChanged!.Invoke(1));
+        }
     }
-
-    private void FFmpegProcessOnErrorDataReceived(object sender, DataReceivedEventArgs e)
+    
+    private void SetArgsWithDefaults(string args)
     {
-        if (e.Data == null) return;
-
-        _lastStdErrLine = e.Data;
-        _log.Error(_lastStdErrLine);
-    }
-
-    private void SetArgs(string args)
-    {
-        _ffmpegProcess.StartInfo.Arguments =
-            $"-progress pipe:1 -y {args}";
+        _ffmpegProcess.StartInfo.Arguments = $"-progress pipe:1 -y {args}";
         _log.Information("FFmpeg arguments: {Args}", _ffmpegProcess.StartInfo.Arguments);
     }
 }

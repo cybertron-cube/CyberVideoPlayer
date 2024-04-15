@@ -39,7 +39,7 @@ then
     python3 "$SCRIPT_DIR/build.py" -version $VERSION -compile "linux-x64-multi;linux-x64-single" -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -delbinrel -resetversion
 fi
 
-chmod -R +x "$BUILD_DIR"
+chmod -R 777 "$BUILD_DIR"
 
 cd "$BUILD_DIR"
 
@@ -47,9 +47,7 @@ if [ "$TARGET" = "s" ]
 then
     echo "zipping single..."
     tar -czf linux-x64-single.tar.gz linux-x64-single
-fi
-
-if [ "$TARGET" = "m" ]
+elif [ "$TARGET" = "m" ]
 then
     echo "zipping multi..."
     tar -czf linux-x64-multi.tar.gz linux-x64-multi

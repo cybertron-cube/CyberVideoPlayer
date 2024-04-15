@@ -29,7 +29,11 @@ public class Settings
 
     public double VolumeChange { get; set; } = 10;
 
-    public string LibMpvDir { get; set; } = OperatingSystem.IsMacOS() ? GetMacMpvDir()
+    public string LibMpvDir { get; set; } =
+        OperatingSystem.IsMacOS() ?
+            GetMacMpvDir()
+        : OperatingSystem.IsLinux() ?
+            GetLinuxMpvDir()
         : string.Empty;
 
     public string MediaInfoDir { get; set; } = string.Empty;
@@ -60,11 +64,29 @@ public class Settings
     
     private static string GetMacMpvDir()
     {
-        // example: "/opt/homebrew/Cellar/mpv/0.36.0/lib"
-        var homebrewMpv = new DirectoryInfo("/opt/homebrew/Cellar/mpv");
-        var orderedVersions = homebrewMpv.EnumerateDirectories().OrderBy(x => x.Name);
-        var macMpvDir = orderedVersions.LastOrDefault()?.FullName;
-        return macMpvDir is not null ? Path.Combine(macMpvDir, "lib") : string.Empty;
+        var homebrewMpv = GetHomebrewLatestLibPath("/opt/homebrew/Cellar/mpv");
+        return homebrewMpv ?? string.Empty;
+    }
+    
+    private static string GetLinuxMpvDir()
+    {
+        var homebrewMpv = GetHomebrewLatestLibPath("/home/linuxbrew/.linuxbrew/Cellar/mpv");
+        if (homebrewMpv is not null) return homebrewMpv;
+        
+        const string gnuLibPath = "/usr/lib/x86_64-linux-gnu";
+        var gnuLibDirectory = new DirectoryInfo(gnuLibPath);
+        var mpvExists = gnuLibDirectory.EnumerateFiles().Any(x => x.Name.Contains("libmpv"));
+        return mpvExists ? gnuLibPath : string.Empty;
+    }
+
+    private static string? GetHomebrewLatestLibPath(string cellarPath)
+    {
+        var homebrew = new DirectoryInfo(cellarPath);
+        if (!homebrew.Exists) return null;
+        
+        var orderedVersions = homebrew.EnumerateDirectories().OrderBy(x => x.Name);
+        var latestDir = orderedVersions.LastOrDefault()?.FullName;
+        return latestDir is null ? null : Path.Combine(latestDir, "lib");
     }
 
     public void Export(string settingsPath)

@@ -16,10 +16,11 @@ namespace CyberPlayer.Player.Helpers;
 
 public static class Setup
 {
-#if SINGLE
-    public static readonly Mutex GlobalMutex = new(true, BuildConfig.MutexId);
-
     private static readonly ILogger Log = Serilog.Log.ForContext(typeof(Setup));
+    
+#if SINGLE
+    
+    public static readonly Mutex GlobalMutex = new(true, BuildConfig.MutexId);
     
     public static void CheckInstance(string[] args)
     {
@@ -89,6 +90,7 @@ public static class Setup
         }
         catch (OperationCanceledException) { }
     }
+    
 #endif
     
     public static void Register(Settings settings)

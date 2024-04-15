@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 namespace LibMpv.Client.Native;
 
@@ -9,7 +8,12 @@ public class LinuxFunctionResolver : FunctionResolverBase
 
     private const int RTLD_NOW = 0x002;
 
-    protected override string GetNativeLibraryName(string libraryName, int version) => $"{libraryName}.so.{version}";
+    protected override string GetNativeLibraryName(string libraryName, int version)
+    {
+        return File.Exists(Path.Combine(libmpv.RootPath, $"{libraryName}.so.{version}")) ?
+            $"{libraryName}.so.{version}"
+            : $"{libraryName}.so";
+    }
 
     protected override IntPtr LoadNativeLibrary(string libraryName) => dlopen(libraryName, RTLD_NOW);
 

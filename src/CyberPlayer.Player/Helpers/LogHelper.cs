@@ -37,6 +37,8 @@ public static class LogHelper
         var timeStamp = DateTime.Now.ToString(DateTimeFormat);
         var filePath = Path.Combine(BuildConfig.LogDirectory, $"debug_{timeStamp}.log");
         
+        Directory.CreateDirectory(BuildConfig.LogDirectory);
+        
         Log.Logger = new LoggerConfiguration()
             .ConfigureDefaults(filePath, settings.LogLevel)
             .CreateLogger();

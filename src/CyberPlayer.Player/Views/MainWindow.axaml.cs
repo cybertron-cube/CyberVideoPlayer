@@ -245,7 +245,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
     {
         if (_defaultRendererSet)
         {
-            ViewModel!.MpvPlayer.IsPlaying = false;
             _mpvContextBinding?.Dispose();
             ViewModel!.MpvPlayer.MpvContext = new MpvContext();
         }

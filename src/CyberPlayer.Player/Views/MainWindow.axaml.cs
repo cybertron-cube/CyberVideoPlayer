@@ -18,7 +18,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Platform;
-using Avalonia.Rendering;
 using Avalonia.Threading;
 using CyberPlayer.Player.RendererVideoViews;
 using Serilog;
@@ -78,22 +77,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         {
             Content = "Test",
         };
-        var test = true;
-        VideoOverlayWindow? overlay = null;
         testButton.Click += (object? sender, RoutedEventArgs e) =>
         {
-            if (test)
-            {
-                overlay = new VideoOverlayWindow(this);
-                overlay.Show(this);
-                Activate();
-                test = false;
-            }
-            else
-            {
-                overlay?.Close();
-                test = true;
-            }
+            
         };
 
         Button loadButton = new()
@@ -175,7 +161,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         }
     }
 
-    public bool _menuBarActivated = true;
+    private bool _menuBarActivated = true;
     
     private void ToggleMenuBar(bool? toggle = null, bool resizeWindow = true)
     {
@@ -258,9 +244,16 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         switch (renderer)
         {
             case Renderer.Native:
-                var nativeVideoView = new NativeVideoView { DataContext = ViewModel!.MpvPlayer };
-                _mpvContextBinding = nativeVideoView.Bind(NativeVideoView.MpvContextProperty, new Binding(nameof(MpvPlayer.MpvContext)));
-                ViewModel!.VideoContent = nativeVideoView;
+                var nativeVideoWindow = new NativeVideoWindow(this, ViewModel!.MpvPlayer.MpvContext);
+                Dispatcher.UIThread.Post(() =>
+                {
+                    nativeVideoWindow.Show();
+                    Activate();
+                    TransparencyLevelHint = new[] { WindowTransparencyLevel.Transparent };
+                    Background = Brushes.Transparent;
+                    VideoPanel.Background = Brushes.Transparent;
+                }, DispatcherPriority.Loaded);
+                //Activate();
                 return;
             case Renderer.Software:
                 var softwareVideoView = new SoftwareVideoView { DataContext = ViewModel!.MpvPlayer };

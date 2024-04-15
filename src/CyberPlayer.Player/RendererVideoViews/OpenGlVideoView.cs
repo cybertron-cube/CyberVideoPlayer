@@ -4,7 +4,7 @@ using Avalonia.Data;
 using Avalonia.OpenGL;
 using Avalonia.OpenGL.Controls;
 using Avalonia.Threading;
-using LibMpv.Client;
+using LibMpv.Context;
 
 namespace CyberPlayer.Player.RendererVideoViews;
 
@@ -25,14 +25,14 @@ public class OpenGlVideoView : OpenGlControlBase
 
     public MpvContext? MpvContext
     {
-        get { return _mpvContext; }
+        get => _mpvContext;
         set
         {
             if (ReferenceEquals(value, _mpvContext)) return;
             _mpvContext?.StopRendering();
             _mpvContext = value;
             if (_getProcAddress != null)
-                _mpvContext?.StartOpenGlRendering((name) => _getProcAddress(name), UpdateVideoView);
+                _mpvContext?.StartOpenGlRendering(name => _getProcAddress(name), UpdateVideoView);
         }
     }
     protected override void OnOpenGlRender(GlInterface gl, int fbo)
@@ -49,7 +49,7 @@ public class OpenGlVideoView : OpenGlControlBase
         if (_getProcAddress != null) return;
         _getProcAddress = gl.GetProcAddress;
         _mpvContext?.StopRendering();
-        _mpvContext?.StartOpenGlRendering((name) => _getProcAddress(name), UpdateVideoView);
+        _mpvContext?.StartOpenGlRendering(name => _getProcAddress(name), UpdateVideoView);
     }
 
     protected override void OnOpenGlDeinit(GlInterface gl)

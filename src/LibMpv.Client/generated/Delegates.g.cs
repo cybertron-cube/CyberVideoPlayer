@@ -4,12 +4,8 @@ using System.Runtime.InteropServices;
 namespace LibMpv.Client;
 
 [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-public unsafe delegate void* mpv_opengl_init_params_get_proc_address (void* @ctx,     
-    #if NETSTANDARD2_1_OR_GREATER
+public unsafe delegate void* mpv_opengl_init_params_get_proc_address (void* @ctx,
     [MarshalAs(UnmanagedType.LPUTF8Str)]
-    #else
-    [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(UTF8Marshaler))]
-    #endif
     string @name);
 public unsafe struct mpv_opengl_init_params_get_proc_address_func
 {

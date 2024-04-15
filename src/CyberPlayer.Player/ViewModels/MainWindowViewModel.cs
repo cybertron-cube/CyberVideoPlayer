@@ -42,6 +42,12 @@ public class MainWindowViewModel : ViewModelBase
     
     public ReactiveCommand<VideoInfoType, Unit> ViewVideoInfoCommand { get; }
     
+    public ReactiveCommand<Unit, Unit> CenterResizeCommand { get; }
+    
+    public ReactiveCommand<Unit, Unit> CenterCommand { get; }
+    
+    public ReactiveCommand<Unit, Unit> ResizeCommand { get; }
+    
     [Reactive]
     public object? VideoContent { get; set; }
 
@@ -82,19 +88,24 @@ public class MainWindowViewModel : ViewModelBase
 
         AppExiting.Subscribe(_ =>
         {
-            MpvPlayer.UpdateSliderTaskCts.Cancel();
             MpvPlayer.MpvContext.Dispose();
             Settings.Export(BuildConfig.SettingsPath);
         });
-            
+        
         CheckForUpdatesCommand = ReactiveCommand.CreateFromTask(CheckForUpdates);
         MediaPickerCommand = ReactiveCommand.CreateFromTask(MediaPicker);
         OpenWebLinkCommand = ReactiveCommand.Create<string>(GenStatic.OpenWebLink);
         ExitAppCommand = ReactiveCommand.Create<EventArgs?>(ExitApp);
         ViewVideoInfoCommand = ReactiveCommand.Create<VideoInfoType>(this.ShowVideoInfo);
+        CenterResizeCommand = ReactiveCommand.Create(() => { MpvPlayer.SetWindowSize(); MpvPlayer.CenterWindow(); });
+        CenterCommand = ReactiveCommand.Create(MpvPlayer.CenterWindow);
+        ResizeCommand = ReactiveCommand.Create(MpvPlayer.SetWindowSize);
         
         CheckForUpdatesCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
         ViewVideoInfoCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
+        CenterResizeCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
+        CenterCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
+        ResizeCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
     }
 
     private async void HandleCommandExceptions(Exception ex)
@@ -107,7 +118,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         _log.Information("Checking for updates...");
         var result = await Updater.GithubCheckForUpdatesAsync("CyberVideoPlayer",
-            new[] { BuildConfig.AssetIdentifierInstance, BuildConfig.AssetIdentifierPlatform },
+            new[] { BuildConfig.AssetIdentifierInstance, BuildConfig.AssetIdentifierPlatform, BuildConfig.AssetIdentifierArchitecture },
             "https://api.github.com/repos/cybertron-cube/CyberVideoPlayer",
             BuildConfig.Version.ToString(),
             Locator.Current.GetService<HttpClient>()!,
@@ -134,7 +145,14 @@ public class MainWindowViewModel : ViewModelBase
                     new PopupParams());
                 return;
             }
-                
+            
+            // TODO Updater won't work on osx
+            if (OperatingSystem.IsMacOS())
+            {
+                OpenWebLinkCommand.Execute("https://github.com/cybertron-cube/CyberVideoPlayer/releases");
+                return;
+            }
+            
             var updaterPath = GenStatic.GetFullPathFromRelative(BuildConfig.UpdaterPath);
             GenStatic.GetOSRespectiveExecutablePath(ref updaterPath);
             Updater.StartUpdater(updaterPath,
@@ -190,7 +208,7 @@ public class MainWindowViewModel : ViewModelBase
             
         Debug.WriteLine(result.ExitCode);
         Debug.WriteLine(result.ErrorMessage);
-        _log.Information("FFmpeg result: {ExitCode} , {ErrorMessage}", result.ExitCode, result.ErrorMessage);
+        _log.Information("FFmpeg result: {ExitCode}, {ErrorMessage}", result.ExitCode, result.ErrorMessage);
             
         //TODO CHECK IF FILE ALREADY EXISTS - ffmpeg args contain -y so will overwrite but should make prompt
         //TODO subscribe to progress change event to update progressbar

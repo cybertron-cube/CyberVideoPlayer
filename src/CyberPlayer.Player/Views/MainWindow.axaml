@@ -5,18 +5,17 @@
         xmlns:services="clr-namespace:CyberPlayer.Player.Services"
 		xmlns:local="clr-namespace:CyberPlayer.Player"
         xmlns:converters="clr-namespace:CyberPlayer.Player.ValueConverters"
-        xmlns:mpv="clr-namespace:LibMpv.Client;assembly=LibMpv.Context"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:mpv="clr-namespace:LibMpv.Context;assembly=LibMpv.Context"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         d:DataContext="{x:Static local:ViewModelLocator.Main}"
         x:Class="CyberPlayer.Player.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         x:CompileBindings="True"
-        MinHeight="503"
+        WindowStartupLocation="CenterScreen"
+        MinHeight="470"
         MinWidth="640"
-        Width="{Binding MpvPlayer.WindowWidth}"
-        Height="{Binding MpvPlayer.WindowHeight}"
         Icon="/Assets/Logo/cyber-logo-sunset.ico"
         Title="{Binding MpvPlayer.MediaName}">
 	
@@ -76,6 +75,10 @@
 					<NativeMenuItem Header="MediaInfo" Command="{Binding ViewVideoInfoCommand}" CommandParameter="{x:Static services:VideoInfoType.MediaInfo}" />
 					<NativeMenuItem Header="FFprobe" Command="{Binding ViewVideoInfoCommand}" CommandParameter="{x:Static services:VideoInfoType.FFprobe}" />
 					<NativeMenuItem Header="Mpv" Command="{Binding ViewVideoInfoCommand}" CommandParameter="{x:Static services:VideoInfoType.Mpv}" />
+					<NativeMenuItemSeparator />
+					<NativeMenuItem Header="Center/Resize" Command="{Binding CenterResizeCommand}" />
+					<NativeMenuItem Header="Center" Command="{Binding CenterCommand}" />
+					<NativeMenuItem Header="Resize" Command="{Binding ResizeCommand}" />
 				</NativeMenu>
 			</NativeMenuItem>
 			<NativeMenuItem Header="Help">
@@ -104,6 +107,10 @@
 				<MenuItem Header="MediaInfo" Command="{Binding ViewVideoInfoCommand}" CommandParameter="{x:Static services:VideoInfoType.MediaInfo}" />
 				<MenuItem Header="FFprobe" Command="{Binding ViewVideoInfoCommand}" CommandParameter="{x:Static services:VideoInfoType.FFprobe}" />
 				<MenuItem Header="Mpv" Command="{Binding ViewVideoInfoCommand}" CommandParameter="{x:Static services:VideoInfoType.Mpv}" />
+				<Separator />
+				<MenuItem Header="Center/Resize" Command="{Binding CenterResizeCommand}" />
+				<MenuItem Header="Center" Command="{Binding CenterCommand}" />
+				<MenuItem Header="Resize" Command="{Binding ResizeCommand}" />
 			</MenuItem>
 			<MenuItem Header="_Help">
 				<MenuItem Header="_Licenses" />

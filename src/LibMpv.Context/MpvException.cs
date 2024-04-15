@@ -1,6 +1,6 @@
-﻿using System;
+﻿using LibMpv.Client;
 
-namespace LibMpv.Client;
+namespace LibMpv.Context;
 
 public class MpvException : Exception
 {

@@ -273,7 +273,7 @@ def ZipBuilds():
     with cd(BuildDirPath):
         for build in ListDirs(BuildDirPath):
             print(f"Zipping {build}")
-            cmds = f"7z a -tzip \"{os.path.basename(build)}\""
+            cmds = f"7z a -tzip \"{os.path.basename(build)}.zip\" \"{os.path.basename(build)}\""
             subprocess.call(ParseCmds(cmds))
 
 def DeleteBinReleaseDirs():

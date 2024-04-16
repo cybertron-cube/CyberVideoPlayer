@@ -76,11 +76,9 @@ public class Settings
         {
             exception = e;
         }
-
-        if (settings is not null)
-            CheckPaths(settings);
-        else
-            settings = new Settings();
+        
+        settings ??= new Settings();
+        CheckPaths(settings);
         
         return (settings, exception);
     }

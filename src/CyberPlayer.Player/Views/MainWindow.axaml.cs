@@ -14,25 +14,29 @@ using Avalonia.Media;
 using CyberPlayer.Player.Controls;
 using Cybertron;
 using DynamicData.Binding;
-using LibMpv.Client;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
-using Avalonia.Rendering;
 using System.Threading.Tasks;
+using Avalonia.Platform;
+using Avalonia.Rendering;
 using Avalonia.Threading;
 using CyberPlayer.Player.RendererVideoViews;
 using Serilog;
+using LibMpv.Context;
 
 namespace CyberPlayer.Player.Views;
 
 public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPanelView
 {
+    private readonly ILogger _log;
     public Panel MainPanel => MainGrid;
 
     public MainWindow()
     {
             
         InitializeComponent();
+
+        _log = Log.ForContext<MainWindow>();
 
         Loaded += MainWindow_Loaded;
         Opened += MainWindow_Opened;
@@ -76,23 +80,20 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         };
         testButton.Click += (object? sender, RoutedEventArgs e) =>
         {
-            Debug.WriteLine($"Screen Width: {Screens.Primary.Bounds.Width}");
-            Debug.WriteLine($"Screen Height: {Screens.Primary.Bounds.Height}");
-            Debug.WriteLine($"Width: {Width}");
-            Debug.WriteLine($"Height: {Height}");
-            Debug.WriteLine($"ClientSize Width: {ClientSize.Width}");
-            Debug.WriteLine($"ClientSize Height: {ClientSize.Height}");
-            Debug.WriteLine($"WorkingArea Width: {Screens.Primary.WorkingArea.Width}");
-            Debug.WriteLine($"WorkingArea Height: {Screens.Primary.WorkingArea.Height}");
-            Debug.WriteLine($"Render Scaling: {((IRenderRoot)this).RenderScaling}");
+            /*Log.Debug("{A}", MainGrid.RowDefinitions[0].ActualHeight);
+            Log.Debug("{A}", MainGrid.RowDefinitions[0].Height.Value);
+            Log.Debug("{A}", MainGrid.RowDefinitions[0].Height.Value / DesktopScaling);
+            Log.Debug("{A}", FrameSize.Value - ClientSize);
+            Log.Debug("{A}", FrameSize.Value);
+            Log.Debug("{A}", GetMainWindowScreen().WorkingArea);
+            Log.Debug("{A}", MainGrid.Bounds.Height);
+            Log.Debug("{A}", ClientSize.Height);*/
             
-            Log.Debug($"Screen Width: {Screens.Primary.Bounds.Width}");
-            Log.Debug($"Screen Height: {Screens.Primary.Bounds.Height}");
-            Log.Debug($"WorkingArea Width: {Screens.Primary.WorkingArea.Width}");
-            Log.Debug($"WorkingArea Height: {Screens.Primary.WorkingArea.Height}");
-            Log.Debug($"ClientSize Width: {ClientSize.Width}");
-            Log.Debug($"ClientSize Height: {ClientSize.Height}");
-            Log.Debug($"Render Scaling: {((IRenderRoot)this).RenderScaling}");
+            /*Log.Debug("{A}", MainGrid.Bounds.Height);
+            Log.Debug("{A}", MainGrid.RowDefinitions[0].ActualHeight + MainGrid.RowDefinitions[1].ActualHeight + MainGrid.RowDefinitions[2].ActualHeight);
+            Log.Debug("{A}", ClientSize.Height);*/
+            Log.Debug("{A}", FrameSize.Value);
+            Log.Debug("{A}", GetMainWindowScreen().WorkingArea);
         };
 
         Button loadButton = new()
@@ -108,7 +109,33 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         ControlsPanel.Children.Insert(0, testButton);
 #endif
     }
+    
+    public void CenterWindow()
+    {
+        // Use frame size, falling back to client size if the platform can't give it to us.
+        var rect = FrameSize.HasValue ?
+            new PixelRect(PixelSize.FromSize(FrameSize.Value, DesktopScaling)) :
+            new PixelRect(PixelSize.FromSize(ClientSize, DesktopScaling));
 
+        var screen = GetMainWindowScreen();
+        
+        if (screen is not null)
+        {
+            Position = screen.WorkingArea.CenterRect(rect).Position;
+        }
+    }
+
+    public Screen? GetMainWindowScreen()
+    {
+        return Screens.ScreenFromWindow(this)
+            ?? Screens.ScreenFromPoint(Position);
+    }
+
+    public void SetClientSize(double width, double height)
+    {
+        ClientSize = new Size(width, height);
+    }
+    
     private static void DragOver(object sender, DragEventArgs e)
     {
         e.DragEffects = e.DragEffects & (DragDropEffects.Copy | DragDropEffects.Link);
@@ -189,7 +216,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         }
         
         if (resizeWindow && WindowState != WindowState.FullScreen)
-            ViewModel!.MpvPlayer.SetWindowSize();
+            ViewModel!.MpvPlayer.ResizeAndCenterWindow();
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
@@ -218,7 +245,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
     {
         if (_defaultRendererSet)
         {
-            ViewModel!.MpvPlayer.IsPlaying = false;
             _mpvContextBinding?.Dispose();
             ViewModel!.MpvPlayer.MpvContext = new MpvContext();
         }
@@ -226,7 +252,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         {
             _defaultRendererSet = true;
         }
-            
+        
+        _log.Information("Using {RendererType} renderer", renderer);
+        
         switch (renderer)
         {
             case Renderer.Native:
@@ -299,7 +327,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         Dispatcher.UIThread.Post(() =>
         {
             ViewModel!.MpvPlayer.LoadFile();
-        });
+        }, DispatcherPriority.Input);
 #endif
     }
 
@@ -343,11 +371,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
             //(So set the window size again if the height of the video panel has changed)
             Dispatcher.UIThread.Post(async () =>
             {
-                if (Math.Abs((int)VideoPanel.Bounds.Height - ViewModel!.MpvPlayer.VideoHeight) > 1)
+                if (Math.Abs(VideoPanel.Bounds.Height - ViewModel!.MpvPlayer.VideoHeight) > 1)
                 {
                     if (OperatingSystem.IsMacOS())
                         await Task.Delay(300);
-                    ViewModel.MpvPlayer.SetWindowSize();
+                    ViewModel.MpvPlayer.ResizeAndCenterWindow();
                 }
             });
                 

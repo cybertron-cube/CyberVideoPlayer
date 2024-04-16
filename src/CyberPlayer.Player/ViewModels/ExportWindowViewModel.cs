@@ -1,13 +1,11 @@
 using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Subjects;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using Avalonia.Threading;
 using CyberPlayer.Player.AppSettings;
-using CyberPlayer.Player.Business;
 using CyberPlayer.Player.Models;
 using Cybertron;
 using ReactiveUI;
@@ -22,12 +20,12 @@ public class ExportWindowViewModel : ViewModelBase
     
     [Reactive]
     public string? Extension { get; set; }
-
-    private MpvPlayer _mpvPlayer;
-    private Settings _settings;
-    
     
     public IList<TrackInfo> AudioTrackSelection { get; } = new List<TrackInfo>();
+
+    public ReactiveCommand<Unit, Unit> ExportCommand { get; }
+    
+    public Subject<Unit> Close { get; }
 
     public FrozenDictionary<string, string> FFmpegFormats { get; } = new Dictionary<string, string>
     {
@@ -175,7 +173,8 @@ public class ExportWindowViewModel : ViewModelBase
         {"wv", "raw WavPack"},
     }.ToFrozenDictionary();
 
-    public ReactiveCommand<Unit, Unit> ExportCommand { get; }
+    private readonly MpvPlayer _mpvPlayer;
+    private readonly Settings _settings;
 
 #if DEBUG
     public ExportWindowViewModel()
@@ -195,16 +194,19 @@ public class ExportWindowViewModel : ViewModelBase
         _settings = settings;
         AudioTrackInfos = _mpvPlayer.AudioTrackInfos;
 
-        ExportCommand = ReactiveCommand.CreateFromTask(Export);
+        Close = new Subject<Unit>();
+        
+        ExportCommand = ReactiveCommand.Create(Export);
     }
 
-    public async Task Export()
+    public void Export()
     {
         var audioStreamArgs = "";
-        if (AudioTrackSelection.Count < AudioTrackInfos?.Last().Id)
+        if (AudioTrackSelection.Count < AudioTrackInfos?.Count())
         {
+            var negativeMappings = AudioTrackInfos.Where(x => x.IncludeInExport == false);
             StringBuilder sb = new();
-            foreach (var audioTrack in AudioTrackSelection)
+            foreach (var audioTrack in negativeMappings)
             {
                 sb.Append($" -map -0:a:{audioTrack.Id - 1}");
             }
@@ -213,18 +215,12 @@ public class ExportWindowViewModel : ViewModelBase
         }
 
         var newFileName = GenStatic.AppendFileName(_mpvPlayer.MediaPath, "-custom");
-        if (Extension is not null) newFileName = GenStatic.ChangeExtension(newFileName, Extension);
+        if (!string.IsNullOrWhiteSpace(Extension)) newFileName = GenStatic.ChangeExtension(newFileName, Extension);
         
-        CancellationTokenSource cts = new();
+        Dispatcher.UIThread.Post(ExportOnMain);
+        Close.OnNext(Unit.Default);
+        return;
         
-        using (var ffmpeg = new FFmpeg(_mpvPlayer.MediaPath, _settings))
-        {
-            var result = await ffmpeg.FFmpegCommandAsync(_mpvPlayer.TrimStartTimeCode,
-                _mpvPlayer.TrimEndTimeCode,
-                "CustomCommand",
-                $"-ss {_mpvPlayer.TrimStartTimeCode.FormattedString} -to {_mpvPlayer.TrimEndTimeCode.FormattedString} -i \"{_mpvPlayer.MediaPath}\" -map 0{audioStreamArgs} -codec copy {_settings.ExtraTrimArgs} \"{newFileName}\"",
-                cts.Token);
-            Debug.WriteLine("Finished");
-        }
+        async void ExportOnMain() => await ViewModelLocator.Main.Export($"-ss {_mpvPlayer.TrimStartTimeCode.FormattedString} -to {_mpvPlayer.TrimEndTimeCode.FormattedString} -i \"{_mpvPlayer.MediaPath}\" -map 0{audioStreamArgs} -codec copy {_settings.ExtraTrimArgs} \"{newFileName}\"");
     }
 }

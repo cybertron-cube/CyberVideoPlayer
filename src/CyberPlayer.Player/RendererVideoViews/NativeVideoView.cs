@@ -11,24 +11,24 @@ using Avalonia.Media;
 using Avalonia.Metadata;
 using Avalonia.Platform;
 using Avalonia.VisualTree;
-using LibMpv.Client;
+using LibMpv.Context;
 
 namespace CyberPlayer.Player.RendererVideoViews;
 
 public class NativeVideoView : NativeControlHost
 {
-    public static readonly StyledProperty<object> ContentProperty =
+    public static readonly StyledProperty<object?> ContentProperty =
             ContentControl.ContentProperty.AddOwner<NativeVideoView>();
 
-    private IPlatformHandle? _platformHandle = null;
+    private IPlatformHandle? _platformHandle;
     
     private bool _attached;
-    private Window _floatingContent;
-    private IDisposable _disposables;
-    private IDisposable _isEffectivellyVisibleSub;
+    private Window? _floatingContent;
+    private CompositeDisposable? _disposables;
+    private IDisposable? _isEffectivelyVisibleSub;
 
 
-    private MpvContext? _mpvContext = null;
+    private MpvContext? _mpvContext;
 
     public static readonly DirectProperty<NativeVideoView, MpvContext?> MpvContextProperty =
            AvaloniaProperty.RegisterDirect<NativeVideoView, MpvContext?>(
@@ -40,14 +40,14 @@ public class NativeVideoView : NativeControlHost
 
     public MpvContext? MpvContext
     {
-        get { return _mpvContext; }
+        get => _mpvContext;
         set
         {
             if (ReferenceEquals(value, _mpvContext)) return;
             _mpvContext?.StopRendering();
             _mpvContext = value;
             if (_platformHandle != null)
-                _mpvContext?.StartNativeRendering((nint)_platformHandle.Handle);
+                _mpvContext?.StartNativeRendering(_platformHandle.Handle);
         }
     }
 
@@ -59,7 +59,7 @@ public class NativeVideoView : NativeControlHost
 
 
     [Content]
-    public object Content
+    public object? Content
     {
         get => GetValue(ContentProperty);
         set => SetValue(ContentProperty, value);
@@ -68,7 +68,7 @@ public class NativeVideoView : NativeControlHost
     protected override IPlatformHandle CreateNativeControlCore(IPlatformHandle parent)
     {
         _platformHandle = base.CreateNativeControlCore(parent);
-        _mpvContext?.StartNativeRendering((nint)_platformHandle.Handle);
+        _mpvContext?.StartNativeRendering(_platformHandle.Handle);
         return _platformHandle;
     }
 
@@ -90,7 +90,7 @@ public class NativeVideoView : NativeControlHost
 
         InitializeNativeOverlay();
 
-        _isEffectivellyVisibleSub = this.GetVisualAncestors().OfType<Control>()
+        _isEffectivelyVisibleSub = this.GetVisualAncestors().OfType<Control>()
                 .Select(v => v.GetObservable(IsVisibleProperty))
                 .CombineLatest(v => !v.Any(o => !o))
                 .DistinctUntilChanged()
@@ -101,7 +101,7 @@ public class NativeVideoView : NativeControlHost
     {
         base.OnDetachedFromVisualTree(e);
 
-        _isEffectivellyVisibleSub?.Dispose();
+        _isEffectivelyVisibleSub?.Dispose();
 
         ShowNativeOverlay(false);
 
@@ -124,10 +124,10 @@ public class NativeVideoView : NativeControlHost
 
         if (_floatingContent == null && Content != null)
         {
-            _floatingContent = new Window()
+            _floatingContent = new Window
             {
                 SystemDecorations = SystemDecorations.None,
-                TransparencyLevelHint = new []{WindowTransparencyLevel.Transparent},
+                TransparencyLevelHint = new[] { WindowTransparencyLevel.Transparent },
                 Background = Brushes.Transparent,
                 SizeToContent = SizeToContent.WidthAndHeight,
                 ShowInTaskbar = false,
@@ -135,11 +135,11 @@ public class NativeVideoView : NativeControlHost
 
             _disposables = new CompositeDisposable()
             {
-                _floatingContent.Bind(Window.ContentProperty, this.GetObservable(ContentProperty)),
+                _floatingContent.Bind(ContentControl.ContentProperty, this.GetObservable(ContentProperty)),
                 this.GetObservable(ContentProperty).Skip(1).Subscribe(_=> UpdateOverlayPosition()),
                 this.GetObservable(BoundsProperty).Skip(1).Subscribe(_ => UpdateOverlayPosition()),
                 Observable.FromEventPattern(VisualRoot, nameof(Window.PositionChanged))
-                .Subscribe(_ => UpdateOverlayPosition())
+                    .Subscribe(_ => UpdateOverlayPosition())
             };
         }
 

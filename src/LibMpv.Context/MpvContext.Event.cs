@@ -1,11 +1,12 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
+using LibMpv.Client;
 
-namespace LibMpv.Client;
+namespace LibMpv.Context;
 
-public unsafe partial class MpvContext
+public sealed unsafe partial class MpvContext
 {
-    protected delegate void MpvEventHandler(mpv_event @event);
+    private delegate void MpvEventHandler(mpv_event @event);
 
     public event EventHandler? Shutdown;
     public event EventHandler<MpvStartFileEventArgs>? StartFile;
@@ -24,9 +25,13 @@ public unsafe partial class MpvContext
     public event EventHandler<MpvReplyEventArgs>? AsyncSetPropertyReply;
     public event EventHandler<MpvLogMessageEventArgs>? LogMessage;
 
+    internal readonly Dictionary<(string, mpv_format), MpvPropertyObservable<object>> PropertyChangedObservables = new();
+
+    private Dictionary<mpv_event_id, MpvEventHandler> _eventHandlers = null!;
+
     private void InitEventHandlers()
     {
-        eventHandlers = new Dictionary<mpv_event_id, MpvEventHandler>()
+        _eventHandlers = new Dictionary<mpv_event_id, MpvEventHandler>
         {
             { mpv_event_id.MPV_EVENT_NONE, TraceHandler },
             { mpv_event_id.MPV_EVENT_SHUTDOWN, ShutdownHandler },
@@ -52,19 +57,19 @@ public unsafe partial class MpvContext
 
     private void LogMessageHandler(mpv_event @event)
     {
-        if (@event.data != null && LogMessage !=null)
+        if (@event.data != null)
             LogMessage?.Invoke(this, ToLogMessageEventArgs(@event));
     }
 
     private void AsyncSetPropertyHandler(mpv_event @event)
     {
-        if (@event.data != null && AsyncSetPropertyReply!=null)
+        if (@event.data != null)
             AsyncSetPropertyReply?.Invoke(this, new MpvReplyEventArgs(@event.reply_userdata, @event.error));
     }
 
     private void AsyncGetPropertyHandler(mpv_event @event)
     {
-        if (@event.data != null && AsyncGetPropertyReply!=null)
+        if (@event.data != null)
             AsyncGetPropertyReply?.Invoke(this, ToPropertyChangedEventArgs(@event));
     }
 
@@ -76,8 +81,15 @@ public unsafe partial class MpvContext
 
     private void PropertyChangedHandler(mpv_event @event)
     {
-        if (@event.data != null && PropertyChanged!=null)
-            PropertyChanged?.Invoke(this, ToPropertyChangedEventArgs(@event));
+        if (@event.data == null) return;
+        
+        var propertyChangedEvent = ToPropertyChangedEventArgs(@event);
+        PropertyChanged?.Invoke(this, propertyChangedEvent);
+        if (PropertyChangedObservables.TryGetValue((propertyChangedEvent.Name, propertyChangedEvent.Format),
+                out var observable))
+        {
+            observable.OnNextAll(propertyChangedEvent.Value!);
+        }
     }
 
     private void QueueOverflowHandler(mpv_event @event)
@@ -122,19 +134,19 @@ public unsafe partial class MpvContext
 
     private void EndFileHandler(mpv_event @event)
     {
-        if (@event.data != null && EndFile!=null)
+        if (@event.data != null && EndFile != null)
         {
-            mpv_event_end_file endFile = MarshalHelper.PtrToStructure<mpv_event_end_file>((nint)@event.data);
-            EndFile?.Invoke(this, new MpvEndFileEventArgs(endFile.reason, endFile.error, endFile.playlist_entry_id));
+            var endFile = MarshalHelper.PtrToStructure<mpv_event_end_file>((nint)@event.data);
+            EndFile.Invoke(this, new MpvEndFileEventArgs(endFile.reason, endFile.error, endFile.playlist_entry_id));
         }
     }
 
     private void StartFileHandler(mpv_event @event)
     {
-        if (@event.data != null && StartFile!=null)
+        if (@event.data != null && StartFile != null)
         {
-            mpv_event_start_file startFile = MarshalHelper.PtrToStructure<mpv_event_start_file>((nint)@event.data);
-            StartFile?.Invoke(this, new MpvStartFileEventArgs(startFile.playlist_entry_id));
+            var startFile = MarshalHelper.PtrToStructure<mpv_event_start_file>((nint)@event.data);
+            StartFile.Invoke(this, new MpvStartFileEventArgs(startFile.playlist_entry_id));
         }
     }
 
@@ -147,18 +159,16 @@ public unsafe partial class MpvContext
     {
         Debug.WriteLine($"Unhandled MPV Event: {Enum.GetName(typeof(mpv_event_id), @event.event_id)}");
     }
-
-
+    
     private void HandleEvent(mpv_event @event)
     {
-        MpvEventHandler eventHandler;
-        if (eventHandlers.TryGetValue(@event.event_id, out eventHandler))
+        if (_eventHandlers.TryGetValue(@event.event_id, out var eventHandler))
             eventHandler.Invoke(@event);
     }
 
     private MpvLogMessageEventArgs ToLogMessageEventArgs(mpv_event @event)
     {
-        mpv_event_log_message logMessage = MarshalHelper.PtrToStructure<mpv_event_log_message>((nint)@event.data);
+        var logMessage = MarshalHelper.PtrToStructure<mpv_event_log_message>((nint)@event.data);
         return new MpvLogMessageEventArgs(
             MarshalHelper.PtrToStringUTF8OrEmpty((nint)logMessage.prefix),
             MarshalHelper.PtrToStringUTF8OrEmpty((nint)logMessage.level),
@@ -170,33 +180,39 @@ public unsafe partial class MpvContext
 
     private MpvPropertyEventArgs ToPropertyChangedEventArgs(mpv_event @event)
     {
-        mpv_event_property property = MarshalHelper.PtrToStructure<mpv_event_property>((nint)@event.data);
+        var property = MarshalHelper.PtrToStructure<mpv_event_property>((nint)@event.data);
 
-        object? value = null;
+        object? value;
 
-        if (property.format == mpv_format.MPV_FORMAT_STRING)
+        switch (property.format)
         {
-            value = MarshalHelper.PtrToStringUTF8OrNull((nint)property.data);
+            case mpv_format.MPV_FORMAT_NONE:
+                value = null;
+                break;
+            case mpv_format.MPV_FORMAT_STRING:
+                value = MarshalHelper.PtrToStringUTF8OrNull((nint)property.data) ?? string.Empty;
+                break;
+            case mpv_format.MPV_FORMAT_INT64:
+                value = Marshal.ReadInt64((nint)property.data);
+                break;
+            case mpv_format.MPV_FORMAT_FLAG:
+            {
+                var flag = Marshal.ReadInt32((nint)property.data);
+                value = flag == 1;
+                break;
+            }
+            case mpv_format.MPV_FORMAT_DOUBLE:
+            {
+                var doubleBytes = new byte[sizeof(double)];
+                Marshal.Copy((nint)property.data, doubleBytes, 0, sizeof(double));
+                value = BitConverter.ToDouble(doubleBytes, 0);
+                break;
+            }
+            default:
+                throw new ArgumentOutOfRangeException(nameof(mpv_format));
         }
-        else if (property.format == mpv_format.MPV_FORMAT_INT64)
-        {
-            value = Marshal.ReadInt64((nint)property.data);
-        }
-        else if (property.format == mpv_format.MPV_FORMAT_FLAG)
-        {
-            int flag;
-            flag = Marshal.ReadInt32((nint)property.data);
-            value = flag == 1 ? true : false;
-        }
-        else if (property.format == mpv_format.MPV_FORMAT_DOUBLE)
-        {
-            var doubleBytes = new byte[sizeof(double)];
-            Marshal.Copy((nint)property.data, doubleBytes, 0, sizeof(double));
-            value = BitConverter.ToDouble(doubleBytes, 0);
-        }
+        
         var name = MarshalHelper.PtrToStringUTF8OrEmpty((nint)property.name);
         return new MpvPropertyEventArgs(property.format, name, value, @event.reply_userdata, @event.error);
     }
-
-    private Dictionary<mpv_event_id, MpvEventHandler>? eventHandlers;
 }

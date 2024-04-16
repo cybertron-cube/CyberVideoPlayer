@@ -1,19 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Models;
 using Cybertron;
 using LibMpv.Client;
+using LibMpv.Context;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Serilog;
@@ -25,6 +23,8 @@ public class MpvPlayer : ViewModelBase
     private readonly Settings _settings;
 
     private readonly ILogger _log;
+
+    private CompositeDisposable? _disposables;
     
     private MpvContext _mpvContext;
 
@@ -33,9 +33,11 @@ public class MpvPlayer : ViewModelBase
         get => _mpvContext;
         set
         {
+            _disposables?.Dispose();
             this.RaiseAndSetIfChanged(ref _mpvContext, value);
-            MpvContext.FileLoaded += MpvContext_FileLoaded;
-            MpvContext.EndFile += MpvContext_EndFile;
+            _mpvContext.FileLoaded += MpvContext_FileLoaded;
+            _mpvContext.EndFile += MpvContext_EndFile;
+            ObserveProperties();
         }
     }
     
@@ -47,6 +49,7 @@ public class MpvPlayer : ViewModelBase
         _mpvContext = new MpvContext();
         MpvContext.FileLoaded += MpvContext_FileLoaded;
         MpvContext.EndFile += MpvContext_EndFile;
+        ObserveProperties();
 
         _seekTimeCode = new TimeCode(0);
         _durationTimeCode = new TimeCode(1);
@@ -54,28 +57,42 @@ public class MpvPlayer : ViewModelBase
         _trimEndTimeCode = new TimeCode(1);
         _timeCodeStartIndex = 0;
         _timeCodeLength = _settings.TimeCodeLength;
-        WindowWidth = double.NaN;
-        WindowHeight = double.NaN;
         TrackListJson = string.Empty;
 
         FrameStepCommand = ReactiveCommand.Create<string>(FrameStep);
         SeekCommand = ReactiveCommand.Create<double>(Seek);
         VolumeCommand = ReactiveCommand.Create<double>(ChangeVolume);
+    }
 
-        UpdateSliderTaskCts = new CancellationTokenSource();
-        Task.Run(() => UpdateSliderValueLoop(UpdateSliderTaskCts.Token));
+    private void ObserveProperties()
+    {
+        _disposables?.Dispose();
+        _disposables = new CompositeDisposable
+        {
+            _mpvContext.ObserveProperty<double>(MpvProperties.TimePosition).Subscribe(x =>
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    if (!IsSeeking)
+                        SetSliderValueNoSeek(x);
+                });
+            }),
+            _mpvContext.ObserveProperty<bool>(MpvProperties.Paused).Subscribe(isPaused =>
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    IsPlaying = !isPaused;
+                });
+            })
+        };
     }
 
     private void MpvContext_EndFile(object? sender, MpvEndFileEventArgs e)
     {
-        if (_replacingFile)
-        {
-            _replacingFile = false;
-        }
-        else
-        {
-            IsPlaying = false;
-        }
+        // In mpv paused is not set to true when reaching the end of file
+        // but we still want the pause/play button to show the play symbol
+        if (e.Reason == mpv_end_file_reason.MPV_END_FILE_REASON_EOF)
+            MpvContext.SetPropertyFlag(MpvProperties.Paused, true);
         
         IsFileLoaded = false;
         SetSliderValueNoSeek(Duration);
@@ -83,17 +100,12 @@ public class MpvPlayer : ViewModelBase
 
     private void MpvContext_FileLoaded(object? sender, EventArgs e)
     {
-        Debug.WriteLine("File Loaded");
+        _log.Information("File loaded");
         IsFileLoaded = true;
-        if (_reloadFile)
-        {
-            _reloadFile = false;
-            IsPlaying = true;
-        }
-        else if (!double.IsNaN(_lastSeekValue))
+        
+        if (!double.IsNaN(_lastSeekValue)) //loading from seeking after hitting the end of the video
         {
             Seek();
-            MpvContext.SetPropertyFlag(MpvProperties.Paused, true);
         }
         else //loading new file
         {
@@ -117,9 +129,8 @@ public class MpvPlayer : ViewModelBase
             
             GetTracks();
             if (GetMainWindowState() == WindowState.Normal)
-                SetWindowSize();
+                ResizeAndCenterWindow();
         }
-        Debug.WriteLine(Duration);
     }
     
     public ReactiveCommand<string, Unit> FrameStepCommand { get; }
@@ -127,14 +138,6 @@ public class MpvPlayer : ViewModelBase
     public ReactiveCommand<double, Unit> SeekCommand { get; }
     
     public ReactiveCommand<double, Unit> VolumeCommand { get; }
-
-    private readonly ManualResetEvent _updateSliderMre = new(false);
-    
-    private bool _initialFileLoaded = false;
-    
-    private bool _reloadFile = false;
-    
-    private bool _replacingFile = false;
     
     private double _lastSeekValue = double.NaN;
     
@@ -186,8 +189,6 @@ public class MpvPlayer : ViewModelBase
 
     [Reactive]
     public bool IsFileLoaded { get; set; }
-    
-    public CancellationTokenSource UpdateSliderTaskCts { get; }
 
     private double _duration = 1;
     
@@ -213,20 +214,7 @@ public class MpvPlayer : ViewModelBase
     public bool IsPlaying
     {
         get => _isPlaying;
-        set
-        {
-            if (_isPlaying == value) return;
-            _isPlaying = value;
-            this.RaisePropertyChanged();
-            if (value)
-            {
-                _updateSliderMre.Set();
-            }
-            else
-            {
-                _updateSliderMre.Reset();
-            }
-        }
+        set => this.RaiseAndSetIfChanged(ref _isPlaying, value);
     }
 
     private bool _wasPlaying;
@@ -246,7 +234,6 @@ public class MpvPlayer : ViewModelBase
                 {
                     case true:
                         _wasPlaying = IsPlaying;
-                        IsPlaying = false;
                         MpvContext.SetPropertyFlag(MpvProperties.Paused, true);
                         return;
                     case false when SeekValue - Duration < 0:
@@ -255,7 +242,6 @@ public class MpvPlayer : ViewModelBase
                             _lastSeekValue = double.NaN;
                             return;
                         }
-                        IsPlaying = _wasPlaying;
                         MpvContext.SetPropertyFlag(MpvProperties.Paused, !_wasPlaying);
                         return;
                 }
@@ -388,116 +374,95 @@ public class MpvPlayer : ViewModelBase
     [Reactive]
     public string TrackListJson { get; set; }
 
-    [Reactive]
-    public double WindowWidth { get; set; }
-    
-    [Reactive]
-    public double WindowHeight { get; set; }
-
-    public int VideoHeight { get; private set; }
+    public double VideoHeight { get; private set; }
 
     public void SetWindowSize()
     {
-        //Mac scaling is unique
-        var maxWidth = OperatingSystem.IsMacOS() ? Screens.Primary!.WorkingArea.Width
-            : Screens.Primary!.WorkingArea.Width / RenderScaling;
-        var maxHeight = OperatingSystem.IsMacOS() ? Screens.Primary.WorkingArea.Height
-                : (int)(Screens.Primary.WorkingArea.Height / RenderScaling);
+        if (SelectedVideoTrack is null) return;
         
-        var panelHeightDifference = 0;
+        var mainWindow = ViewLocator.Main;
+        var screen = mainWindow.GetMainWindowScreen();
+        
+        if (screen is null) throw new NullReferenceException();
+        
+        var scaling = mainWindow.DesktopScaling;
+        _log.Verbose("scaling: {A}", scaling);
+        
+        // ClientSize = Only our part of the window
+        // FrameSize = The entire window, including system decorations
+        // If window size doesn't set properly this is likely the culprit
+        // This is because the platform may not supply the FrameSize to us
+        var systemDecorations = mainWindow.FrameSize == null ? 0
+            : (int)((mainWindow.FrameSize.Value.Height - mainWindow.ClientSize.Height) * scaling);
+        _log.Verbose("systemDecorations: {A}", systemDecorations);
+        
+        // Screen working area is not scaled so no need to unscale these values
+        var maxWidth = screen.WorkingArea.Width;
+        var maxHeight = screen.WorkingArea.Height;
+        _log.Verbose("maxWidth: {A}", maxWidth);
+        _log.Verbose("maxHeight: {A}", maxHeight);
+        
+        double panelHeightDiff = 0;
         Dispatcher.UIThread.Invoke(() =>
         {
-            //INCLUDES SYSTEM DECORATIONS
-            //The height of the entire window without the video panel
-            panelHeightDifference = (int)PanelHeightDifference;
+            panelHeightDiff = mainWindow.MenuBar.IsVisible
+                ? (mainWindow.MainGrid.RowDefinitions[0].ActualHeight + mainWindow.MainGrid.RowDefinitions[2].ActualHeight) * scaling
+                : mainWindow.MainGrid.RowDefinitions[2].ActualHeight * scaling;
         });
+        _log.Verbose("panelHeightDiff: {A}", panelHeightDiff);
         
-        //Get the height of the video scaled for the correct aspect ratio
-        //Sometimes the property is attempted to be retrieved before available
-        //(Even though this method is called in the fileloaded event the exception still occurs on windows)
-        var videoSourceHeight = 0;
-        var getDemuxHeightResult = ExecuteAndRetry(() =>
-        {
-            videoSourceHeight = (int)_mpvContext.GetPropertyLong("video-params/dh");
-        }, exception => _log.Error(exception, ""));
-
-        if (getDemuxHeightResult == false) throw new Exception("Could not retrieve video height from mpv");
-
-        //Calculate the height of the video and the height of the entire window
-        double desiredHeight;
+        var videoSourceHeight = (int)SelectedVideoTrack.VideoDemuxHeight!;
+        _log.Verbose("videoSourceHeight: {A}", videoSourceHeight);
         
-        if (SelectedVideoTrack!.VideoDemuxHeight + panelHeightDifference >= maxHeight)
-        {
-            VideoHeight = maxHeight - panelHeightDifference;
-            desiredHeight = maxHeight - SystemDecorations;
-        }
+        if (videoSourceHeight + panelHeightDiff + systemDecorations >= maxHeight)
+            VideoHeight = maxHeight - systemDecorations - panelHeightDiff;
         else
-        {
             VideoHeight = videoSourceHeight;
-            desiredHeight = videoSourceHeight + panelHeightDifference - SystemDecorations;
-        }
         
-        //Calculate aspect ratio
+        VideoHeight /= scaling;
+        _log.Verbose("VideoHeight: {A}", VideoHeight);
+        
+        // Calculate aspect ratio
         var displayAspectRatio = (double)SelectedVideoTrack.VideoDemuxWidth! / (double)SelectedVideoTrack.VideoDemuxHeight!;
-        //Account for sample/pixel aspect ratio if needed
+        _log.Verbose("displayAspectRatio: {A}", displayAspectRatio);
+        // Account for sample/pixel aspect ratio if needed
         if (SelectedVideoTrack.VideoDemuxPar != null)
+        {
             displayAspectRatio *= (double)SelectedVideoTrack.VideoDemuxPar;
+            _log.Verbose("VideoDemuxPar: {A}", (double)SelectedVideoTrack.VideoDemuxPar);
+        }
+        _log.Verbose("displayAspectRatio: {A}", displayAspectRatio);
         
         var desiredWidth = VideoHeight * displayAspectRatio;
+        _log.Verbose("desiredWidth: {A}", desiredWidth);
         
         if (desiredWidth > maxWidth)
         {
-            //change height to match new width
-            desiredHeight = maxWidth / displayAspectRatio;
+            VideoHeight = maxWidth / scaling / displayAspectRatio;
             desiredWidth = maxWidth;
+            _log.Verbose("VideoHeight: {A}", VideoHeight);
+            _log.Verbose("desiredWidth: {A}", desiredWidth);
         }
-
-        //Find centered x and y pixel points
-        //Assumes default taskbar locations for the most part (bottom and left side work properly)
-        var x = OperatingSystem.IsMacOS() ? (maxWidth - desiredWidth) / 2 + Screens.Primary.Bounds.Width - maxWidth
-            : (maxWidth * RenderScaling - desiredWidth * RenderScaling) / 2 + Screens.Primary.Bounds.Width / RenderScaling - maxWidth;
         
-        //This seems to be a tad inaccurate on mac (on the lower side) but not crazy noticeable
-        // - would have to find height of top bar and bottom bar in order to correct this
-        //On linux RenderScaling seems to always be one
-        // - if scaling is set to 200%, the window will not be centered vertically correctly (more towards bottom)
-        var y = OperatingSystem.IsMacOS() ? (maxHeight - desiredHeight + SystemDecorations) / 2 :
-            OperatingSystem.IsWindows() ? (maxHeight * RenderScaling - (desiredHeight + SystemDecorations) * RenderScaling) / 2
-            : (maxHeight - (desiredHeight + SystemDecorations)) / 2 + Screens.Primary.Bounds.Height - maxHeight;
+        var desiredHeight = panelHeightDiff / scaling + VideoHeight;
+        _log.Verbose("desiredHeight: {A}", desiredHeight);
         
         Dispatcher.UIThread.Invoke(() =>
         {
-            WindowWidth = desiredWidth;
-            WindowHeight = desiredHeight;
+            mainWindow.SetClientSize(desiredWidth, desiredHeight);
         });
-        
-        //Position updates too early on linux occasionally
-        Dispatcher.UIThread.Post(() =>
-        {
-            MainWindow.Position = new PixelPoint((int)x, (int)y);
-        });
-        
-        //with windows the width seems to be one pixel too much?
     }
     
-    ///Made to help with calls to mpv since information retrieval can be a bit wonky
-    private static bool ExecuteAndRetry(Action work, Action<Exception>? onCaughtException = null, int retryCount = 2, int delay = 100)
-    {
-        for (int i = 0; i <= retryCount; i++)
-        {
-            try
-            {
-                work.Invoke();
-                return true;
-            }
-            catch (Exception e)
-            {
-                onCaughtException?.Invoke(e);
-                Thread.Sleep(delay);
-            }
-        }
+    public static void CenterWindow() => Dispatcher.UIThread.Post(ViewLocator.Main.CenterWindow);
 
-        return false;
+    public void ResizeAndCenterWindow()
+    {
+        if (_settings.AutoResize)
+            SetWindowSize();
+        if (_settings.AutoCenter)
+            CenterWindow();
+        if (_settings.AutoFocus)
+            Dispatcher.UIThread.Post(ViewLocator.Main.Activate);
     }
 
     private void ChangeVolume(double offset)
@@ -513,20 +478,9 @@ public class MpvPlayer : ViewModelBase
 
     private void FrameStep(string param)
     {
-        if (IsPlaying)
-        {
-            IsPlaying = false;
-        }
-
         Dispatcher.UIThread.Invoke(() =>
         {
             MpvContext.Command(param);
-        });
-        
-        Task.Run(() =>
-        {
-            Thread.Sleep(_settings.FrameStepUpdateDelay);
-            Dispatcher.UIThread.Post(UpdateSliderValue);
         });
     }
 
@@ -549,17 +503,14 @@ public class MpvPlayer : ViewModelBase
                 MpvContext.Command(MpvCommands.Seek, "0", "absolute");
                 SetSliderValueNoSeek(0);
                 MpvContext.SetPropertyFlag(MpvProperties.Paused, false);
-                IsPlaying = true;
                 return;
             }
             MpvContext.Command(MpvCommands.Cycle, "pause");
-            IsPlaying = !IsPlaying;
         }
         else
         {
             if (!string.IsNullOrWhiteSpace(MediaPath))
             {
-                _reloadFile = true;
                 LoadFile();
             }
         }
@@ -614,23 +565,8 @@ public class MpvPlayer : ViewModelBase
         if (mediaPath != null)
             MediaPath = mediaPath;
         
-        if (!_reloadFile)
-            _replacingFile = true;
-        
         MpvContext.Command(MpvCommands.LoadFile, MediaPath, "replace");
-
-        if (_replacingFile)
-        {
-            MpvContext.SetPropertyFlag(MpvProperties.Paused, false);
-            IsPlaying = true; //TODO Make setting
-            return;
-        }
-
-        if (!_initialFileLoaded)
-        {
-            _initialFileLoaded = true;
-            IsPlaying = true; //TODO Make setting
-        }
+        MpvContext.SetPropertyFlag(MpvProperties.Paused, false);
     }
     
     private void SetSliderValueNoSeek(double val)
@@ -641,45 +577,5 @@ public class MpvPlayer : ViewModelBase
         this.RaisePropertyChanged(nameof(SeekTimeCodeString));
     }
 
-    private void UpdateSliderValue()
-    {
-        SetSliderValueNoSeek(MpvContext.GetPropertyDouble(MpvProperties.TimePosition));
-    }
-    
-    private async Task UpdateSliderValueLoop(CancellationToken ct)
-    {
-        ct.ThrowIfCancellationRequested();
-        double timePos;
-        while (!ct.IsCancellationRequested)
-        {
-            try
-            {
-                _updateSliderMre.WaitOne();
-                timePos = MpvContext.GetPropertyDouble(MpvProperties.TimePosition);
-                if (timePos >= 0)
-                    await Dispatcher.UIThread.InvokeAsync(Callback);
-                await Task.Delay(_settings.SeekRefreshRate, ct);
-            }
-            catch (MpvException mpvException)
-            {
-                //Dirty way to stop thread from aborting when file is unloaded
-                //This exception should only be caught once when unloading while the video is playing
-                //Unloaded event resets the mre but this method will be on the mpvcontext line throwing an exception already by the time the mre is reset
-                // (this thread is paused after the file is unloaded, therefore causing the exception)
-                Debug.WriteLine(mpvException);
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine(e);
-                throw;
-            }
-        }
-        ct.ThrowIfCancellationRequested();
-        return;
-
-        void Callback()
-        {
-            if (!IsSeeking) SetSliderValueNoSeek(timePos);
-        }
-    }
+    private static WindowState GetMainWindowState() => Dispatcher.UIThread.Invoke(() => ViewLocator.Main.WindowState);
 }

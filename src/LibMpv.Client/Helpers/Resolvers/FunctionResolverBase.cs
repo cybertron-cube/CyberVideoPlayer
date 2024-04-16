@@ -59,16 +59,26 @@ public abstract class FunctionResolverBase : IFunctionResolver
                 .ToList()
                 .ForEach(n => GetOrLoadLibrary(n, false));
 
-            var version = libmpv.LibraryVersionMap[libraryName];
-            var nativeLibraryName = GetNativeLibraryName(libraryName, version);
-            var libraryPath = Path.Combine(libmpv.RootPath, nativeLibraryName);
+            string libraryPath;
+            if (File.Exists(libmpv.RootPath))
+            {
+                libraryPath = libmpv.RootPath;
+            }
+            else
+            {
+                var version = libmpv.LibraryVersionMap[libraryName];
+                var nativeLibraryName = GetNativeLibraryName(libraryName, version);
+                libraryPath = Path.Combine(libmpv.RootPath, nativeLibraryName);
+                if (!File.Exists(libraryPath)) throw new FileNotFoundException("Could not find libmpv library");
+            }
+            
             ptr = LoadNativeLibrary(libraryPath);
 
             if (ptr != IntPtr.Zero) _loadedLibraries.Add(libraryName, ptr);
             else if (throwOnError)
             {
                 throw new DllNotFoundException(
-                    $"Unable to load DLL '{libraryName}.{version} under {libmpv.RootPath}': The specified module could not be found.");
+                    $"Unable to load DLL '{libraryPath}': The specified module could not be found.");
             }
 
             return ptr;

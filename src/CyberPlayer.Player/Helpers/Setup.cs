@@ -10,32 +10,35 @@ using CyberPlayer.Player.ViewModels;
 using CyberPlayer.Player.Views;
 using LibMpv.Client;
 using Splat;
+using ILogger = Serilog.ILogger;
 
 namespace CyberPlayer.Player.Helpers;
 
 public static class Setup
 {
+    private static readonly ILogger Log = Serilog.Log.ForContext(typeof(Setup));
+    
 #if SINGLE
-    public static readonly Mutex Mutex = new(true, BuildConfig.Guid);
+    
+    public static readonly Mutex GlobalMutex = new(true, BuildConfig.MutexId);
     
     public static void CheckInstance(string[] args)
     {
-        if (Mutex.WaitOne(TimeSpan.Zero, true))
+        if (GlobalMutex.WaitOne(TimeSpan.Zero, true))
         {
-            var server = new NamedPipeServerStream(BuildConfig.Guid);
             var cts = new CancellationTokenSource();
 
-            Task.Run(() => StartServerPipe(server), cts.Token);
-            
-            AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+            var serverPipeTask = Task.Factory.StartNew(StartServerPipe, cts.Token,
+                TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach).Unwrap();
+
+            void OnExit(object? o, EventArgs eventArgs)
             {
                 cts.Cancel();
-            };
-        
-            AppDomain.CurrentDomain.UnhandledException += (_, _) =>
-            {
-                cts.Cancel();
-            };
+                serverPipeTask.GetAwaiter().GetResult();
+            }
+
+            AppDomain.CurrentDomain.ProcessExit += OnExit;
+            AppDomain.CurrentDomain.UnhandledException += OnExit;
         }
         else
         {
@@ -55,34 +58,48 @@ public static class Setup
         }
     }
 
-    private static async Task StartServerPipe(NamedPipeServerStream serverPipe)
+    private static async Task StartServerPipe(object? cancellationToken)
     {
-        while (true)
-        {
-            await serverPipe.WaitForConnectionAsync();
-            var sr = new StreamReader(serverPipe);
-            var filePath = await sr.ReadToEndAsync();
-            
-            var player = Locator.Current.GetService<MpvPlayer>();
-            var mainWindow = Locator.Current.GetService<MainWindow>();
-            await Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                mainWindow?.Activate();
-                player?.LoadFile(filePath);
-            });
+        if (cancellationToken is not CancellationToken ct)
+            throw new ArgumentException($"Must be of type {typeof(CancellationToken)}", nameof(cancellationToken));
+
+        Thread.CurrentThread.Name = "ServerPipe";
         
-            serverPipe.Disconnect();
+        var serverPipe = new NamedPipeServerStream(BuildConfig.Guid);
+        Log.Debug("Server pipe started");
+            
+        try
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                await serverPipe.WaitForConnectionAsync(ct);
+                var sr = new StreamReader(serverPipe);
+                var filePath = await sr.ReadToEndAsync(ct);
+                Log.Information("Received file path, {FilePath}, from another instance", filePath);
+                
+                var player = Locator.Current.GetService<MpvPlayer>();
+                var mainWindow = Locator.Current.GetService<MainWindow>();
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    mainWindow?.Activate();
+                    player?.LoadFile(filePath);
+                }, DispatcherPriority.Input, ct);
+
+                serverPipe.Disconnect();
+            }
         }
+        catch (OperationCanceledException) { }
     }
+    
 #endif
     
-    public static void Register()
+    public static void Register(Settings settings)
     {
-        var container = Locator.CurrentMutable;
-        var settings = Settings.Import(BuildConfig.SettingsPath);
-        if (!string.IsNullOrWhiteSpace(settings.LibMpvDir))
-            libmpv.RootPath = settings.LibMpvDir;
+        libmpv.RootPath = settings.LibMpvPath;
+        Log.Information("Using libmpv from path: \"{LibPath}\"", libmpv.RootPath);
 
+        var container = Locator.CurrentMutable;
+        
         container.RegisterConstant(settings);
         container.RegisterLazySingleton(() => new HttpClient());
         

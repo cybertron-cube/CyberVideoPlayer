@@ -21,17 +21,19 @@
 
 - [ ] Ability to change keybindings
 - [ ] Ability to change settings without editing json
-- [x] Being able to change audio tracks
-- [ ] Transcoding/Remuxing
+- [x] Being able to change playback audio track
+- [x] Remuxing
+- [ ] Transcoding
+- [ ] Able to change ffmpeg arguments yourself
 - [x] Show trim progress
 - [ ] Speed multiplier for playback
 - [x] Full screen
-- [ ] Ability to switch playback renderer
+- [ ] Ability to switch playback renderer while program is open
 - [ ] Ability to set config file for MPV to use
 - [x] Display track info in separate window
 - [x] Use mediainfo to display detailed information
 - [x] Add support for OSX
-- [ ] Select tracks to export
+- [x] Select tracks to export
 - [x] Size window to fit video
 - [ ] Screenshot/GIF
 - [ ] Theme selection

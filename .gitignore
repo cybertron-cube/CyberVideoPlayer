@@ -392,6 +392,7 @@ FodyWeavers.xsd
 /ffmpeg/
 /win-installer/
 /ignore/
+/package/
 /.venv/
 /src/CyberPlayer.Player/.avalonia-build-tasks/id
 *.mkv

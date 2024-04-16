@@ -95,8 +95,7 @@ public static class Setup
     
     public static void Register(Settings settings)
     {
-        if (!string.IsNullOrWhiteSpace(settings.LibMpvDir))
-            libmpv.RootPath = settings.LibMpvDir;
+        libmpv.RootPath = settings.LibMpvPath;
         Log.Information("Using libmpv from path: \"{LibPath}\"", libmpv.RootPath);
 
         var container = Locator.CurrentMutable;

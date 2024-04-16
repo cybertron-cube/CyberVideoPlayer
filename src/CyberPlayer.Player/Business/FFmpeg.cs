@@ -38,6 +38,7 @@ public class FFmpeg : IDisposable
         _log = new LoggerConfiguration()
             .ConfigureDefaults(filePath, settings.LogLevel)
             .CreateLogger();
+        _log.Information("FFmpeg logger initialized");
         _log.CleanupLogFiles(BuildConfig.LogDirectory, "ffmpeg_output*.log", 10);
         
         var ffmpegPath = string.IsNullOrWhiteSpace(settings.FFmpegDir) ?

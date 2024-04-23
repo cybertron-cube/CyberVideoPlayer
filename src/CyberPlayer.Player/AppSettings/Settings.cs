@@ -150,7 +150,7 @@ public class Settings
     {
         if (OperatingSystem.IsMacOS()) return GetMacDir(name, type);
         if (OperatingSystem.IsLinux()) return GetLinuxDir(name, type);
-        if (OperatingSystem.IsWindows()) return string.Empty; // TODO Maybe check path environment variable
+        if (OperatingSystem.IsWindows()) return AppDomain.CurrentDomain.BaseDirectory; // TODO Maybe check path environment variable
         throw new PlatformNotSupportedException();
     }
     

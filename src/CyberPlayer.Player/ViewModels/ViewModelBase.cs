@@ -1,6 +1,4 @@
 ﻿using System;
-using Avalonia.Controls;
-using Avalonia.Threading;
 using CyberPlayer.Player.Views;
 using ReactiveMarbles.ObservableEvents;
 using ReactiveUI;

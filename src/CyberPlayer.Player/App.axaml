@@ -39,7 +39,7 @@
     
     <Application.Styles>
         <FluentTheme />
-		<StyleInclude Source="/Styles/VolumeSlider.axaml"/>
+        <StyleInclude Source="/Styles/VolumeSlider.axaml"/>
     </Application.Styles>
     
 </Application>

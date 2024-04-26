@@ -80,20 +80,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         };
         testButton.Click += (object? sender, RoutedEventArgs e) =>
         {
-            /*Log.Debug("{A}", MainGrid.RowDefinitions[0].ActualHeight);
-            Log.Debug("{A}", MainGrid.RowDefinitions[0].Height.Value);
-            Log.Debug("{A}", MainGrid.RowDefinitions[0].Height.Value / DesktopScaling);
-            Log.Debug("{A}", FrameSize.Value - ClientSize);
-            Log.Debug("{A}", FrameSize.Value);
-            Log.Debug("{A}", GetMainWindowScreen().WorkingArea);
-            Log.Debug("{A}", MainGrid.Bounds.Height);
-            Log.Debug("{A}", ClientSize.Height);*/
             
-            /*Log.Debug("{A}", MainGrid.Bounds.Height);
-            Log.Debug("{A}", MainGrid.RowDefinitions[0].ActualHeight + MainGrid.RowDefinitions[1].ActualHeight + MainGrid.RowDefinitions[2].ActualHeight);
-            Log.Debug("{A}", ClientSize.Height);*/
-            Log.Debug("{A}", FrameSize.Value);
-            Log.Debug("{A}", GetMainWindowScreen().WorkingArea);
         };
 
         Button loadButton = new()

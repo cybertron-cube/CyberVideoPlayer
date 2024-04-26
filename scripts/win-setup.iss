@@ -26,7 +26,7 @@ InfoAfterFile=A:\CyberPlayerMPV\build\win-x64-single\README.md
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
 OutputDir=A:\CyberPlayerMPV\package
-OutputBaseFilename=CVP-WinSetup
+OutputBaseFilename=CVP-win-x64-setup
 SetupIconFile=A:\CyberPlayerMPV\src\CyberPlayer.Player\Assets\Logo\cyber-logo-ocean.ico
 Compression=lzma
 SolidCompression=yes

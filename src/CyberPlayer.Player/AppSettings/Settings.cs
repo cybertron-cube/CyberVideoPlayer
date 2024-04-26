@@ -15,6 +15,8 @@ public class Settings
 
     public LogEventLevel LogLevel { get; set; } = LogEventLevel.Information;
 
+    public bool MultipleAppInstances { get; set; } = false;
+
     public int LogInstances { get; set; } = 5;
 
     public int TimeCodeLength { get; set; } = 8;

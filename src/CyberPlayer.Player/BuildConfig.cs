@@ -38,31 +38,20 @@ public static class BuildConfig
     
     public static readonly string AssetIdentifierArchitecture = RuntimeInformation.OSArchitecture.ToString().ToLower();
 
-#if WINDOWS
-    public const string UpdaterPath = @"updater\CybertronUpdater";
-#elif PORTABLE
     public static readonly string UpdaterPath = $"updater{Path.DirectorySeparatorChar}CybertronUpdater";
-#else
-    public const string UpdaterPath = "updater/CybertronUpdater";
-#endif
 
 #if PORTABLE
     public const string AssetIdentifierPlatform = "portable";
-#elif WINDOWS
-    public const string AssetIdentifierPlatform = "win";
-#elif LINUX
-    public const string AssetIdentifierPlatform = "linux";
-#elif OSX
-    public const string AssetIdentifierPlatform = "osx";
+#else
+    public static readonly string AssetIdentifierPlatform =
+        OperatingSystem.IsMacOS() ? "osx"
+        : OperatingSystem.IsWindows() ? "win"
+        : OperatingSystem.IsLinux() ? "linux"
+        : throw new PlatformNotSupportedException();
 #endif
 
-#if MULTI
-    public const string AssetIdentifierInstance = "multi";
-#elif SINGLE
-    public const string AssetIdentifierInstance = "single";
     public const string Guid = "8EC49017-B0B5-4EDE-83EE-7E2799BCB935";
     public const string MutexId = "Global\\{8EC49017-B0B5-4EDE-83EE-7E2799BCB935}";
-#endif
 
 #if DEBUG
     public static string GetSrcDir()

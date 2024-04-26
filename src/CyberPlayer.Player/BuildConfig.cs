@@ -80,9 +80,9 @@ public static class BuildConfig
 
     public static string GetTestMedia()
     {
-        var testFiles = new DirectoryInfo(Path.Combine(GetSrcDir(), "Tests")).EnumerateFiles();
-        return testFiles.First(x => x.Extension.Equals(".mkv", StringComparison.OrdinalIgnoreCase) ||
-                                    x.Extension.Equals(".mp4", StringComparison.OrdinalIgnoreCase)).FullName;
+        var testFiles = new DirectoryInfo(Path.Combine(GetSrcDir(), "Tests", "Playback")).EnumerateFiles();
+        return testFiles.Any(x => x.Name.ToLower() != ".ds_store") ? testFiles.Where(x => x.Name.ToLower() != ".ds_store").OrderBy(x => x.Name).First().FullName
+            : "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
     }
 #endif
 }

@@ -13,6 +13,7 @@ public class Settings
 {
     public bool UpdaterIncludePreReleases { get; set; } = false;
 
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public LogEventLevel LogLevel { get; set; } = LogEventLevel.Information;
 
     public bool MultipleAppInstances { get; set; } = false;
@@ -21,6 +22,7 @@ public class Settings
 
     public int TimeCodeLength { get; set; } = 8;
 
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public Renderer Renderer { get; set; } = Renderer.Hardware;
 
     public bool AutoCenter { get; set; } = true;

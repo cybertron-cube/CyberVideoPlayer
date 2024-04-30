@@ -258,12 +258,7 @@ def ZipBuilds():
     with cd(BuildDirPath):
         for build in ListDirs(BuildDirPath):
             print(f"Zipping {build}")
-            if platform.system() == 'Windows':
-                zipName = "7z"
-            else:
-                zipName = "7zz"
-            cmds = f"{zipName} a -tzip \"{os.path.basename(build)}.zip\" \"{os.path.basename(build)}\""
-            subprocess.call(ParseCmds(cmds))
+            shutil.make_archive(build, "zip", build)
 
 def DeleteBinReleaseDirs():
     dirs = ListDirs(os.path.join(RepoPath, "src", "CyberPlayer.Player", "bin"))

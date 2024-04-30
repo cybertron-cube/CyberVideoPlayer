@@ -13,10 +13,12 @@ git submodule update --recursive --remote
 if [ $# -eq 0 ]
 then
     # ARGS=false
+    PYTHON="python3"
     read -p 'Enter version number: ' VERSION
     read -p 'Build updater? [y/n]: ' BUILD_UPDATE
 else
     # ARGS=true
+    PYTHON="python"
     VERSION="$1"
     BUILD_UPDATE="$2"
 fi
@@ -25,9 +27,9 @@ rm -rf "$BUILD_DIR"
 
 if [ "$BUILD_UPDATE" = "y" ]
 then
-    python3 "$PY_SCRIPT" -version $VERSION -compile "linux-x64" -buildupdater -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -delbinrel -resetversion
+    $PYTHON "$PY_SCRIPT" -version $VERSION -compile "linux-x64" -buildupdater -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -delbinrel -resetversion
 else
-    python3 "$PY_SCRIPT" -version $VERSION -compile "linux-x64" -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -delbinrel -resetversion
+    $PYTHON "$PY_SCRIPT" -version $VERSION -compile "linux-x64" -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -delbinrel -resetversion
 fi
 
 chmod -R 777 "$BUILD_DIR"

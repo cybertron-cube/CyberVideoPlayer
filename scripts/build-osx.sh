@@ -55,6 +55,7 @@ git submodule update --recursive --remote
 if [ $# -eq 0 ]
 then
     # ARGS=false
+    PYTHON="python3"
     read -p 'Enter version number: ' VERSION
     read -p 'Build app bundle? [y/n]: ' BUILD_BUNDLE
     # Can natively compile for both architectures on arm64 system
@@ -62,6 +63,7 @@ then
     read -p 'Build x64, arm64, or both [x, a, b]: ' ARCHITECTURE
 else
     # ARGS=true
+    PYTHON="python"
     VERSION="$1"
     BUILD_BUNDLE="$2"
     ARCHITECTURE="$3"
@@ -80,13 +82,13 @@ fi
 if [ "$VERSION" != "n" ]
 then
     rm -rf "$REPO_DIR/build"
-    python3 "$PY_SCRIPT" -version $VERSION -compile $ARCHITECTURE -cpymds -cpyffmpeg -cpympv -cpymediainfo -rmpdbs -delbinrel
+    $PYTHON "$PY_SCRIPT" -version $VERSION -compile $ARCHITECTURE -cpymds -cpyffmpeg -cpympv -cpymediainfo -rmpdbs -delbinrel
     TarBuilds
 fi
 
 if [ "$BUILD_BUNDLE" != "y" ]
 then
-    python3 "$PY_SCRIPT" -resetversion
+    $PYTHON "$PY_SCRIPT" -resetversion
     exit
 fi
 
@@ -98,4 +100,4 @@ else
     CreateAppPackageAndDMG "$ARCHITECTURE"
 fi
 
-python3 "$PY_SCRIPT" -resetversion
+$PYTHON "$PY_SCRIPT" -resetversion

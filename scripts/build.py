@@ -108,11 +108,11 @@ def CopyFilesProgress(files: list[str] | str, dest: str):
     if not os.path.exists(dest) or not os.path.isdir(dest):
         os.makedirs(dest, exist_ok=True)
     if isinstance(files, str):
-        print(f"Copying {files} to {dest}")
+        print(f"Copying {files} to {dest} ...")
         shutil.copy(files, dest)
     else:
         for file in files:
-            print(f"Copying {file}")
+            print(f"Copying {file} ...")
             shutil.copy(file, dest)
     print("Finished copying")
 
@@ -125,17 +125,17 @@ def DownloadFFmpeg():
         apiurlFFmpeg = "https://evermeet.cx/ffmpeg/get/zip"
         apiurlFFprobe = "https://evermeet.cx/ffmpeg/get/ffprobe/zip"
 
-        print("Downloading ffmpeg")
+        print("Downloading ffmpeg ...")
         urllib.request.urlretrieve(apiurlFFmpeg, os.path.join(location, "dlffmpeg.zip"))
-        print("Extracting ffmpeg")
+        print("Extracting ffmpeg ...")
         with cd(location):
             with zipfile.ZipFile("dlffmpeg.zip", 'r') as zip_ref:
                 zip_ref.extractall(".")
             os.remove("dlffmpeg.zip")
         
-        print("Downloading ffprobe")
+        print("Downloading ffprobe ...")
         urllib.request.urlretrieve(apiurlFFprobe, os.path.join(location, "dlffprobe.zip"))
-        print("Extracting ffprobe")
+        print("Extracting ffprobe ...")
         with cd(location):
             with zipfile.ZipFile("dlffprobe.zip", 'r') as zip_ref:
                 zip_ref.extractall(".")
@@ -164,13 +164,13 @@ def DownloadFFmpeg():
     print(f"assetName: {assetName}")
     print(f"releaseDL: {releaseDL}")
 
-    print("Downloading")
+    print("Downloading ...")
     urllib.request.urlretrieve(releaseDL, os.path.join(location, assetName))
     print("Finished downloading")
 
     dirName = assetName.split('.')[0]
 
-    print("Extracting")
+    print("Extracting ...")
     with cd(location):
         with tarfile.open(assetName) as f:
             f.extractall('.')
@@ -193,7 +193,7 @@ def DeleteBuildDir():
 def SetVersion(version: str):
     global Version
     Version = version
-    print(f"Setting version to: {Version}")
+    print(f"Setting version to: '{Version}' ...")
     for target in CompileTargets:
         CompileTargets[target] = CompileTargets[target].replace("-p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0", f"-p:AssemblyVersion={version} -p:Version={version}")
     versionArray = version.split('.')
@@ -345,7 +345,7 @@ def CopyUpdater():
 def ZipBuilds():
     with cd(BuildDirPath):
         for build in ListDirs(BuildDirPath):
-            print(f"Zipping {build}")
+            print(f"Zipping {build} ...")
             shutil.make_archive(build, "zip", build)
 
 def DeleteBinReleaseDirs():

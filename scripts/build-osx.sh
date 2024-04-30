@@ -36,12 +36,12 @@ TarBuilds() {
     cd "$REPO_DIR/build"
     if [ "$ARCHITECTURE" = "osx-arm64;osx-x64" ]
     then
-        echo "zipping osx-arm64 ..."
+        echo "archiving osx-arm64 ..."
         tar -czf "osx-arm64.tar.gz" "osx-arm64"
-        echo "zipping osx-x64 ..."
+        echo "archiving osx-x64 ..."
         tar -czf "osx-x64.tar.gz" "osx-x64"
     else
-        echo "zipping $ARCHITECTURE ..."
+        echo "archiving $ARCHITECTURE ..."
         tar -czf "$ARCHITECTURE.tar.gz" "$ARCHITECTURE"
     fi
     cd "$dir"

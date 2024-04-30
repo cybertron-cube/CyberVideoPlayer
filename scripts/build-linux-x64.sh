@@ -34,5 +34,5 @@ chmod -R 777 "$BUILD_DIR"
 
 cd "$BUILD_DIR"
 
-echo "zipping linux-x64 ..."
+echo "archiving linux-x64 ..."
 tar -czf linux-x64.tar.gz linux-x64

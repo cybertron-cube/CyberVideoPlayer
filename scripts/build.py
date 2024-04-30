@@ -6,6 +6,9 @@ import shutil
 import zipfile
 import collections
 import re
+import json
+import urllib.request
+import tarfile
 
 PLIST_VERSION_PLACEHOLDER = r"${VERSION}"
 
@@ -13,9 +16,30 @@ RepoPath = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 BuildDirPath = os.path.join(RepoPath, "build")
 Version: str | None = None
 
+def getOS() -> str:
+    temp = platform.system().lower() # windows, darwin, linux
+    if temp == "windows":
+        return "win"
+    elif temp == "darwin":
+        return "osx"
+    elif temp == "linux":
+        return "linux"
+    else:
+        raise Exception("Platform not supported")
+
+def getArchitecture() -> str:
+    if platform.machine().lower() in ("amd64", "x86_64"):
+        return "x64"
+    elif platform.machine() == "arm64":
+        return "arm64"
+    else:
+        raise Exception("Architecture not supported")
+
 def CreateCompileTargetArgs(rid: str):
     return f"-o {os.path.join(BuildDirPath, rid)} -r {rid} -c release --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0"
 
+OS = getOS()
+Architecture = getArchitecture()
 CompileTargets = {
     "win-x64": CreateCompileTargetArgs("win-x64"),
     "linux-x64": CreateCompileTargetArgs("linux-x64"),
@@ -93,6 +117,69 @@ def CopyFilesProgress(files: list[str] | str, dest: str):
     print("Finished copying")
 
 #Commands
+def DownloadFFmpeg():
+    location = os.path.join(RepoPath, "ffmpeg", OS)
+    os.makedirs(location, exist_ok=True)
+
+    if OS == "osx":
+        apiurlFFmpeg = "https://evermeet.cx/ffmpeg/get/zip"
+        apiurlFFprobe = "https://evermeet.cx/ffmpeg/get/ffprobe/zip"
+
+        print("Downloading ffmpeg")
+        urllib.request.urlretrieve(apiurlFFmpeg, os.path.join(location, "dlffmpeg.zip"))
+        print("Extracting ffmpeg")
+        with cd(location):
+            with zipfile.ZipFile("dlffmpeg.zip", 'r') as zip_ref:
+                zip_ref.extractall(".")
+            os.remove("dlffmpeg.zip")
+        
+        print("Downloading ffprobe")
+        urllib.request.urlretrieve(apiurlFFprobe, os.path.join(location, "dlffprobe.zip"))
+        print("Extracting ffprobe")
+        with cd(location):
+            with zipfile.ZipFile("dlffprobe.zip", 'r') as zip_ref:
+                zip_ref.extractall(".")
+            os.remove("dlffprobe.zip")
+        
+        subprocess.call(["chmod", "-R", "777", location])
+        return
+
+    apiurl = "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest"
+    with urllib.request.urlopen(apiurl) as url:
+        releaseJsonData = json.loads(url.read().decode())
+
+    assets = releaseJsonData["assets"]
+    if Architecture == "x64":
+        arch = "64"
+    else:
+        arch = Architecture
+
+    for asset in assets:
+        assetName : str = asset["name"].lower()
+        if OS.lower() in assetName and arch in assetName and "-gpl" in assetName and "shared" not in assetName and "-master" in assetName:
+            releaseDL : str = asset["browser_download_url"]
+            break
+
+    print(f"location: {location}")
+    print(f"assetName: {assetName}")
+    print(f"releaseDL: {releaseDL}")
+
+    print("Downloading")
+    urllib.request.urlretrieve(releaseDL, os.path.join(location, assetName))
+    print("Finished downloading")
+
+    dirName = assetName.split('.')[0]
+
+    print("Extracting")
+    with cd(location):
+        with tarfile.open(assetName) as f:
+            f.extractall('.')
+
+    files = ListFiles(os.path.join(location, dirName, "bin"), exclude='ffplay')
+    CopyFilesProgress(files, location)
+    os.remove(os.path.join(location, assetName))
+    shutil.rmtree(os.path.join(location, dirName))
+
 def PrintTargetOptions():
     print()
     for compileTarget in CompileTargets:
@@ -106,6 +193,7 @@ def DeleteBuildDir():
 def SetVersion(version: str):
     global Version
     Version = version
+    print(f"Setting version to: {Version}")
     for target in CompileTargets:
         CompileTargets[target] = CompileTargets[target].replace("-p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0", f"-p:AssemblyVersion={version} -p:Version={version}")
     versionArray = version.split('.')
@@ -317,6 +405,7 @@ Commands = {
     "buildupdater" : Command("Calls the updater build script", BuildUpdater, False),
     "rmpdbs": Command("Remove all pdb files", RemovePDBs, False),
     "lib": Command("Makes a library directory for dlls", MakeLibraryDir, "Enter a compile target: "), #compiletarget/s arg
+    "dlffmpeg": Command("Downloads ffmpeg binaries from their recommended sources", DownloadFFmpeg, False),
     "cpymds": Command("Copy all markdown files from working directory", CopyMDs, False),
     "cpyupdater": Command("Copy updater to each build", CopyUpdater, False),
     "cpyffmpeg": Command("Copy ffmpeg executables to builds", CopyFFmpeg, False),

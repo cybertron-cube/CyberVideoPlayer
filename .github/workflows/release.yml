@@ -127,7 +127,7 @@ jobs:
       - name: Download FFmpeg Binaries
         run: python scripts/build.py -dlffmpeg
       - name: Run build script
-        run: sh scripts/build-osx.sh $VERSION y b
+        run: sh scripts/build-osx.sh $VERSION y y b
       - name: Upload assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

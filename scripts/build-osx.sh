@@ -57,6 +57,7 @@ then
     # ARGS=false
     PYTHON="python3"
     read -p 'Enter version number: ' VERSION
+    read -p 'Build updater? [y/n]: ' BUILD_UPDATE
     read -p 'Build app bundle? [y/n]: ' BUILD_BUNDLE
     # Can natively compile for both architectures on arm64 system
     # Can only natively compile arm64 on arm64 system
@@ -65,8 +66,9 @@ else
     # ARGS=true
     PYTHON="python"
     VERSION="$1"
-    BUILD_BUNDLE="$2"
-    ARCHITECTURE="$3"
+    BUILD_UPDATE="$2"
+    BUILD_BUNDLE="$3"
+    ARCHITECTURE="$4"
 fi
 
 if [ "$ARCHITECTURE" = "x" ]
@@ -82,7 +84,12 @@ fi
 if [ "$VERSION" != "n" ]
 then
     rm -rf "$REPO_DIR/build"
-    $PYTHON "$PY_SCRIPT" -version $VERSION -compile $ARCHITECTURE -cpymds -cpyffmpeg -cpympv -cpymediainfo -rmpdbs -delbinrel
+    if [ "$BUILD_UPDATE" = "y" ]
+    then
+        $PYTHON "$PY_SCRIPT" -version $VERSION -compile $ARCHITECTURE -buildupdater -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -delbinrel
+    else
+        $PYTHON "$PY_SCRIPT" -version $VERSION -compile $ARCHITECTURE -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -delbinrel
+    fi
     TarBuilds
 fi
 

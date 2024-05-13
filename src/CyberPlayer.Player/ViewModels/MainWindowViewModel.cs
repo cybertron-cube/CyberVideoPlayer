@@ -146,13 +146,6 @@ public class MainWindowViewModel : ViewModelBase
                 return;
             }
             
-            // TODO Updater won't work on osx
-            if (OperatingSystem.IsMacOS())
-            {
-                OpenWebLinkCommand.Execute("https://github.com/cybertron-cube/CyberVideoPlayer/releases");
-                return;
-            }
-            
             var updaterPath = GenStatic.GetFullPathFromRelative(BuildConfig.UpdaterPath);
             GenStatic.Platform.ExecutablePath(ref updaterPath);
             Updater.StartUpdater(updaterPath,

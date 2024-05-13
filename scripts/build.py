@@ -117,9 +117,8 @@ def CopyFilesProgress(files: list[str] | str, dest: str):
         shutil.copy(files, dest)
     else:
         for file in files:
-            print(f"Copying {file} ...")
+            print(f"Copying {files} to {dest} ...")
             shutil.copy(file, dest)
-    print("Finished copying")
 
 #Commands
 def DownloadFFmpeg():
@@ -196,7 +195,7 @@ def DeleteBuildDir():
         shutil.rmtree(BuildDirPath)
 
 def SetVersion(version: str):
-    print(f"Setting version to: '{Version}' ...")
+    print(f"Setting version to: '{version}' ...")
     global Version
     global VMajor
     global VMinor

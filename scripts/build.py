@@ -15,6 +15,11 @@ PLIST_VERSION_PLACEHOLDER = r"${VERSION}"
 RepoPath = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 BuildDirPath = os.path.join(RepoPath, "build")
 Version: str | None = None
+VMajor: int = None
+VMinor: int = None
+VPatch: int = None
+VIdentifier: str = None
+VBuild: int = None
 
 def getOS() -> str:
     temp = platform.system().lower() # windows, darwin, linux
@@ -191,20 +196,40 @@ def DeleteBuildDir():
         shutil.rmtree(BuildDirPath)
 
 def SetVersion(version: str):
-    global Version
-    Version = version
     print(f"Setting version to: '{Version}' ...")
+    global Version
+    global VMajor
+    global VMinor
+    global VPatch
+    global VIdentifier
+    global VBuild
+    Version = version
+
+    #([0-9]*?)\.([0-9]*?)\.([0-9]*?)-([a-z]*?)\.([0-9]*?)$
+    #([0-9]*?)\.([0-9]*?)\.([0-9]*?)$
+    if '-' in version: # pre-release
+        matchResult = re.search(r"([0-9]*?)\.([0-9]*?)\.([0-9]*?)-([a-z]*?)\.([0-9]*?)$", version)
+        VMajor = int(matchResult.group(1))
+        VMinor = int(matchResult.group(2))
+        VPatch = int(matchResult.group(3))
+        VIdentifier = matchResult.group(4)
+        VBuild = int(matchResult.group(5))
+    else: # normal release
+        matchResult = re.search(r"([0-9]*?)\.([0-9]*?)\.([0-9]*?)$", version)
+        VMajor = int(matchResult.group(1))
+        VMinor = int(matchResult.group(2))
+        VPatch = int(matchResult.group(3))
+        #VIdentifier = "null"
+        VBuild = 0
     for target in CompileTargets:
-        CompileTargets[target] = CompileTargets[target].replace("-p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0", f"-p:AssemblyVersion={version} -p:Version={version}")
-    versionArray = version.split('.')
-    if len(versionArray) < 2 or len(versionArray) > 4:
-        raise Exception("Version must contain 2-4 places (major, minor, build, revision)")
-    newVersion = ""
-    versionLine = "public static readonly Version Version = new(1, 0, 0, 0);"
-    for v in versionArray:
-        newVersion += v + ', '
-    newVersion = newVersion[:-2]
-    newVersionLine = f"public static readonly Version Version = new({newVersion});"
+        CompileTargets[target] = CompileTargets[target].replace("-p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0", f"-p:AssemblyVersion={VMajor}.{VMinor}.{VPatch}.{VBuild} -p:Version={version}")
+
+    versionLine = "public static readonly SemanticVersion Version = new(1, 0, 0);"
+    if VIdentifier == None:
+        newVersionLine = f"public static readonly SemanticVersion Version = new({VMajor}, {VMinor}, {VPatch});"
+    else:
+        newVersionLine = f"public static readonly SemanticVersion Version = new({VMajor}, {VMinor}, {VPatch}, \"{VIdentifier}\", {VBuild});"
+    
     with cd(os.path.join(RepoPath, "src", "CyberPlayer.Player")):
         with open("BuildConfig.cs", 'r') as file:
             data = file.read()
@@ -220,13 +245,23 @@ def SetVersion(version: str):
 
 def ResetVersion():
     global Version
+    global VMajor
+    global VMinor
+    global VPatch
+    global VIdentifier
+    global VBuild
     Version = None
+    VMajor = None
+    VMinor = None
+    VPatch = None
+    VIdentifier = None
+    VBuild = None
     for target in CompileTargets:
         CompileTargets[target] = re.sub(r'-p:AssemblyVersion=.*', '-p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0', CompileTargets[target])
     with cd(os.path.join(RepoPath, "src", "CyberPlayer.Player")):
         with open("BuildConfig.cs", 'r') as file:
             data = file.read()
-            data = re.sub(r'public static readonly Version Version = new[^;]*', 'public static readonly Version Version = new(1, 0, 0, 0)', data)
+            data = re.sub(r'public static readonly SemanticVersion Version = new[^;]*', 'public static readonly SemanticVersion Version = new(1, 0, 0)', data)
         with open("BuildConfig.cs", 'w') as file:
             file.write(data)
     with cd(RepoPath):
@@ -391,7 +426,7 @@ def CreateWindowsInstaller():
     if Version == None:
         subprocess.call(["iscc", setupScriptPath])
     else:
-        subprocess.call(["iscc", f"-DMyAppVersion={Version}", setupScriptPath])
+        subprocess.call(["iscc", f"-DMyAppVersion={VMajor}.{VMinor}.{VPatch}.{VBuild}", setupScriptPath])
 
 Command = collections.namedtuple('Command', ['description', 'function', 'hasParam'])
 

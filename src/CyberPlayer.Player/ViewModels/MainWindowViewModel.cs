@@ -120,7 +120,7 @@ public class MainWindowViewModel : ViewModelBase
         var result = await Updater.GithubCheckForUpdatesAsync("CyberVideoPlayer",
             new[] { BuildConfig.AssetIdentifierPlatform, BuildConfig.AssetIdentifierArchitecture },
             "https://api.github.com/repos/cybertron-cube/CyberVideoPlayer",
-            BuildConfig.Version.ToString(),
+            BuildConfig.Version,
             Locator.Current.GetService<HttpClient>()!,
             Settings.UpdaterIncludePreReleases);
             

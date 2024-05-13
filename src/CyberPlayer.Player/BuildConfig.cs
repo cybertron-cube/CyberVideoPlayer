@@ -19,7 +19,7 @@ public static class BuildConfig
         SettingsFileName
     };
 
-    public static readonly Version Version = new(1, 0, 0, 0);
+    public static readonly SemanticVersion Version = new(1, 0, 0);
 
     public static readonly string SettingsPath =
         OperatingSystem.IsMacOS() ?

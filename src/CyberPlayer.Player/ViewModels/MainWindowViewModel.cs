@@ -148,12 +148,15 @@ public class MainWindowViewModel : ViewModelBase
             
             var updaterPath = GenStatic.GetFullPathFromRelative(BuildConfig.UpdaterPath);
             GenStatic.Platform.ExecutablePath(ref updaterPath);
-            Updater.StartUpdater(updaterPath,
+            
+            var tempScript = Updater.StartUpdater(updaterPath,
                 result.DownloadLink, 
                 GenStatic.GetFullPathFromRelative(),
                 BuildConfig.WildCardPreservables,
                 BuildConfig.Preservables);
-
+            
+            _log.Information("Wrote temporary updater script to \"{ScriptPath}\"", tempScript);
+            
             ExitApp();
         }
         else

@@ -34,7 +34,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8"
+          global-json-file: global.json
           cache: true
           cache-dependency-path: src/CyberPlayer.Player/packages.lock.json
       - name: Install nuget package dependencies

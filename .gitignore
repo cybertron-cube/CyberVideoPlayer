@@ -388,9 +388,6 @@ FodyWeavers.xsd
 /mpv/android/
 /build/
 /ffmpeg/
-/build/
-/ffmpeg/
-/win-installer/
 /ignore/
 /package/
 /.venv/

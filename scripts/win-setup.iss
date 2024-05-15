@@ -3,7 +3,7 @@
 #define MyAppURL "https://github.com/cybertron-cube/CyberVideoPlayer"
 #define MyAppExeName "CyberVideoPlayer.exe"
 #define MyRepoPath SourcePath + "\.."
-#define MyAppBuildPath MyRepoPath + "\build\win-x64-single"  
+#define MyAppBuildPath MyRepoPath + "\build\win-x64"
 #ifndef MyAppVersion
   #define MyAppVersion "1.0.0"
 #endif

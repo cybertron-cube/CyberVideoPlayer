@@ -1,0 +1,23 @@
+{
+    "tagFormat": "${version}",
+    "branches": [
+        "main",
+        { "name": "dev", "prerelease": true }
+    ],
+    "plugins": [
+        "@semantic-release/commit-analyzer",
+        "@semantic-release/release-notes-generator",
+        [
+            "@semantic-release/github",
+            {
+                "draftRelease": true
+            }
+        ],
+        [
+            "@semantic-release/exec",
+            {
+                "publishCmd": "echo 'VERSION=${nextRelease.version}' >> $GITHUB_OUTPUT"
+            }
+        ]
+    ]
+}

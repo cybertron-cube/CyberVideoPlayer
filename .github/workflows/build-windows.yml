@@ -1,0 +1,48 @@
+name: Build Windows
+
+on:
+  workflow_call:
+    inputs:
+      release-version:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      release-version:
+        required: true
+        type: string
+
+jobs:
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ inputs.release-version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          submodules: "recursive"
+          fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8"
+          cache: true
+      - name: Install nuget package dependencies
+        run: dotnet restore --locked-mode
+      - name: Download FFmpeg Binaries
+        run: python scripts/build.py -dlffmpeg
+      - name: Run build script
+        run: python scripts/build.py -version $VERSION -compile win-x64 -buildupdater -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -zip -winpkg
+      - name: Upload assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload $VERSION build/win-x64.zip package/CVP-win-x64-setup.exe

@@ -8,67 +8,27 @@
     <PackageId>$(AssemblyName)</PackageId>
     <ApplicationIcon>Assets/Logo/cyber-logo-sunset.ico</ApplicationIcon>
     <AssemblyName>CyberVideoPlayer</AssemblyName>
-    <Configurations>Debug;Release;Release-win-multi;Release-win-single;Release-linux-single;Release-linux-multi;Release-osx-multi;Release-osx-single;Release-portable-single;Release-portable-multi</Configurations>
+    <Configurations>Debug;Release;Release-portable</Configurations>
     <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
-
-  <!-- MULTI;SINGLE;PORTABLE;WINDOWS;OSX;LINUX -->
   
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' Or '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DefineConstants Condition=" $([MSBuild]::IsOSPlatform('OSX')) ">$(DefineConstants);OSX;SINGLE;</DefineConstants>
-    <DefineConstants Condition=" $([MSBuild]::IsOSPlatform('Linux')) ">$(DefineConstants);LINUX;SINGLE;</DefineConstants>
-    <DefineConstants Condition=" $([MSBuild]::IsOSPlatform('Windows')) ">$(DefineConstants);WINDOWS;SINGLE;</DefineConstants>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release-win-multi' ">
-    <DefineConstants>$(DefineConstants);MULTI;WINDOWS</DefineConstants>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release-win-single' ">
-    <DefineConstants>$(DefineConstants);SINGLE;WINDOWS;</DefineConstants>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release-linux-multi' ">
-    <DefineConstants>$(DefineConstants);MULTI;LINUX</DefineConstants>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release-linux-single' ">
-    <DefineConstants>$(DefineConstants);SINGLE;LINUX</DefineConstants>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release-osx-multi' ">
-    <DefineConstants>$(DefineConstants);MULTI;OSX</DefineConstants>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release-osx-single' ">
-    <DefineConstants>$(DefineConstants);SINGLE;OSX</DefineConstants>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release-portable-multi' ">
-    <DefineConstants>$(DefineConstants);MULTI;PORTABLE</DefineConstants>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release-portable-single' ">
-    <DefineConstants>$(DefineConstants);SINGLE;PORTABLE</DefineConstants>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition=" ('$(Configuration)' != 'Release-portable-single') And ('$(Configuration)' != 'Release-portable-multi') ">
+  <PropertyGroup Condition=" '$(Configuration)' != 'Release-portable' ">
+    <DefineConstants Condition=" $([MSBuild]::IsOSPlatform('OSX')) ">$(DefineConstants);OSX;</DefineConstants>
+    <DefineConstants Condition=" $([MSBuild]::IsOSPlatform('Linux')) ">$(DefineConstants);LINUX;</DefineConstants>
+    <DefineConstants Condition=" $([MSBuild]::IsOSPlatform('Windows')) ">$(DefineConstants);WINDOWS;</DefineConstants>
     <PublishAot>true</PublishAot>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition=" '$(Configuration)' != 'Debug' ">
+    <Optimize>true</Optimize>
   </PropertyGroup>
   
   <ItemGroup>
     <TrimmerRootDescriptor Include="Roots.xml" />
   </ItemGroup>
 
-  <ItemGroup Condition=" $(DefineConstants.Contains(OSX)) ">
+  <!-- https://github.com/dotnet/runtime/issues/93044 -->
+  <ItemGroup Condition=" $(DefineConstants.Contains(OSX)) AND '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' != 'X64' ">
     <LinkerArg Include="-Wl,-ld_classic" />
   </ItemGroup>
 
@@ -110,7 +70,7 @@
     <ProjectReference Include="..\LibMpv.Context\LibMpv.Context.csproj" />
   </ItemGroup>
 
-  <Target Name="FFmpegCopy" AfterTargets="CoreCompile">
+  <Target Name="FFmpegCopy" AfterTargets="CoreCompile" Condition=" '$(Configuration)' == 'Debug' ">
     <Copy Condition=" $(DefineConstants.Contains(WINDOWS)) Or $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\ffmpeg\win\ffmpeg.exe;..\..\ffmpeg\win\ffprobe.exe" DestinationFolder="$(OutDir)\ffmpeg" SkipUnchangedFiles="true" />
     <Copy Condition=" $(DefineConstants.Contains(LINUX)) " SourceFiles="..\..\ffmpeg\linux\ffmpeg;..\..\ffmpeg\linux\ffprobe" DestinationFolder="$(OutDir)\ffmpeg" SkipUnchangedFiles="true" />
     <Copy Condition=" $(DefineConstants.Contains(OSX)) " SourceFiles="..\..\ffmpeg\osx\ffmpeg;..\..\ffmpeg\osx\ffprobe" DestinationFolder="$(OutDir)\ffmpeg" SkipUnchangedFiles="true" />
@@ -118,7 +78,7 @@
     <Copy Condition=" $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\ffmpeg\osx\ffmpeg;..\..\ffmpeg\osx\ffprobe" DestinationFiles="$(OutDir)\ffmpeg\ffmpeg-osx;$(OutDir)\ffmpeg\ffprobe-osx" SkipUnchangedFiles="true" />
   </Target>
   
-  <Target Name="LibMpvCopy" AfterTargets="FFmpegCopy">
+  <Target Name="LibMpvCopy" AfterTargets="FFmpegCopy" Condition=" '$(Configuration)' == 'Debug' ">
     <Copy Condition=" $(DefineConstants.Contains(WINDOWS)) Or $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\mpv\win\libmpv-2.dll" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
     <Copy Condition=" $(DefineConstants.Contains(LINUX)) " SourceFiles="..\..\mpv\linux-2.1.0\libmpv.so.2" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
     <Copy Condition=" $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\mpv\linux-2.1.0\libmpv.so.2" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
@@ -126,7 +86,7 @@
     <!--<Copy Condition=" $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\mpv\osx\" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />-->
   </Target>
 
-  <Target Name="MediaInfoCopy" AfterTargets="LibMpvCopy">
+  <Target Name="MediaInfoCopy" AfterTargets="LibMpvCopy" Condition=" '$(Configuration)' == 'Debug' ">
     <Copy Condition=" $(DefineConstants.Contains(WINDOWS)) " SourceFiles="..\..\mediainfo\win\MediaInfo.dll" DestinationFolder="$(OutDir)\mediainfo" SkipUnchangedFiles="true" />
     <Copy Condition=" $(DefineConstants.Contains(LINUX)) " SourceFiles="..\..\mediainfo\linux\libmediainfo.so.0.0.0;..\..\mediainfo\linux\libzen.so.0.4.41" DestinationFolder="$(OutDir)\mediainfo" SkipUnchangedFiles="true" />
     <Copy Condition=" $(DefineConstants.Contains(OSX)) " SourceFiles="..\..\mediainfo\osx\libmediainfo.dylib" DestinationFolder="$(OutDir)\mediainfo" SkipUnchangedFiles="true" />

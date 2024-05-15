@@ -21,4 +21,6 @@ if [ ! -f "$CONFIG_FILE" ]; then
     exit
 fi
 
-cat "$CONFIG_FILE" > "$REPO_DIR/.releaserc"
+cat "$CONFIG_FILE" > "$REPO_DIR/.releaserc.json"
+
+cat "$REPO_DIR/.releaserc.json"

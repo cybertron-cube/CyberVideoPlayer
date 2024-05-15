@@ -20,11 +20,11 @@ jobs:
       version: ${{ steps.create-release.outputs.VERSION }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
       - name: Install dependencies
@@ -50,7 +50,7 @@ jobs:
       VERSION: ${{ needs.release.outputs.VERSION }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
           submodules: "recursive"
@@ -84,7 +84,7 @@ jobs:
       VERSION: ${{ needs.release.outputs.VERSION }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
           submodules: "recursive"
@@ -117,7 +117,7 @@ jobs:
       VERSION: ${{ needs.release.outputs.VERSION }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
           submodules: "recursive"

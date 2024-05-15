@@ -7,9 +7,6 @@ on:
         required: true
         type: string
 
-permissions:
-  contents: read # for checkout
-
 jobs:
   release:
     name: Release

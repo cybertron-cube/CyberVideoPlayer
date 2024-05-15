@@ -1,0 +1,12 @@
+name: Dev Pre-Release
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  call-base-release:
+    uses: ./.github/workflows/base-release.yml
+    with:
+      release-type: dev-pre-release

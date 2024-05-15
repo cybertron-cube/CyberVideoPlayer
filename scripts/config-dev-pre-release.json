@@ -1,6 +1,8 @@
 {
     "tagFormat": "${version}",
-    "branches": ["main"],
+    "branches": [
+        { "name": "dev", "prerelease": true }
+    ],
     "plugins": [
         "@semantic-release/commit-analyzer",
         "@semantic-release/release-notes-generator",

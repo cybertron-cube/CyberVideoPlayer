@@ -36,6 +36,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
+      - name: Check release/s
+        run: echo $GITHUB_OUTPUT
   build-windows:
     name: Build Windows
     runs-on: windows-latest

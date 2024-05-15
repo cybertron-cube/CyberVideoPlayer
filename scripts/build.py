@@ -176,8 +176,12 @@ def DownloadFFmpeg():
 
     print("Extracting ...")
     with cd(location):
-        with tarfile.open(assetName) as f:
-            f.extractall('.')
+        if assetName.endswith(".zip"):
+            with zipfile.ZipFile(assetName, 'r') as zip_ref:
+                zip_ref.extractall(".")
+        else:
+            with tarfile.open(assetName) as f:
+                f.extractall('.')
 
     files = ListFiles(os.path.join(location, dirName, "bin"), exclude='ffplay')
     CopyFilesProgress(files, location)

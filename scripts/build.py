@@ -199,7 +199,7 @@ def DeleteBuildDir():
         shutil.rmtree(BuildDirPath)
 
 def SetVersion(version: str):
-    print(f"Setting version to: '{version}' ...")
+    print(f"Setting version to: '{version}' ...", flush=True)
     global Version
     global VMajor
     global VMinor

@@ -36,6 +36,7 @@ jobs:
         with:
           dotnet-version: "8"
           cache: true
+          cache-dependency-path: src\CyberPlayer.Player\packages.lock.json
       - name: Install nuget package dependencies
         run: dotnet restore --locked-mode
       - name: Download FFmpeg Binaries

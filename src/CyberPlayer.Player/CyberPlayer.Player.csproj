@@ -10,6 +10,7 @@
     <AssemblyName>CyberVideoPlayer</AssemblyName>
     <Configurations>Debug;Release;Release-portable</Configurations>
     <Platforms>AnyCPU</Platforms>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
   
   <PropertyGroup Condition=" '$(Configuration)' != 'Release-portable' ">

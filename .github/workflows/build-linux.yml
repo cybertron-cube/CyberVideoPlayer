@@ -18,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,11 +39,3 @@ jobs:
           cache-dependency-path: src/CyberPlayer.Player/packages.lock.json
       - name: Install nuget package dependencies
         run: dotnet restore --locked-mode
-      - name: Download FFmpeg Binaries
-        run: python scripts/build.py -dlffmpeg
-      - name: Run build script
-        run: sh scripts/build-linux-x64.sh ${{ inputs.release-version }} y
-      - name: Upload assets
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ inputs.release-version }} build/linux-x64.tar.gz

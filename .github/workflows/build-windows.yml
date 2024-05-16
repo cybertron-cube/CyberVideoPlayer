@@ -39,8 +39,6 @@ jobs:
         run: dotnet restore --locked-mode
       - name: Download FFmpeg Binaries
         run: python scripts/build.py -dlffmpeg
-      - name: Test
-        run: echo ${{ inputs.release-version }}
       - name: Run build script
         run: python scripts/build.py -version ${{ inputs.release-version }} -compile win-x64 -buildupdater -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -zip -winpkg
       - name: Upload assets

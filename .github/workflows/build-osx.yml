@@ -18,8 +18,6 @@ jobs:
     runs-on: macos-latest
     permissions:
       contents: write
-    env:
-      VERSION: ${{ inputs.release-version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,8 +40,8 @@ jobs:
       - name: Download FFmpeg Binaries
         run: python scripts/build.py -dlffmpeg
       - name: Run build script
-        run: sh scripts/build-osx.sh $VERSION y y b
+        run: sh scripts/build-osx.sh ${{ inputs.release-version }} y y b
       - name: Upload assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload $VERSION build/CVP-osx-x64-setup.dmg build/osx-x64.tar.gz build/CVP-osx-arm64-setup.dmg build/osx-arm64.tar.gz
+        run: gh release upload ${{ inputs.release-version }} build/CVP-osx-x64-setup.dmg build/osx-x64.tar.gz build/CVP-osx-arm64-setup.dmg build/osx-arm64.tar.gz

@@ -9,6 +9,7 @@ import re
 import json
 import urllib.request
 import tarfile
+import functools
 
 PLIST_VERSION_PLACEHOLDER = r"${VERSION}"
 
@@ -20,6 +21,8 @@ VMinor: int = None
 VPatch: int = None
 VIdentifier: str = None
 VBuild: int = None
+
+print = functools.partial(print, flush=True)
 
 def getOS() -> str:
     temp = platform.system().lower() # windows, darwin, linux
@@ -199,7 +202,7 @@ def DeleteBuildDir():
         shutil.rmtree(BuildDirPath)
 
 def SetVersion(version: str):
-    print(f"Setting version to: '{version}' ...", flush=True)
+    print(f"Setting version to: '{version}' ...")
     global Version
     global VMajor
     global VMinor
@@ -247,6 +250,7 @@ def SetVersion(version: str):
             file.write(plistData)
 
 def ResetVersion():
+    print(f"Resetting version to default ...")
     global Version
     global VMajor
     global VMinor

@@ -32,6 +32,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
+          cache: 'npm'
+          cache-dependency-path: scripts/package-lock.json
       - name: Install semantic-release/exec
         run: npm install @semantic-release/exec -D
       - name: Apply semantic release config

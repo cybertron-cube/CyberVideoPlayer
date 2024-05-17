@@ -449,7 +449,8 @@ public class MpvPlayer : ViewModelBase
         
         Dispatcher.UIThread.Invoke(() =>
         {
-            mainWindow.SetClientSize(desiredWidth, desiredHeight);
+            mainWindow.Width = desiredWidth;
+            mainWindow.Height = desiredHeight;
         });
     }
     

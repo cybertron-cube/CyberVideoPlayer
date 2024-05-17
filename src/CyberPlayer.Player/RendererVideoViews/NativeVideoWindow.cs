@@ -45,23 +45,30 @@ public class NativeVideoWindow : Window
         _disposables = new CompositeDisposable
         {
             parentEvents.PositionChanged.Subscribe(_ => UpdatePosition()),
+            // If there is a window behind the video player, that window is focused, then you focus the main window again
+            // the main window will focus without the video window being brought forward with it
             parentEvents.Activated.Skip(1).Subscribe(_ => UpdateFocus()),
             // Video panel should always resize when main window resizes because it is proportionally sized
             _parent.ObservableForProperty(x => x.ClientSize).Subscribe(_ => UpdateSize()),
             this.Events().Closing.Subscribe(_ => _disposables?.Dispose())
         };
     }
-
+    
     private void UpdateFocus()
     {
-        if (_ignoreOne)
+        // Post the action so that the input events on the main window go through (like the video panel context menu)
+        Dispatcher.UIThread.Post(() =>
         {
-            _ignoreOne = false;
-            return;
-        }
-        Activate();
-        _parent.Activate();
-        _ignoreOne = true;
+            if (_ignoreOne)
+            {
+                _ignoreOne = false;
+                return;
+            }
+
+            Activate();
+            Dispatcher.UIThread.Post(() => _parent.Activate(), DispatcherPriority.MaxValue);
+            _ignoreOne = true;
+        }, DispatcherPriority.MaxValue);
     }
 
     private void UpdatePosition()

@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using CyberPlayer.Player.RendererVideoViews;
+using Cybertron;
 using Serilog.Events;
 
 namespace CyberPlayer.Player.AppSettings;
@@ -64,6 +65,18 @@ public class Settings
     private const string MacX64Brew = UnixLocalPath;
     private const string MacArm64Brew = "/opt/homebrew";
     private const string LinuxBrew = "/home/linuxbrew/.linuxbrew";
+
+    private const string MpvFileName = "libmpv";
+    private const string MediaInfoFileName = "libmediainfo";
+    private const string FFmpegFileName = "ffmpeg";
+    private const string FFprobeFileName = "ffprobe";
+
+    private static readonly string PackagedMpv = AppDomain.CurrentDomain.BaseDirectory;
+    private static readonly string PackagedMediaInfo = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "mediainfo");
+    private static readonly string PackagedFFmpeg =
+        GenStatic.Platform.ExecutablePath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ffmpeg", FFmpegFileName));
+    private static readonly string PackagedFFprobe =
+        GenStatic.Platform.ExecutablePath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ffmpeg", FFprobeFileName));
     
     public static (Settings, Exception?) Import(string settingsPath)
     {
@@ -91,11 +104,11 @@ public class Settings
         {
             case Resolve:
                 settings.PlaceholderLibMpvPath = settings.LibMpvPath;
-                settings.LibMpvPath = GetDir("libmpv", Library);
+                settings.LibMpvPath = GetDir(MpvFileName, Library);
                 break;
             case "":
                 settings.PlaceholderLibMpvPath = settings.LibMpvPath;
-                settings.LibMpvPath = AppDomain.CurrentDomain.BaseDirectory;
+                settings.LibMpvPath = PackagedMpv;
                 break;
         }
 
@@ -103,11 +116,11 @@ public class Settings
         {
             case Resolve:
                 settings.PlaceholderMediaInfoPath = settings.MediaInfoPath;
-                settings.MediaInfoPath = GetDir("libmediainfo", Library);
+                settings.MediaInfoPath = GetDir(MediaInfoFileName, Library);
                 break;
             case "":
                 settings.PlaceholderMediaInfoPath = settings.MediaInfoPath;
-                settings.MediaInfoPath = AppDomain.CurrentDomain.BaseDirectory;
+                settings.MediaInfoPath = PackagedMediaInfo;
                 break;
         }
         
@@ -115,11 +128,11 @@ public class Settings
         {
             case Resolve:
                 settings.PlaceholderFFmpegPath = settings.FFmpegPath;
-                settings.FFmpegPath = GetDir("ffmpeg", Executable);
+                settings.FFmpegPath = GetDir(FFmpegFileName, Executable);
                 break;
             case "":
                 settings.PlaceholderFFmpegPath = settings.FFmpegPath;
-                settings.FFmpegPath = AppDomain.CurrentDomain.BaseDirectory;
+                settings.FFmpegPath = PackagedFFmpeg;
                 break;
         }
         
@@ -127,11 +140,11 @@ public class Settings
         {
             case Resolve:
                 settings.PlaceholderFFprobePath = settings.FFprobePath;
-                settings.FFprobePath = GetDir("ffprobe", Executable);
+                settings.FFprobePath = GetDir(FFprobeFileName, Executable);
                 break;
             case "":
                 settings.PlaceholderFFprobePath = settings.FFprobePath;
-                settings.FFprobePath = AppDomain.CurrentDomain.BaseDirectory;
+                settings.FFprobePath = PackagedFFprobe;
                 break;
         }
     }
@@ -150,10 +163,29 @@ public class Settings
 
     private static string GetDir(string name, string type)
     {
-        if (OperatingSystem.IsMacOS()) return GetMacDir(name, type);
-        if (OperatingSystem.IsLinux()) return GetLinuxDir(name, type);
-        if (OperatingSystem.IsWindows()) return AppDomain.CurrentDomain.BaseDirectory; // TODO Maybe check path environment variable
-        throw new PlatformNotSupportedException();
+        string result;
+        
+        if (OperatingSystem.IsMacOS()) 
+            result = GetMacDir(name, type);
+        else if (OperatingSystem.IsLinux()) 
+            result = GetLinuxDir(name, type);
+        else if (OperatingSystem.IsWindows()) 
+            result = string.Empty; // TODO Maybe check path environment variable
+        else throw new PlatformNotSupportedException();
+
+        if (result == string.Empty)
+        {
+            return name switch
+            {
+                MpvFileName => PackagedMpv,
+                MediaInfoFileName => PackagedMediaInfo,
+                FFmpegFileName => PackagedFFmpeg,
+                FFprobeFileName => PackagedFFprobe,
+                _ => throw new ArgumentException("Dynamic dependency file name not valid", nameof(name))
+            };
+        }
+
+        return result;
     }
     
     private static string GetMacDir(string name, string type)

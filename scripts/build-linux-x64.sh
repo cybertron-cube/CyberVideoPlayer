@@ -3,57 +3,38 @@
 SCRIPT_DIR=$( dirname -- "$( readlink -f -- "$0"; )"; )
 REPO_DIR=$( dirname "$SCRIPT_DIR" )
 BUILD_DIR="$REPO_DIR/build"
+PY_SCRIPT="$SCRIPT_DIR/build.py"
+
+set -e
 
 git pull
 git submodule update --recursive --remote
 
-read -p 'Build updater? [y/n]: ' BUILD_UPDATE
-
-read -p 'Enter version number: ' VERSION
-
-read -p 'Single (s), multi (m), or both?: ' TARGET
+if [ $# -eq 0 ]
+then
+    # ARGS=false
+    PYTHON="python3"
+    read -p 'Enter version number: ' VERSION
+    read -p 'Build updater? [y/n]: ' BUILD_UPDATE
+else
+    # ARGS=true
+    PYTHON="python"
+    VERSION="$1"
+    BUILD_UPDATE="$2"
+fi
 
 rm -rf "$BUILD_DIR"
 
-if [ "$TARGET" = "s" ] && [ "$BUILD_UPDATE" = "y" ]
+if [ "$BUILD_UPDATE" = "y" ]
 then
-    python3 "$SCRIPT_DIR/build.py" -version $VERSION -compile "linux-x64-single" -buildupdater -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -delbinrel -resetversion
-elif [ "$TARGET" = "s" ]
-then
-    python3 "$SCRIPT_DIR/build.py" -version $VERSION -compile "linux-x64-single" -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -delbinrel -resetversion
-fi
-
-if [ "$TARGET" = "m" ] && [ "$BUILD_UPDATE" = "y" ]
-then
-    python3 "$SCRIPT_DIR/build.py" -version $VERSION -compile "linux-x64-multi" -buildupdater -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -delbinrel -resetversion
-elif [ "$TARGET" = "m" ]
-then
-    python3 "$SCRIPT_DIR/build.py" -version $VERSION -compile "linux-x64-multi" -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -delbinrel -resetversion
-fi
-
-if [ "$TARGET" != "s" ] && [ "$TARGET" != "m" ] && [ "$BUILD_UPDATE" = "y" ]
-then
-    python3 "$SCRIPT_DIR/build.py" -version $VERSION -compile "linux-x64-multi;linux-x64-single" -buildupdater -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -delbinrel -resetversion
-elif [ "$TARGET" != "s" ] && [ "$TARGET" != "m" ]
-then
-    python3 "$SCRIPT_DIR/build.py" -version $VERSION -compile "linux-x64-multi;linux-x64-single" -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -delbinrel -resetversion
+    $PYTHON "$PY_SCRIPT" -version $VERSION -compile "linux-x64" -buildupdater -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -delbinrel -resetversion
+else
+    $PYTHON "$PY_SCRIPT" -version $VERSION -compile "linux-x64" -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -delbinrel -resetversion
 fi
 
 chmod -R 777 "$BUILD_DIR"
 
 cd "$BUILD_DIR"
 
-if [ "$TARGET" = "s" ]
-then
-    echo "zipping single..."
-    tar -czf linux-x64-single.tar.gz linux-x64-single
-elif [ "$TARGET" = "m" ]
-then
-    echo "zipping multi..."
-    tar -czf linux-x64-multi.tar.gz linux-x64-multi
-else
-    echo "zipping multi..."
-    tar -czf linux-x64-multi.tar.gz linux-x64-multi
-    echo "zipping single..."
-    tar -czf linux-x64-single.tar.gz linux-x64-single
-fi
+echo "archiving linux-x64 ..."
+tar -czf linux-x64.tar.gz linux-x64

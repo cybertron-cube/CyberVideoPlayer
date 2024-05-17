@@ -1,29 +1,59 @@
 import subprocess
 import os
 import sys
+import platform
 import shutil
 import zipfile
 import collections
 import re
+import json
+import urllib.request
+import tarfile
+import functools
 
 PLIST_VERSION_PLACEHOLDER = r"${VERSION}"
 
 RepoPath = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 BuildDirPath = os.path.join(RepoPath, "build")
 Version: str | None = None
+VMajor: int = None
+VMinor: int = None
+VPatch: int = None
+VIdentifier: str = None
+VBuild: int = None
 
+print = functools.partial(print, flush=True)
+
+def getOS() -> str:
+    temp = platform.system().lower() # windows, darwin, linux
+    if temp == "windows":
+        return "win"
+    elif temp == "darwin":
+        return "osx"
+    elif temp == "linux":
+        return "linux"
+    else:
+        raise Exception("Platform not supported")
+
+def getArchitecture() -> str:
+    if platform.machine().lower() in ("amd64", "x86_64"):
+        return "x64"
+    elif platform.machine() == "arm64":
+        return "arm64"
+    else:
+        raise Exception("Architecture not supported")
+
+def CreateCompileTargetArgs(rid: str):
+    return f"-o {os.path.join(BuildDirPath, rid)} -r {rid} -c release --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0"
+
+OS = getOS()
+Architecture = getArchitecture()
 CompileTargets = {
-    "win-x64-multi": f"-o {os.path.join(BuildDirPath, 'win-x64-multi')} -r win-x64 -c release-win-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "win-x64-single": f"-o {os.path.join(BuildDirPath, 'win-x64-single')} -r win-x64 -c release-win-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "linux-x64-multi": f"-o {os.path.join(BuildDirPath, 'linux-x64-multi')} -r linux-x64 -c release-linux-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "linux-x64-single": f"-o {os.path.join(BuildDirPath, 'linux-x64-single')} -r linux-x64 -c release-linux-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "osx-x64-multi": f"-o {os.path.join(BuildDirPath, 'osx-x64-multi')} -r osx-x64 -c release-osx-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "osx-x64-single": f"-o {os.path.join(BuildDirPath, 'osx-x64-single')} -r osx-x64 -c release-osx-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "osx-arm64-multi": f"-o {os.path.join(BuildDirPath, 'osx-arm64-multi')} -r osx-arm64 -c release-osx-multi --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "osx-arm64-single": f"-o {os.path.join(BuildDirPath, 'osx-arm64-single')} -r osx-arm64 -c release-osx-single --sc true -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "portable-multi": f"-o {os.path.join(BuildDirPath, 'portable-multi')} -c release-portable-multi --sc false -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "portable-single": f"-o {os.path.join(BuildDirPath, 'portable-single')} -c release-portable-single --sc false -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
-    "all": "all of the above"
+    "win-x64": CreateCompileTargetArgs("win-x64"),
+    "linux-x64": CreateCompileTargetArgs("linux-x64"),
+    "osx-x64": CreateCompileTargetArgs("osx-x64"),
+    "osx-arm64": CreateCompileTargetArgs("osx-arm64"),
+    "portable": f"-o {os.path.join(BuildDirPath, 'portable')} -c release-portable --sc false -p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0",
 }
 
 class cd:
@@ -86,15 +116,81 @@ def CopyFilesProgress(files: list[str] | str, dest: str):
     if not os.path.exists(dest) or not os.path.isdir(dest):
         os.makedirs(dest, exist_ok=True)
     if isinstance(files, str):
-        print(f"Copying {files} to {dest}")
+        print(f"Copying {files} to {dest} ...")
         shutil.copy(files, dest)
     else:
         for file in files:
-            print(f"Copying {file}")
+            print(f"Copying {files} to {dest} ...")
             shutil.copy(file, dest)
-    print("Finished copying")
 
 #Commands
+def DownloadFFmpeg():
+    location = os.path.join(RepoPath, "ffmpeg", OS)
+    os.makedirs(location, exist_ok=True)
+
+    if OS == "osx":
+        apiurlFFmpeg = "https://evermeet.cx/ffmpeg/get/zip"
+        apiurlFFprobe = "https://evermeet.cx/ffmpeg/get/ffprobe/zip"
+
+        print("Downloading ffmpeg ...")
+        urllib.request.urlretrieve(apiurlFFmpeg, os.path.join(location, "dlffmpeg.zip"))
+        print("Extracting ffmpeg ...")
+        with cd(location):
+            with zipfile.ZipFile("dlffmpeg.zip", 'r') as zip_ref:
+                zip_ref.extractall(".")
+            os.remove("dlffmpeg.zip")
+        
+        print("Downloading ffprobe ...")
+        urllib.request.urlretrieve(apiurlFFprobe, os.path.join(location, "dlffprobe.zip"))
+        print("Extracting ffprobe ...")
+        with cd(location):
+            with zipfile.ZipFile("dlffprobe.zip", 'r') as zip_ref:
+                zip_ref.extractall(".")
+            os.remove("dlffprobe.zip")
+        
+        subprocess.call(["chmod", "-R", "777", location])
+        return
+
+    apiurl = "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest"
+    with urllib.request.urlopen(apiurl) as url:
+        releaseJsonData = json.loads(url.read().decode())
+
+    assets = releaseJsonData["assets"]
+    if Architecture == "x64":
+        arch = "64"
+    else:
+        arch = Architecture
+
+    for asset in assets:
+        assetName : str = asset["name"].lower()
+        if OS.lower() in assetName and arch in assetName and "-gpl" in assetName and "shared" not in assetName and "-master" in assetName:
+            releaseDL : str = asset["browser_download_url"]
+            break
+
+    print(f"location: {location}")
+    print(f"assetName: {assetName}")
+    print(f"releaseDL: {releaseDL}")
+
+    print("Downloading ...")
+    urllib.request.urlretrieve(releaseDL, os.path.join(location, assetName))
+    print("Finished downloading")
+
+    dirName = assetName.split('.')[0]
+
+    print("Extracting ...")
+    with cd(location):
+        if assetName.endswith(".zip"):
+            with zipfile.ZipFile(assetName, 'r') as zip_ref:
+                zip_ref.extractall(".")
+        else:
+            with tarfile.open(assetName) as f:
+                f.extractall('.')
+
+    files = ListFiles(os.path.join(location, dirName, "bin"), exclude='ffplay')
+    CopyFilesProgress(files, location)
+    os.remove(os.path.join(location, assetName))
+    shutil.rmtree(os.path.join(location, dirName))
+
 def PrintTargetOptions():
     print()
     for compileTarget in CompileTargets:
@@ -106,19 +202,40 @@ def DeleteBuildDir():
         shutil.rmtree(BuildDirPath)
 
 def SetVersion(version: str):
+    print(f"Setting version to: '{version}' ...")
     global Version
+    global VMajor
+    global VMinor
+    global VPatch
+    global VIdentifier
+    global VBuild
     Version = version
+
+    #([0-9]*?)\.([0-9]*?)\.([0-9]*?)-([a-z]*?)\.([0-9]*?)$
+    #([0-9]*?)\.([0-9]*?)\.([0-9]*?)$
+    if '-' in version: # pre-release
+        matchResult = re.search(r"([0-9]*?)\.([0-9]*?)\.([0-9]*?)-([a-z]*?)\.([0-9]*?)$", version)
+        VMajor = int(matchResult.group(1))
+        VMinor = int(matchResult.group(2))
+        VPatch = int(matchResult.group(3))
+        VIdentifier = matchResult.group(4)
+        VBuild = int(matchResult.group(5))
+    else: # normal release
+        matchResult = re.search(r"([0-9]*?)\.([0-9]*?)\.([0-9]*?)$", version)
+        VMajor = int(matchResult.group(1))
+        VMinor = int(matchResult.group(2))
+        VPatch = int(matchResult.group(3))
+        #VIdentifier = "null"
+        VBuild = 0
     for target in CompileTargets:
-        CompileTargets[target] = CompileTargets[target].replace("-p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0", f"-p:AssemblyVersion={version} -p:Version={version}")
-    versionArray = version.split('.')
-    if len(versionArray) < 2 or len(versionArray) > 4:
-        raise Exception("Version must contain 2-4 places (major, minor, build, revision)")
-    newVersion = ""
-    versionLine = "public static readonly Version Version = new(1, 0, 0, 0);"
-    for v in versionArray:
-        newVersion += v + ', '
-    newVersion = newVersion[:-2]
-    newVersionLine = f"public static readonly Version Version = new({newVersion});"
+        CompileTargets[target] = CompileTargets[target].replace("-p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0", f"-p:AssemblyVersion={VMajor}.{VMinor}.{VPatch}.{VBuild} -p:Version={version}")
+
+    versionLine = "public static readonly SemanticVersion Version = new(1, 0, 0);"
+    if VIdentifier == None:
+        newVersionLine = f"public static readonly SemanticVersion Version = new({VMajor}, {VMinor}, {VPatch});"
+    else:
+        newVersionLine = f"public static readonly SemanticVersion Version = new({VMajor}, {VMinor}, {VPatch}, \"{VIdentifier}\", {VBuild});"
+    
     with cd(os.path.join(RepoPath, "src", "CyberPlayer.Player")):
         with open("BuildConfig.cs", 'r') as file:
             data = file.read()
@@ -128,19 +245,30 @@ def SetVersion(version: str):
     with cd(RepoPath):
         with open("Info.plist", 'r') as file:
             plistData = file.read()
-            plistData = plistData.replace(PLIST_VERSION_PLACEHOLDER, version)
+            plistData = re.sub(r"(?<=<key>CFBundleShortVersionString</key>\n        <string>).*?(?=</string>)", version, plistData)
         with open("Info.plist", 'w') as file:
             file.write(plistData)
 
 def ResetVersion():
+    print(f"Resetting version to default ...")
     global Version
+    global VMajor
+    global VMinor
+    global VPatch
+    global VIdentifier
+    global VBuild
     Version = None
+    VMajor = None
+    VMinor = None
+    VPatch = None
+    VIdentifier = None
+    VBuild = None
     for target in CompileTargets:
         CompileTargets[target] = re.sub(r'-p:AssemblyVersion=.*', '-p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0', CompileTargets[target])
     with cd(os.path.join(RepoPath, "src", "CyberPlayer.Player")):
         with open("BuildConfig.cs", 'r') as file:
             data = file.read()
-            data = re.sub(r'public static readonly Version Version = new[^;]*', 'public static readonly Version Version = new(1, 0, 0, 0)', data)
+            data = re.sub(r'public static readonly SemanticVersion Version = new[^;]*', 'public static readonly SemanticVersion Version = new(1, 0, 0)', data)
         with open("BuildConfig.cs", 'w') as file:
             file.write(data)
     with cd(RepoPath):
@@ -151,24 +279,10 @@ def ResetVersion():
             file.write(plistData)
 
 def Compile(chosenTargets: str):
-    if chosenTargets == "all":
-        for compileTarget in CompileTargets:
-            if compileTarget == "sc" or compileTarget == "all":
-                continue
-            os.makedirs(os.path.join(BuildDirPath, compileTarget), exist_ok=True)
-            cmds = f"dotnet publish \"{os.path.join(RepoPath, 'src', 'CyberPlayer.Player', 'CyberPlayer.Player.csproj')}\" {CompileTargets[compileTarget]}"
-            subprocess.call(ParseCmds(cmds))
-    elif ";" in chosenTargets:
+    if ";" in chosenTargets:
         if chosenTargets.endswith(";"):
             chosenTargets = chosenTargets[0:-1]
         chosenTargets = chosenTargets.split(";")
-        if "all" in chosenTargets:
-            raise Exception("All is not valid when using multiple compile targets")
-        if "sc" in chosenTargets:
-            chosenTargets.remove("sc")
-            for target in CompileTargets:
-                if "--sc true" in CompileTargets[target] and target not in chosenTargets:
-                    chosenTargets.append(target)
         for target in chosenTargets:
             os.makedirs(os.path.join(BuildDirPath, target), exist_ok=True)
             cmds = f"dotnet publish \"{os.path.join(RepoPath, 'src', 'CyberPlayer.Player', 'CyberPlayer.Player.csproj')}\" {CompileTargets[target]}"
@@ -214,8 +328,9 @@ def RemovePDBs():
             os.remove(file)
         elif file.endswith(".dbg"):
             os.remove(file)
-        elif file.endswith(".dsym"):
-            os.remove(file)
+    for dir in ListDirs(BuildDirPath, True):
+        if dir.endswith(".dsym"):
+            shutil.rmtree(dir)
 
 #Make lib dir courtesy of https://github.com/nulastudio/NetBeauty2
 def MakeLibraryDir(chosenTargets: str):
@@ -263,7 +378,7 @@ def CopyUpdater():
             CopyFilesProgress(ListFiles(f"{os.path.join(updaterBuildPath, 'linux-x64')}", exclude=".pdb"), os.path.join(build, "updater"))
         elif "osx-x64" in os.path.basename(build):
             CopyFilesProgress(ListFiles(f"{os.path.join(updaterBuildPath, 'osx-x64')}", exclude=".pdb"), os.path.join(build, "updater"))
-        elif bool(re.search("osx.*arm64.*", os.path.basename(build))):
+        elif "osx-arm64" in os.path.basename(build):
             CopyFilesProgress(ListFiles(f"{os.path.join(updaterBuildPath, 'osx-arm64')}", exclude=".pdb"), os.path.join(build, "updater"))
         elif "portable" in os.path.basename(build):
             CopyFilesProgress(ListFiles(f"{os.path.join(updaterBuildPath, 'portable')}", exclude=".pdb"), os.path.join(build, "updater"))
@@ -272,9 +387,8 @@ def CopyUpdater():
 def ZipBuilds():
     with cd(BuildDirPath):
         for build in ListDirs(BuildDirPath):
-            print(f"Zipping {build}")
-            cmds = f"7z a -tzip \"{os.path.basename(build)}.zip\" \"{os.path.basename(build)}\""
-            subprocess.call(ParseCmds(cmds))
+            print(f"Zipping {build} ...")
+            shutil.make_archive(build, "zip", build)
 
 def DeleteBinReleaseDirs():
     dirs = ListDirs(os.path.join(RepoPath, "src", "CyberPlayer.Player", "bin"))
@@ -292,7 +406,7 @@ def CopyMpvLib():
             CopyFilesProgress(os.path.join(RepoPath, "mpv", "win", "libmpv-2.dll"), build)
         elif "linux" in os.path.basename(build):
             CopyFilesProgress(os.path.join(RepoPath, "mpv", "linux-2.1.0", "libmpv.so.2"), build)
-        elif bool(re.search("osx.*arm64.*", os.path.basename(build))):
+        elif "osx-arm64" in os.path.basename(build):
             CopyFilesProgress(os.path.join(RepoPath, "mpv", "osx-arm64-2.1.0", "libmpv.2.dylib"), build)
         elif "portable" in os.path.basename(build):
             CopyFilesProgress(os.path.join(RepoPath, "mpv", "win", "libmpv-2.dll"), build)
@@ -310,7 +424,7 @@ def BuildUpdater():
             subprocess.call(["dotnet", "publish", csproj, "-o", os.path.join(buildDir, "linux-x64"), "-r", "linux-x64", "-p:PublishSingleFile=true", "-p:PublishTrimmed=true", "-c", "release", "--sc", "true"])
         elif "osx-x64" in os.path.basename(build):
             subprocess.call(["dotnet", "publish", csproj, "-o", os.path.join(buildDir, "osx-x64"), "-r", "osx-x64", "-p:PublishSingleFile=true", "-p:PublishTrimmed=true", "-c", "release", "--sc", "true"])
-        elif bool(re.search("osx.*arm64.*", os.path.basename(build))):
+        elif "osx-arm64" in os.path.basename(build):
             subprocess.call(["dotnet", "publish", csproj, "-o", os.path.join(buildDir, "osx-arm64"), "-r", "osx-arm64", "-p:PublishSingleFile=true", "-p:PublishTrimmed=true", "-c", "release", "--sc", "true"])
 
 # Call after specifying version or default of 1.0.0 will be used
@@ -319,7 +433,7 @@ def CreateWindowsInstaller():
     if Version == None:
         subprocess.call(["iscc", setupScriptPath])
     else:
-        subprocess.call(["iscc", f"-DMyAppVersion={Version}", setupScriptPath])
+        subprocess.call(["iscc", f"-DMyAppVersion={VMajor}.{VMinor}.{VPatch}.{VBuild}", setupScriptPath])
 
 Command = collections.namedtuple('Command', ['description', 'function', 'hasParam'])
 
@@ -333,6 +447,7 @@ Commands = {
     "buildupdater" : Command("Calls the updater build script", BuildUpdater, False),
     "rmpdbs": Command("Remove all pdb files", RemovePDBs, False),
     "lib": Command("Makes a library directory for dlls", MakeLibraryDir, "Enter a compile target: "), #compiletarget/s arg
+    "dlffmpeg": Command("Downloads ffmpeg binaries from their recommended sources", DownloadFFmpeg, False),
     "cpymds": Command("Copy all markdown files from working directory", CopyMDs, False),
     "cpyupdater": Command("Copy updater to each build", CopyUpdater, False),
     "cpyffmpeg": Command("Copy ffmpeg executables to builds", CopyFFmpeg, False),

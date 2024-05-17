@@ -18,8 +18,6 @@ public static class Setup
 {
     private static readonly ILogger Log = Serilog.Log.ForContext(typeof(Setup));
     
-#if SINGLE
-    
     public static readonly Mutex GlobalMutex = new(true, BuildConfig.MutexId);
     
     public static void CheckInstance(string[] args)
@@ -91,12 +89,9 @@ public static class Setup
         catch (OperationCanceledException) { }
     }
     
-#endif
-    
     public static void Register(Settings settings)
     {
-        if (!string.IsNullOrWhiteSpace(settings.LibMpvDir))
-            libmpv.RootPath = settings.LibMpvDir;
+        libmpv.RootPath = settings.LibMpvPath;
         Log.Information("Using libmpv from path: \"{LibPath}\"", libmpv.RootPath);
 
         var container = Locator.CurrentMutable;

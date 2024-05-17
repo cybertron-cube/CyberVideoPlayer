@@ -17,19 +17,18 @@ internal class Program
         var (settings, importException) = Settings.Import(BuildConfig.SettingsPath);
         LogHelper.SetupSerilog(settings, importException);
             
-#if SINGLE
-        Setup.CheckInstance(args);
-#endif
+        if (!settings.MultipleAppInstances)
+            Setup.CheckInstance(args);
             
         Setup.Register(settings);
             
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
-            
-#if SINGLE
+
+        if (settings.MultipleAppInstances) return;
+        
         Setup.GlobalMutex.ReleaseMutex();
         Setup.GlobalMutex.Dispose();
-#endif
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.

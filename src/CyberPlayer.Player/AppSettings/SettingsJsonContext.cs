@@ -2,9 +2,6 @@
 
 namespace CyberPlayer.Player.AppSettings;
 
-[JsonSourceGenerationOptions(WriteIndented = true, IncludeFields = false)]
+[JsonSourceGenerationOptions(WriteIndented = true, IncludeFields = false, UseStringEnumConverter = true)]
 [JsonSerializable(typeof(Settings))]
-internal partial class SettingsJsonContext : JsonSerializerContext
-{
-    
-}
+internal partial class SettingsJsonContext : JsonSerializerContext;

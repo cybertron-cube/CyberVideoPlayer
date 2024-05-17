@@ -118,9 +118,9 @@ public class MainWindowViewModel : ViewModelBase
     {
         _log.Information("Checking for updates...");
         var result = await Updater.GithubCheckForUpdatesAsync("CyberVideoPlayer",
-            new[] { BuildConfig.AssetIdentifierInstance, BuildConfig.AssetIdentifierPlatform, BuildConfig.AssetIdentifierArchitecture },
+            new[] { BuildConfig.AssetIdentifierPlatform, BuildConfig.AssetIdentifierArchitecture },
             "https://api.github.com/repos/cybertron-cube/CyberVideoPlayer",
-            BuildConfig.Version.ToString(),
+            BuildConfig.Version,
             Locator.Current.GetService<HttpClient>()!,
             Settings.UpdaterIncludePreReleases);
             
@@ -146,21 +146,17 @@ public class MainWindowViewModel : ViewModelBase
                 return;
             }
             
-            // TODO Updater won't work on osx
-            if (OperatingSystem.IsMacOS())
-            {
-                OpenWebLinkCommand.Execute("https://github.com/cybertron-cube/CyberVideoPlayer/releases");
-                return;
-            }
-            
             var updaterPath = GenStatic.GetFullPathFromRelative(BuildConfig.UpdaterPath);
-            GenStatic.GetOSRespectiveExecutablePath(ref updaterPath);
-            Updater.StartUpdater(updaterPath,
+            GenStatic.Platform.ExecutablePath(ref updaterPath);
+            
+            var tempScript = Updater.StartUpdater(updaterPath,
                 result.DownloadLink, 
                 GenStatic.GetFullPathFromRelative(),
                 BuildConfig.WildCardPreservables,
                 BuildConfig.Preservables);
-
+            
+            _log.Information("Wrote temporary updater script to \"{ScriptPath}\"", tempScript);
+            
             ExitApp();
         }
         else

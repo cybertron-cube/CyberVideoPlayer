@@ -100,7 +100,7 @@ public class MpvPlayer : ViewModelBase
 
     private void MpvContext_FileLoaded(object? sender, EventArgs e)
     {
-        _log.Information("File loaded");
+        _log.Information("File \"{FilePath}\" loaded", MediaPath);
         IsFileLoaded = true;
         
         if (!double.IsNaN(_lastSeekValue)) //loading from seeking after hitting the end of the video
@@ -449,7 +449,8 @@ public class MpvPlayer : ViewModelBase
         
         Dispatcher.UIThread.Invoke(() =>
         {
-            mainWindow.SetClientSize(desiredWidth, desiredHeight);
+            mainWindow.Width = desiredWidth;
+            mainWindow.Height = desiredHeight;
         });
     }
     

@@ -45,22 +45,22 @@ public static class LogHelper
         
         AppDomain.CurrentDomain.ProcessExit += (_, _) =>
         {
-            Log.Information("Exiting");
+            Log.Logger.Information("Exiting");
             Log.CloseAndFlush();
         };
         
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
         {
-            Log.Fatal((Exception)e.ExceptionObject, "");
+            Log.Logger.Fatal((Exception)e.ExceptionObject, "");
             Log.CloseAndFlush();
         };
+        
+        InitialLogging(settingsImportException);
         
         Log.Logger.CleanupLogFiles(BuildConfig.LogDirectory, "debug*.log", settings.LogInstances);
         
         Locator.CurrentMutable.UseSerilogFullLogger(Log.Logger);
         Locator.CurrentMutable.RegisterConstant(Log.Logger);
-        
-        InitialLogging(settingsImportException);
     }
     
     public static void CleanupLogFiles(this ILogger logger, string location, string searchPattern, int fileInstances)
@@ -97,8 +97,6 @@ public static class LogHelper
             sink.File(
                 path: filePath,
                 formatter: LogFileExpressionTemplate,
-                buffered: true,
-                flushToDiskInterval: TimeSpan.FromSeconds(10),
                 fileSizeLimitBytes: 52428800,
                 rollOnFileSizeLimit: true
             )
@@ -118,12 +116,13 @@ public static class LogHelper
     private static void InitialLogging(Exception? settingsImportException)
     {
         if (settingsImportException is not null)
-            Log.Error(settingsImportException, "Failed to import settings");
-        Log.Debug("Launched with Command Line Arguments: {Args}", Environment.GetCommandLineArgs());
+            Log.Logger.Error(settingsImportException, "Failed to import settings");
+        Log.Logger.Debug("Launched with Command Line Arguments: {Args}", Environment.GetCommandLineArgs());
 
-        var sortedEntries = Environment.GetEnvironmentVariables().Cast<DictionaryEntry>();
+        var sortedEntries =
+            Environment.GetEnvironmentVariables().Cast<DictionaryEntry>().OrderBy(x => x.Key);
         var maxKeyLen = sortedEntries.Max(entry => ((string)entry.Key).Length);
         var logMessage = sortedEntries.Aggregate("Environment Variables: ", (current, entry) => current + (Environment.NewLine + (entry.Key + ": ").PadRight(maxKeyLen + 2) + entry.Value));
-        Log.Debug(logMessage);
+        Log.Logger.Debug(logMessage);
     }
 }

@@ -206,14 +206,14 @@ public class MediaInfo : IDisposable
         return toReturn;
     }
 
-    private static string GetOsFilePath(string dir)
+    private static string GetOsFileName()
     {
         if (OperatingSystem.IsWindows())
-            return Path.Combine(dir, "MediaInfo.dll");
+            return "MediaInfo.dll";
         if (OperatingSystem.IsMacOS())
-            return Path.Combine(dir, "libmediainfo.dylib");
+            return "libmediainfo.dylib";
         if (OperatingSystem.IsLinux())
-            return Path.Combine(dir, "libmediainfo.so.0.0.0");
+            return "libmediainfo.so.0.0.0";
         throw new PlatformNotSupportedException();
     }
     
@@ -226,27 +226,11 @@ public class MediaInfo : IDisposable
     
     private void FindAndLoadLibrary(Settings settings)
     {
-        var mediaInfoDir = settings.MediaInfoDir;
+        var libPath = File.Exists(settings.MediaInfoPath) ? settings.MediaInfoPath
+            : Path.Combine(settings.MediaInfoPath, GetOsFileName());
         
-        string libPath;
-        if (string.IsNullOrWhiteSpace(mediaInfoDir))
-        {
-            libPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "mediainfo");
-            libPath = GetOsFilePath(libPath);
-        }
-        else
-        {
-            var index = mediaInfoDir.LastIndexOf(Path.DirectorySeparatorChar);
-            if (index != -1)
-                index = mediaInfoDir.IndexOf('.', index);
-            else
-                throw new Exception("MediaInfo path format error");
-            
-            libPath = index == -1 ? GetOsFilePath(mediaInfoDir) : mediaInfoDir;
-        }
-
         if (!File.Exists(libPath))
-            throw new FileNotFoundException($"MediaInfo library could not be found at \"{libPath}\"");
+            throw new DllNotFoundException($"MediaInfo library could not be found at \"{libPath}\"");
         
         _lib = NativeLibrary.Load(libPath);
     }

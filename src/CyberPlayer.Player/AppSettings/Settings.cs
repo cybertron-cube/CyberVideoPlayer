@@ -71,8 +71,8 @@ public class Settings
         Exception? exception = null;
         try
         {
-            var settingsJson = File.ReadAllText(settingsPath);
-            settings = JsonSerializer.Deserialize(settingsJson, SettingsJsonContext.Default.Settings);
+            using var stream = new FileStream(settingsPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            settings = JsonSerializer.Deserialize(stream, SettingsJsonContext.Default.Settings);
         }
         catch (Exception e)
         {

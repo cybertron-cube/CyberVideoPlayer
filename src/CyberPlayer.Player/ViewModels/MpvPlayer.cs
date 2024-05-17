@@ -9,6 +9,7 @@ using Avalonia.Controls;
 using Avalonia.Threading;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Models;
+using CyberPlayer.Player.RendererVideoViews;
 using Cybertron;
 using LibMpv.Client;
 using LibMpv.Context;
@@ -47,6 +48,9 @@ public class MpvPlayer : ViewModelBase
         _settings = settings;
 
         _mpvContext = new MpvContext();
+        if (_settings.Renderer != Renderer.Native)
+            MpvContext.SetOptionString("vo", "libmpv");
+        
         MpvContext.FileLoaded += MpvContext_FileLoaded;
         MpvContext.EndFile += MpvContext_EndFile;
         ObserveProperties();

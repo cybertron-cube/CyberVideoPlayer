@@ -27,7 +27,7 @@ public class MpvPlayer : ViewModelBase
 
     private CompositeDisposable? _disposables;
     
-    private MpvContext _mpvContext;
+    private MpvContext _mpvContext = new();
 
     public MpvContext MpvContext
     {
@@ -47,7 +47,6 @@ public class MpvPlayer : ViewModelBase
         _log = logger.ForContext<MpvPlayer>();
         _settings = settings;
 
-        _mpvContext = new MpvContext();
         if (_settings.Renderer != Renderer.Native)
             MpvContext.SetOptionString("vo", "libmpv");
         

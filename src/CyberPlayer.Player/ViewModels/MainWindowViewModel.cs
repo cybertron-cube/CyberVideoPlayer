@@ -111,7 +111,7 @@ public class MainWindowViewModel : ViewModelBase
     private async void HandleCommandExceptions(Exception ex)
     {
         _log.Error(ex, "{Message}", ex.Message);
-        await this.ShowMessagePopup(MessagePopupButtons.Ok, "An error occured", ex.Message, new PopupParams());
+        await this.ShowMessagePopupAsync(MessagePopupButtons.Ok, "An error occured", ex.Message, new PopupParams());
     }
 
     private async Task CheckForUpdates()
@@ -130,7 +130,7 @@ public class MainWindowViewModel : ViewModelBase
             
         if (result.UpdateAvailable)
         {
-            var msgBoxResult = await this.ShowMessagePopup(MessagePopupButtons.YesNo,
+            var msgBoxResult = await this.ShowMessagePopupAsync(MessagePopupButtons.YesNo,
                 "Would you like to update?",
                 TempWebLinkFix(result.Body),
                 new PopupParams(PopupSize: 0.7));
@@ -139,7 +139,7 @@ public class MainWindowViewModel : ViewModelBase
 
             if (result.DownloadLink == null)
             {
-                await this.ShowMessagePopup(MessagePopupButtons.Ok,
+                await this.ShowMessagePopupAsync(MessagePopupButtons.Ok,
                     "An error occurred",
                     $"This build was not included in release {result.TagName}",
                     new PopupParams());
@@ -161,7 +161,7 @@ public class MainWindowViewModel : ViewModelBase
         }
         else
         {
-            await this.ShowMessagePopup(MessagePopupButtons.Ok,
+            await this.ShowMessagePopupAsync(MessagePopupButtons.Ok,
                 "No updates found",
                 "",
                 new PopupParams());

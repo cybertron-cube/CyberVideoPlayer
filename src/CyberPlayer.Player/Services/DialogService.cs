@@ -58,7 +58,7 @@ public static class DialogService
         videoInfoView.Show();
     }
     
-    public static async Task<MessagePopupResult> ShowMessagePopup(this ViewModelBase viewModel, MessagePopupButtons buttons, string title, string message, PopupParams popupParams)
+    public static async Task<MessagePopupResult> ShowMessagePopupAsync(this ViewModelBase viewModel, MessagePopupButtons buttons, string title, string message, PopupParams popupParams)
     {
         var content = Locator.Current.GetService<MessagePopupView>()!;
         var dataContext = Locator.Current.GetService<MessagePopupViewModel>()!;

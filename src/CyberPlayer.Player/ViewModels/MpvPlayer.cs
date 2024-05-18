@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Threading;
@@ -80,7 +81,7 @@ public class MpvPlayer : ViewModelBase
                         SetSliderValueNoSeek(x);
                 });
             }),
-            _mpvContext.ObserveProperty<bool>(MpvProperties.Paused).Subscribe(isPaused =>
+            _mpvContext.ObserveProperty<bool>(MpvProperties.Paused).Skip(1).Subscribe(isPaused =>
             {
                 Dispatcher.UIThread.Post(() =>
                 {
@@ -105,6 +106,7 @@ public class MpvPlayer : ViewModelBase
     {
         _log.Information("File \"{FilePath}\" loaded", MediaPath);
         IsFileLoaded = true;
+        IsPlaying = true;
         
         if (!double.IsNaN(_lastSeekValue)) //loading from seeking after hitting the end of the video
         {

@@ -511,12 +511,9 @@ public class MpvPlayer : ViewModelBase
             }
             MpvContext.Command(MpvCommands.Cycle, "pause");
         }
-        else
+        else if (File.Exists(MediaPath))
         {
-            if (!string.IsNullOrWhiteSpace(MediaPath))
-            {
-                LoadFile();
-            }
+            LoadFile();
         }
     }
 
@@ -564,13 +561,19 @@ public class MpvPlayer : ViewModelBase
         });
     }
 
-    public void LoadFile(string? mediaPath = null)
+    public void LoadFile()
     {
-        if (mediaPath != null)
-            MediaPath = mediaPath;
-        
         MpvContext.Command(MpvCommands.LoadFile, MediaPath, "replace");
         MpvContext.SetPropertyFlag(MpvProperties.Paused, false);
+    }
+    
+    public void LoadFile(string mediaPath)
+    {
+        if (File.Exists(mediaPath))
+        {
+            MediaPath = mediaPath;
+            LoadFile();
+        }
     }
     
     private void SetSliderValueNoSeek(double val)

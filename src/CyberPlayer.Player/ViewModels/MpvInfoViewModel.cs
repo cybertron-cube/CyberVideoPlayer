@@ -20,7 +20,8 @@ public class MpvInfoViewModel : VideoInfoViewModel
     protected override FrozenDictionary<string, string> FileExtensions => FileTypes;
 
     public MpvInfoViewModel(MpvPlayer mpvPlayer, Settings settings, ILogger log)
-        : base(VideoInfoType.Mpv, DefaultFormat, mpvPlayer, settings, log.ForContext<MpvInfoViewModel>())
+        : base(VideoInfoType.Mpv, DefaultFormat, mpvPlayer, settings, log.ForContext<MpvInfoViewModel>(),
+            player => player.TrackListJson)
     { }
 
     protected override void SetFormat()

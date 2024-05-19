@@ -2,6 +2,7 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq.Expressions;
 using System.Reactive;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -69,7 +70,8 @@ public abstract class VideoInfoViewModel : ViewModelBase
     }
 #endif
 
-    protected VideoInfoViewModel(VideoInfoType videoInfoType, string currentFormat, MpvPlayer mpvPlayer, Settings settings, ILogger log)
+    protected VideoInfoViewModel(VideoInfoType videoInfoType, string currentFormat, MpvPlayer mpvPlayer,
+        Settings settings, ILogger log, Expression<Func<MpvPlayer, object>>? triggerProperty = null)
     {
         VideoInfoType = videoInfoType;
         _currentFormat = currentFormat;
@@ -83,12 +85,17 @@ public abstract class VideoInfoViewModel : ViewModelBase
         if (_currentFormat.Equals("json", StringComparison.CurrentCultureIgnoreCase))
             JsonTreeView = true;
         
-        //TODO This probably won't work for mpv as the TrackListJson property most likely
-        //... will not be changed until after RawText is set (loaded event will take too long)
-        //... maybe need a separate subscription for TrackListJson if videotypeinfo is Mpv
-        mpvPlayer.WhenPropertyChanged(x => x.MediaPath).Subscribe(_ => SetFormat());
-        // potential memory leak above! However currently it wouldn't be since the 3 inheritors of this class
+        
+        // TODO potential memory leak. However currently it wouldn't be since the 3 inheritors of this class
         // are singletons anyway
+        if (triggerProperty is null)
+        {
+            mpvPlayer.WhenPropertyChanged(x => x.MediaPath).Subscribe(_ => SetFormat());
+        }
+        else
+        {
+            mpvPlayer.WhenPropertyChanged(triggerProperty).Subscribe(_ => SetFormat());
+        }
     }
 
     private async Task Export()

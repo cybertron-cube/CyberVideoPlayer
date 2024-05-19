@@ -285,7 +285,14 @@ public class MainWindowViewModel : ViewModelBase
         var mediaPath = result.SingleOrDefault()?.Path.LocalPath;
         if (mediaPath == null) return;
 
-        _lastFolderLocation = await result.Single().GetParentAsync();
+        try
+        {
+            _lastFolderLocation = await result.Single().GetParentAsync();
+        }
+        catch (Exception e)
+        {
+            _log.Warning(e, "Could not save previous folder location for open file dialog");
+        }
             
         MpvPlayer.LoadFile(mediaPath);
     }

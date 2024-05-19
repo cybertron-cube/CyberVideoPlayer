@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Business;
 using CyberPlayer.Player.Services;
+using Serilog;
 
 namespace CyberPlayer.Player.ViewModels;
 
@@ -28,8 +29,8 @@ public class MediaInfoViewModel : VideoInfoViewModel
 
     protected override FrozenDictionary<string, string> FileExtensions => FileTypes;
 
-    public MediaInfoViewModel(MpvPlayer mpvPlayer, Settings settings)
-        : base(VideoInfoType.MediaInfo, DefaultFormat, mpvPlayer, settings)
+    public MediaInfoViewModel(MpvPlayer mpvPlayer, Settings settings, ILogger log)
+        : base(VideoInfoType.MediaInfo, DefaultFormat, mpvPlayer, settings, log.ForContext<MediaInfoViewModel>())
     { }
 
     protected override void SetFormat()

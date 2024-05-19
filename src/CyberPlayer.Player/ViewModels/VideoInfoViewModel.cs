@@ -11,6 +11,7 @@ using CyberPlayer.Player.Services;
 using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using Serilog;
 
 namespace CyberPlayer.Player.ViewModels;
 
@@ -53,6 +54,7 @@ public abstract class VideoInfoViewModel : ViewModelBase
 
     protected readonly MpvPlayer MpvPlayer;
     protected readonly Settings Settings;
+    protected readonly ILogger Log;
     private IStorageFolder? _lastFolderLocation;
 
 #if DEBUG
@@ -67,12 +69,13 @@ public abstract class VideoInfoViewModel : ViewModelBase
     }
 #endif
 
-    protected VideoInfoViewModel(VideoInfoType videoInfoType, string currentFormat, MpvPlayer mpvPlayer, Settings settings)
+    protected VideoInfoViewModel(VideoInfoType videoInfoType, string currentFormat, MpvPlayer mpvPlayer, Settings settings, ILogger log)
     {
         VideoInfoType = videoInfoType;
+        _currentFormat = currentFormat;
         MpvPlayer = mpvPlayer;
         Settings = settings;
-        _currentFormat = currentFormat;
+        Log = log;
 
         ExportCommand = ReactiveCommand.CreateFromTask(Export);
         ExportFinished = new Subject<Unit>();
@@ -106,8 +109,15 @@ public abstract class VideoInfoViewModel : ViewModelBase
             });
 
             if (saveFile == null) return;
-            
-            _lastFolderLocation = await saveFile.GetParentAsync();
+
+            try
+            {
+                _lastFolderLocation = await saveFile.GetParentAsync();
+            }
+            catch (Exception e)
+            {
+                Log.Warning(e, "Could not save previous folder location for open file dialog");
+            }
 
             await using var stream = await saveFile.OpenWriteAsync();
             await using var streamWriter = new StreamWriter(stream);

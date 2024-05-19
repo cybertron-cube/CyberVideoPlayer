@@ -4,11 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Models;
+using CyberPlayer.Player.RendererVideoViews;
 using Cybertron;
 using LibMpv.Client;
 using LibMpv.Context;
@@ -26,7 +28,7 @@ public class MpvPlayer : ViewModelBase
 
     private CompositeDisposable? _disposables;
     
-    private MpvContext _mpvContext;
+    private MpvContext _mpvContext = new();
 
     public MpvContext MpvContext
     {
@@ -46,7 +48,9 @@ public class MpvPlayer : ViewModelBase
         _log = logger.ForContext<MpvPlayer>();
         _settings = settings;
 
-        _mpvContext = new MpvContext();
+        if (_settings.Renderer != Renderer.Native)
+            MpvContext.SetOptionString("vo", "libmpv");
+        
         MpvContext.FileLoaded += MpvContext_FileLoaded;
         MpvContext.EndFile += MpvContext_EndFile;
         ObserveProperties();
@@ -77,7 +81,7 @@ public class MpvPlayer : ViewModelBase
                         SetSliderValueNoSeek(x);
                 });
             }),
-            _mpvContext.ObserveProperty<bool>(MpvProperties.Paused).Subscribe(isPaused =>
+            _mpvContext.ObserveProperty<bool>(MpvProperties.Paused).Skip(1).Subscribe(isPaused =>
             {
                 Dispatcher.UIThread.Post(() =>
                 {
@@ -102,6 +106,7 @@ public class MpvPlayer : ViewModelBase
     {
         _log.Information("File \"{FilePath}\" loaded", MediaPath);
         IsFileLoaded = true;
+        IsPlaying = true;
         
         if (!double.IsNaN(_lastSeekValue)) //loading from seeking after hitting the end of the video
         {
@@ -449,7 +454,8 @@ public class MpvPlayer : ViewModelBase
         
         Dispatcher.UIThread.Invoke(() =>
         {
-            mainWindow.SetClientSize(desiredWidth, desiredHeight);
+            mainWindow.Width = desiredWidth;
+            mainWindow.Height = desiredHeight;
         });
     }
     
@@ -507,12 +513,9 @@ public class MpvPlayer : ViewModelBase
             }
             MpvContext.Command(MpvCommands.Cycle, "pause");
         }
-        else
+        else if (File.Exists(MediaPath))
         {
-            if (!string.IsNullOrWhiteSpace(MediaPath))
-            {
-                LoadFile();
-            }
+            LoadFile();
         }
     }
 
@@ -560,13 +563,19 @@ public class MpvPlayer : ViewModelBase
         });
     }
 
-    public void LoadFile(string? mediaPath = null)
+    public void LoadFile()
     {
-        if (mediaPath != null)
-            MediaPath = mediaPath;
-        
         MpvContext.Command(MpvCommands.LoadFile, MediaPath, "replace");
         MpvContext.SetPropertyFlag(MpvProperties.Paused, false);
+    }
+    
+    public void LoadFile(string mediaPath)
+    {
+        if (File.Exists(mediaPath))
+        {
+            MediaPath = mediaPath;
+            LoadFile();
+        }
     }
     
     private void SetSliderValueNoSeek(double val)

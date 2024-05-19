@@ -2,6 +2,7 @@ using System.Collections.Frozen;
 using System.Collections.Generic;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Services;
+using Serilog;
 
 namespace CyberPlayer.Player.ViewModels;
 
@@ -18,13 +19,14 @@ public class MpvInfoViewModel : VideoInfoViewModel
 
     protected override FrozenDictionary<string, string> FileExtensions => FileTypes;
 
-    public MpvInfoViewModel(MpvPlayer mpvPlayer, Settings settings)
-        : base(VideoInfoType.Mpv, DefaultFormat, mpvPlayer, settings)
+    public MpvInfoViewModel(MpvPlayer mpvPlayer, Settings settings, ILogger log)
+        : base(VideoInfoType.Mpv, DefaultFormat, mpvPlayer, settings, log.ForContext<MpvInfoViewModel>(),
+            player => player.TrackListJson)
     { }
 
     protected override void SetFormat()
     {
-        if (!string.IsNullOrWhiteSpace(_mpvPlayer.TrackListJson))
-            RawText = $"{{\"Track \":{_mpvPlayer.TrackListJson}}}";
+        if (!string.IsNullOrWhiteSpace(MpvPlayer.TrackListJson))
+            RawText = $"{{\"Track \":{MpvPlayer.TrackListJson}}}";
     }
 }

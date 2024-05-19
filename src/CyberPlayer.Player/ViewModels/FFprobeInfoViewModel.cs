@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Business;
 using CyberPlayer.Player.Services;
+using Serilog;
 
 namespace CyberPlayer.Player.ViewModels;
 
@@ -25,13 +26,13 @@ public class FFprobeInfoViewModel : VideoInfoViewModel
 
     protected override FrozenDictionary<string, string> FileExtensions => FileTypes;
 
-    public FFprobeInfoViewModel(MpvPlayer mpvPlayer, Settings settings)
-        : base(VideoInfoType.FFprobe, DefaultFormat, mpvPlayer, settings)
+    public FFprobeInfoViewModel(MpvPlayer mpvPlayer, Settings settings, ILogger log)
+        : base(VideoInfoType.FFprobe, DefaultFormat, mpvPlayer, settings, log.ForContext<FFprobeInfoViewModel>())
     { }
 
     protected override void SetFormat()
     {
-        using (var ffmpeg = new FFmpeg(_mpvPlayer.MediaPath, _settings))
+        using (var ffmpeg = new FFmpeg(MpvPlayer.MediaPath, Settings))
         {
             RawText = CurrentFormat == "default" ? ffmpeg.Probe() : ffmpeg.ProbeFormat(CurrentFormat);
         }

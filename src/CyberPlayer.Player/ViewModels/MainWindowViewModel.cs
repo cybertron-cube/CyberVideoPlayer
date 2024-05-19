@@ -16,6 +16,7 @@ using CyberPlayer.Player.Business;
 using CyberPlayer.Player.Models;
 using CyberPlayer.Player.Services;
 using CyberPlayer.Player.Views;
+using Cybertron.CUpdater.Github;
 using LibMpv.Client;
 using ReactiveUI.Fody.Helpers;
 using Serilog;
@@ -111,26 +112,35 @@ public class MainWindowViewModel : ViewModelBase
     private async void HandleCommandExceptions(Exception ex)
     {
         _log.Error(ex, "{Message}", ex.Message);
-        await this.ShowMessagePopup(MessagePopupButtons.Ok, "An error occured", ex.Message, new PopupParams());
+        await this.ShowMessagePopupAsync(MessagePopupButtons.Ok, "An error occured", ex.Message, new PopupParams());
     }
 
+    private bool UpdaterAssetResolver(GithubAsset githubAsset)
+    {
+        return githubAsset.name.Contains(BuildConfig.AssetIdentifierPlatform)
+               && githubAsset.name.Contains(BuildConfig.AssetIdentifierArchitecture)
+               && !githubAsset.name.Contains("setup");
+    }
+    
     private async Task CheckForUpdates()
     {
         _log.Information("Checking for updates...");
-        var result = await Updater.GithubCheckForUpdatesAsync("CyberVideoPlayer",
-            new[] { BuildConfig.AssetIdentifierPlatform, BuildConfig.AssetIdentifierArchitecture },
+        var result = await Updater.GithubCheckForUpdatesAsync(
+            "CyberVideoPlayer",
             "https://api.github.com/repos/cybertron-cube/CyberVideoPlayer",
             BuildConfig.Version,
-            Locator.Current.GetService<HttpClient>()!,
-            Settings.UpdaterIncludePreReleases);
-            
-        _log.Information("Latest github release found\nTagName: {TagName}\nBody:\n{Body}",
-            result.TagName,
-            result.Body);
+            UpdaterAssetResolver,
+            Settings.UpdaterIncludePreReleases,
+            Locator.Current.GetService<HttpClient>()!
+            );
             
         if (result.UpdateAvailable)
         {
-            var msgBoxResult = await this.ShowMessagePopup(MessagePopupButtons.YesNo,
+            _log.Information("Latest github release found\nTagName: {TagName}\nBody:\n{Body}",
+                result.TagName,
+                result.Body);
+            
+            var msgBoxResult = await this.ShowMessagePopupAsync(MessagePopupButtons.YesNo,
                 "Would you like to update?",
                 TempWebLinkFix(result.Body),
                 new PopupParams(PopupSize: 0.7));
@@ -139,7 +149,7 @@ public class MainWindowViewModel : ViewModelBase
 
             if (result.DownloadLink == null)
             {
-                await this.ShowMessagePopup(MessagePopupButtons.Ok,
+                await this.ShowMessagePopupAsync(MessagePopupButtons.Ok,
                     "An error occurred",
                     $"This build was not included in release {result.TagName}",
                     new PopupParams());
@@ -161,7 +171,7 @@ public class MainWindowViewModel : ViewModelBase
         }
         else
         {
-            await this.ShowMessagePopup(MessagePopupButtons.Ok,
+            await this.ShowMessagePopupAsync(MessagePopupButtons.Ok,
                 "No updates found",
                 "",
                 new PopupParams());
@@ -275,7 +285,14 @@ public class MainWindowViewModel : ViewModelBase
         var mediaPath = result.SingleOrDefault()?.Path.LocalPath;
         if (mediaPath == null) return;
 
-        _lastFolderLocation = await result.Single().GetParentAsync();
+        try
+        {
+            _lastFolderLocation = await result.Single().GetParentAsync();
+        }
+        catch (Exception e)
+        {
+            _log.Warning(e, "Could not save previous folder location for open file dialog");
+        }
             
         MpvPlayer.LoadFile(mediaPath);
     }

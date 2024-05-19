@@ -117,11 +117,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         return Screens.ScreenFromWindow(this)
             ?? Screens.ScreenFromPoint(Position);
     }
-
-    public void SetClientSize(double width, double height)
-    {
-        ClientSize = new Size(width, height);
-    }
     
     private static void DragOver(object sender, DragEventArgs e)
     {

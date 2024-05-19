@@ -34,13 +34,13 @@ public class MediaInfoViewModel : VideoInfoViewModel
 
     protected override void SetFormat()
     {
-        using (var mediaInfo = new MediaInfo(_settings))
+        using (var mediaInfo = new MediaInfo(Settings))
         {
             //TODO Complete should be an option
             //Complete information is automatically shown if requesting json though
             //mediaInfo.Option("Complete", "1");
             mediaInfo.Option("output", CurrentFormat);
-            mediaInfo.Open(_mpvPlayer.MediaPath);
+            mediaInfo.Open(MpvPlayer.MediaPath);
             RawText = mediaInfo.Inform();
         }
     }

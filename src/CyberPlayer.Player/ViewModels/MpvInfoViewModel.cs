@@ -24,7 +24,7 @@ public class MpvInfoViewModel : VideoInfoViewModel
 
     protected override void SetFormat()
     {
-        if (!string.IsNullOrWhiteSpace(_mpvPlayer.TrackListJson))
-            RawText = $"{{\"Track \":{_mpvPlayer.TrackListJson}}}";
+        if (!string.IsNullOrWhiteSpace(MpvPlayer.TrackListJson))
+            RawText = $"{{\"Track \":{MpvPlayer.TrackListJson}}}";
     }
 }

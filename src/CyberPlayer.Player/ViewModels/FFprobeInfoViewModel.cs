@@ -31,7 +31,7 @@ public class FFprobeInfoViewModel : VideoInfoViewModel
 
     protected override void SetFormat()
     {
-        using (var ffmpeg = new FFmpeg(_mpvPlayer.MediaPath, _settings))
+        using (var ffmpeg = new FFmpeg(MpvPlayer.MediaPath, Settings))
         {
             RawText = CurrentFormat == "default" ? ffmpeg.Probe() : ffmpeg.ProbeFormat(CurrentFormat);
         }

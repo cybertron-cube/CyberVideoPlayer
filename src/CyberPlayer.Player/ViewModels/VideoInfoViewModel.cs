@@ -51,8 +51,8 @@ public abstract class VideoInfoViewModel : ViewModelBase
     
     public Subject<Unit> ExportFinished { get; }
 
-    protected readonly MpvPlayer _mpvPlayer;
-    protected readonly Settings _settings;
+    protected readonly MpvPlayer MpvPlayer;
+    protected readonly Settings Settings;
     private IStorageFolder? _lastFolderLocation;
 
 #if DEBUG
@@ -66,12 +66,12 @@ public abstract class VideoInfoViewModel : ViewModelBase
         RawText = BuildConfig.GetTestInfo("mediainfo-default-output.txt");
     }
 #endif
-    
-    public VideoInfoViewModel(VideoInfoType videoInfoType, string currentFormat, MpvPlayer mpvPlayer, Settings settings)
+
+    protected VideoInfoViewModel(VideoInfoType videoInfoType, string currentFormat, MpvPlayer mpvPlayer, Settings settings)
     {
         VideoInfoType = videoInfoType;
-        _mpvPlayer = mpvPlayer;
-        _settings = settings;
+        MpvPlayer = mpvPlayer;
+        Settings = settings;
         _currentFormat = currentFormat;
 
         ExportCommand = ReactiveCommand.CreateFromTask(Export);
@@ -84,6 +84,8 @@ public abstract class VideoInfoViewModel : ViewModelBase
         //... will not be changed until after RawText is set (loaded event will take too long)
         //... maybe need a separate subscription for TrackListJson if videotypeinfo is Mpv
         mpvPlayer.WhenPropertyChanged(x => x.MediaPath).Subscribe(_ => SetFormat());
+        // potential memory leak above! However currently it wouldn't be since the 3 inheritors of this class
+        // are singletons anyway
     }
 
     private async Task Export()
@@ -91,7 +93,7 @@ public abstract class VideoInfoViewModel : ViewModelBase
         if (Sidecar)
         {
             var extension = FileExtensions[CurrentFormat];
-            await File.WriteAllTextAsync($"{_mpvPlayer.MediaPath}.{extension}", RawText);
+            await File.WriteAllTextAsync($"{MpvPlayer.MediaPath}.{extension}", RawText);
         }
         else
         {

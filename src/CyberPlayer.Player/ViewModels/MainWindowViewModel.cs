@@ -16,6 +16,7 @@ using CyberPlayer.Player.Business;
 using CyberPlayer.Player.Models;
 using CyberPlayer.Player.Services;
 using CyberPlayer.Player.Views;
+using Cybertron.CUpdater.Github;
 using LibMpv.Client;
 using ReactiveUI.Fody.Helpers;
 using Serilog;
@@ -114,22 +115,31 @@ public class MainWindowViewModel : ViewModelBase
         await this.ShowMessagePopupAsync(MessagePopupButtons.Ok, "An error occured", ex.Message, new PopupParams());
     }
 
+    private bool UpdaterAssetResolver(GithubAsset githubAsset)
+    {
+        return githubAsset.name.Contains(BuildConfig.AssetIdentifierPlatform)
+               && githubAsset.name.Contains(BuildConfig.AssetIdentifierArchitecture)
+               && !githubAsset.name.Contains("setup");
+    }
+    
     private async Task CheckForUpdates()
     {
         _log.Information("Checking for updates...");
-        var result = await Updater.GithubCheckForUpdatesAsync("CyberVideoPlayer",
-            new[] { BuildConfig.AssetIdentifierPlatform, BuildConfig.AssetIdentifierArchitecture },
+        var result = await Updater.GithubCheckForUpdatesAsync(
+            "CyberVideoPlayer",
             "https://api.github.com/repos/cybertron-cube/CyberVideoPlayer",
             BuildConfig.Version,
-            Locator.Current.GetService<HttpClient>()!,
-            Settings.UpdaterIncludePreReleases);
-            
-        _log.Information("Latest github release found\nTagName: {TagName}\nBody:\n{Body}",
-            result.TagName,
-            result.Body);
+            UpdaterAssetResolver,
+            Settings.UpdaterIncludePreReleases,
+            Locator.Current.GetService<HttpClient>()!
+            );
             
         if (result.UpdateAvailable)
         {
+            _log.Information("Latest github release found\nTagName: {TagName}\nBody:\n{Body}",
+                result.TagName,
+                result.Body);
+            
             var msgBoxResult = await this.ShowMessagePopupAsync(MessagePopupButtons.YesNo,
                 "Would you like to update?",
                 TempWebLinkFix(result.Body),

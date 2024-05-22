@@ -1,9 +1,9 @@
 #!/bin/sh
 
-SCRIPT_DIR=$( dirname -- "$( readlink -f -- "$0"; )"; )
-REPO_DIR=$( dirname "$SCRIPT_DIR" )
-BUILD_DIR="$REPO_DIR/build"
-PY_SCRIPT="$SCRIPT_DIR/build.py"
+BUILD_DIR=$( dirname -- "$( readlink -f -- "$0"; )"; )
+REPO_DIR=$( dirname "$BUILD_DIR" )
+OUTPUT_DIR="$BUILD_DIR/output"
+PY_SCRIPT="$BUILD_DIR/build.py"
 
 set -e
 
@@ -23,7 +23,7 @@ else
     BUILD_UPDATE="$2"
 fi
 
-rm -rf "$BUILD_DIR"
+rm -rf "$OUTPUT_DIR"
 
 if [ "$BUILD_UPDATE" = "y" ]
 then
@@ -32,9 +32,9 @@ else
     $PYTHON "$PY_SCRIPT" -version $VERSION -compile "linux-x64" -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -delbinrel -resetversion
 fi
 
-chmod -R 777 "$BUILD_DIR"
+chmod -R 777 "$OUTPUT_DIR"
 
-cd "$BUILD_DIR"
+cd "$OUTPUT_DIR"
 
 echo "archiving linux-x64 ..."
 tar -czf linux-x64.tar.gz linux-x64

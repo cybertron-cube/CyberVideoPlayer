@@ -2,8 +2,9 @@
 
 set -e
 
-SCRIPT_DIR=$( dirname -- "$( readlink -f -- "$0"; )"; )
-REPO_DIR=$( dirname "$SCRIPT_DIR" )
+RELEASE_CONFIG_DIR=$( dirname -- "$( readlink -f -- "$0"; )"; )
+BUILD_DIR=$( dirname "$RELEASE_CONFIG_DIR" )
+REPO_DIR=$( dirname "$BUILD_DIR" )
 
 if [ $# -eq 0 ]
 then
@@ -14,7 +15,7 @@ else
     CONFIG_NAME="$1"
 fi
 
-CONFIG_FILE="$SCRIPT_DIR/config-$CONFIG_NAME.json"
+CONFIG_FILE="$RELEASE_CONFIG_DIR/config-$CONFIG_NAME.json"
 
 if [ ! -f "$CONFIG_FILE" ]; then
     echo "Error: Config file \"$CONFIG_NAME\" not found!"

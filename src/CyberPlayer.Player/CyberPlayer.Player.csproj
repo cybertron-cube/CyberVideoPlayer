@@ -66,30 +66,30 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\cyber-lib\Common Libraries\Cybertron.csproj" />
+    <ProjectReference Include="..\..\deps\cyber-lib\Common Libraries\Cybertron.csproj" />
     <TrimmerRootAssembly Include="Cybertron" />
     <ProjectReference Include="..\LibMpv.Context\LibMpv.Context.csproj" />
   </ItemGroup>
 
   <Target Name="FFmpegCopy" AfterTargets="CoreCompile" Condition=" '$(Configuration)' == 'Debug' ">
-    <Copy Condition=" $(DefineConstants.Contains(WINDOWS)) Or $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\ffmpeg\win\ffmpeg.exe;..\..\ffmpeg\win\ffprobe.exe" DestinationFolder="$(OutDir)\ffmpeg" SkipUnchangedFiles="true" />
-    <Copy Condition=" $(DefineConstants.Contains(LINUX)) " SourceFiles="..\..\ffmpeg\linux\ffmpeg;..\..\ffmpeg\linux\ffprobe" DestinationFolder="$(OutDir)\ffmpeg" SkipUnchangedFiles="true" />
-    <Copy Condition=" $(DefineConstants.Contains(OSX)) " SourceFiles="..\..\ffmpeg\osx\ffmpeg;..\..\ffmpeg\osx\ffprobe" DestinationFolder="$(OutDir)\ffmpeg" SkipUnchangedFiles="true" />
-    <Copy Condition=" $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\ffmpeg\linux\ffmpeg;..\..\ffmpeg\linux\ffprobe" DestinationFiles="$(OutDir)\ffmpeg\ffmpeg-linux;$(OutDir)\ffmpeg\ffprobe-linux" SkipUnchangedFiles="true" />
-    <Copy Condition=" $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\ffmpeg\osx\ffmpeg;..\..\ffmpeg\osx\ffprobe" DestinationFiles="$(OutDir)\ffmpeg\ffmpeg-osx;$(OutDir)\ffmpeg\ffprobe-osx" SkipUnchangedFiles="true" />
+    <Copy Condition=" $(DefineConstants.Contains(WINDOWS)) Or $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\deps\ffmpeg\win\ffmpeg.exe;..\..\deps\ffmpeg\win\ffprobe.exe" DestinationFolder="$(OutDir)\ffmpeg" SkipUnchangedFiles="true" />
+    <Copy Condition=" $(DefineConstants.Contains(LINUX)) " SourceFiles="..\..\deps\ffmpeg\linux\ffmpeg;..\..\deps\ffmpeg\linux\ffprobe" DestinationFolder="$(OutDir)\ffmpeg" SkipUnchangedFiles="true" />
+    <Copy Condition=" $(DefineConstants.Contains(OSX)) " SourceFiles="..\..\deps\ffmpeg\osx\ffmpeg;..\..\deps\ffmpeg\osx\ffprobe" DestinationFolder="$(OutDir)\ffmpeg" SkipUnchangedFiles="true" />
+    <Copy Condition=" $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\deps\ffmpeg\linux\ffmpeg;..\..\deps\ffmpeg\linux\ffprobe" DestinationFiles="$(OutDir)\ffmpeg\ffmpeg-linux;$(OutDir)\ffmpeg\ffprobe-linux" SkipUnchangedFiles="true" />
+    <Copy Condition=" $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\deps\ffmpeg\osx\ffmpeg;..\..\deps\ffmpeg\osx\ffprobe" DestinationFiles="$(OutDir)\ffmpeg\ffmpeg-osx;$(OutDir)\ffmpeg\ffprobe-osx" SkipUnchangedFiles="true" />
   </Target>
   
   <Target Name="LibMpvCopy" AfterTargets="FFmpegCopy" Condition=" '$(Configuration)' == 'Debug' ">
-    <Copy Condition=" $(DefineConstants.Contains(WINDOWS)) Or $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\mpv\win\libmpv-2.dll" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
-    <Copy Condition=" $(DefineConstants.Contains(LINUX)) " SourceFiles="..\..\mpv\linux-2.1.0\libmpv.so.2" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
-    <Copy Condition=" $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\mpv\linux-2.1.0\libmpv.so.2" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+    <Copy Condition=" $(DefineConstants.Contains(WINDOWS)) Or $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\deps\mpv\win\libmpv-2.dll" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+    <Copy Condition=" $(DefineConstants.Contains(LINUX)) " SourceFiles="..\..\deps\mpv\linux-2.1.0\libmpv.so.2" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+    <Copy Condition=" $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\deps\mpv\linux-2.1.0\libmpv.so.2" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
     <!-- TODO Compile libmpv for osx -->
     <!--<Copy Condition=" $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\mpv\osx\" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />-->
   </Target>
 
   <Target Name="MediaInfoCopy" AfterTargets="LibMpvCopy" Condition=" '$(Configuration)' == 'Debug' ">
-    <Copy Condition=" $(DefineConstants.Contains(WINDOWS)) " SourceFiles="..\..\mediainfo\win\MediaInfo.dll" DestinationFolder="$(OutDir)\mediainfo" SkipUnchangedFiles="true" />
-    <Copy Condition=" $(DefineConstants.Contains(LINUX)) " SourceFiles="..\..\mediainfo\linux\libmediainfo.so.0.0.0;..\..\mediainfo\linux\libzen.so.0.4.41" DestinationFolder="$(OutDir)\mediainfo" SkipUnchangedFiles="true" />
-    <Copy Condition=" $(DefineConstants.Contains(OSX)) " SourceFiles="..\..\mediainfo\osx\libmediainfo.dylib" DestinationFolder="$(OutDir)\mediainfo" SkipUnchangedFiles="true" />
+    <Copy Condition=" $(DefineConstants.Contains(WINDOWS)) " SourceFiles="..\..\deps\mediainfo\win\MediaInfo.dll" DestinationFolder="$(OutDir)\mediainfo" SkipUnchangedFiles="true" />
+    <Copy Condition=" $(DefineConstants.Contains(LINUX)) " SourceFiles="..\..\deps\mediainfo\linux\libmediainfo.so.0.0.0;..\..\deps\mediainfo\linux\libzen.so.0.4.41" DestinationFolder="$(OutDir)\mediainfo" SkipUnchangedFiles="true" />
+    <Copy Condition=" $(DefineConstants.Contains(OSX)) " SourceFiles="..\..\deps\mediainfo\osx\libmediainfo.dylib" DestinationFolder="$(OutDir)\mediainfo" SkipUnchangedFiles="true" />
   </Target>
 </Project>

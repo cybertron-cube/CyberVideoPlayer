@@ -8,7 +8,6 @@ using Serilog;
 using Serilog.Configuration;
 using Serilog.Enrichers;
 using Serilog.Events;
-using Serilog.Templates;
 using Splat;
 using Splat.Serilog;
 using ILogger = Serilog.ILogger;
@@ -20,15 +19,10 @@ public static class LogHelper
     public const string DateTimeFormat = "yyyy-MM-dd_HH-mm-ss";
 
     public const string LogConsoleTemplate =
-        "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}";
+        "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}";
 
     public const string LogFileTemplate =
-        "{@t:yyyy-MM-dd HH:mm:ss.fff zzz} [{@l:u3}] {@m:lj} {#if Contains(@m, '\n')}\n{#end}" +
-        "({#if SourceContext is not null}<{Substring(SourceContext, LastIndexOf(SourceContext, '.') + 1)}> {#end}" +
-        "<ThreadId={ThreadId}> <ThreadName={ThreadName}> <MemoryUsage={MemoryUsage / 1048576:N2}MB>)" +
-        "{#if @x is not null}\n{@x}{#end}\n";
-    
-    public static readonly ExpressionTemplate LogFileExpressionTemplate = new(LogFileTemplate);
+        "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}";
     
     public static void SetupSerilog(Settings settings, Exception? settingsImportException)
     {
@@ -96,7 +90,7 @@ public static class LogHelper
         .WriteTo.Async(sink =>
             sink.File(
                 path: filePath,
-                formatter: LogFileExpressionTemplate,
+                outputTemplate: LogFileTemplate,
                 fileSizeLimitBytes: 52428800,
                 rollOnFileSizeLimit: true
             )

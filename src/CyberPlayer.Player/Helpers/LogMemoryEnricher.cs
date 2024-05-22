@@ -8,6 +8,7 @@ public class LogMemoryEnricher : ILogEventEnricher
 {
     public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
     {
-        logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty("MemoryUsage", GC.GetTotalMemory(false)));
+        logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty("MemoryUsage", 
+            $"{GC.GetTotalMemory(false) / (double)1048576:N2}MB"));
     }
 }

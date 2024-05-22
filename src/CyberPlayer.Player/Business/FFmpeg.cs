@@ -9,6 +9,7 @@ using CyberPlayer.Player.AppSettings;
 using Cybertron;
 using Serilog;
 using CyberPlayer.Player.Helpers;
+using Serilog.Context;
 using Serilog.Core;
 
 namespace CyberPlayer.Player.Business;
@@ -190,15 +191,17 @@ public class FFmpeg : IDisposable
     
     private async Task ReadStreamAsync(StreamReader stream, string name, Action<string>? onNewLine = null)
     {
+        using var logContext = LogContext.PushProperty("StreamName", name);
+        
         var buffer = new char[4096];
         var sb = new StringBuilder();
         int charRead;
         while ((charRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
         {
-            _log.Verbose("[{StreamName}] Chars Read: {Chars} | Buffer Length: {Length}", name, charRead, buffer.Length);
+            _log.Verbose("Chars Read: {Chars} | Buffer Length: {Length}", charRead, buffer.Length);
             if (charRead >= buffer.Length * 0.8)
             {
-                _log.Warning("[{StreamName}] Buffer is approaching overflow -> Chars Read: {Chars} | Buffer Length: {Length}", name, charRead, buffer.Length);
+                _log.Warning("Buffer is approaching overflow -> Chars Read: {Chars} | Buffer Length: {Length}", charRead, buffer.Length);
             }
             
             for (int i = 0; i < charRead; i++)
@@ -207,7 +210,7 @@ public class FFmpeg : IDisposable
                 {
                     var line = buffer[i - 1] == '\r' ? sb.ToStringTrimEnd("\r") : sb.ToString();
                     sb.Clear();
-                    _log.Information("[{StreamName}] {Data}", name, line);
+                    _log.Information("{Data}", line);
                     onNewLine?.Invoke(line);
                 }
                 else

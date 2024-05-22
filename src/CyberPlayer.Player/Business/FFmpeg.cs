@@ -206,9 +206,9 @@ public class FFmpeg : IDisposable
             
             for (int i = 0; i < charRead; i++)
             {
-                if (buffer[i] == '\n')
+                if (buffer[i] == '\n' || buffer[i] == '\r')
                 {
-                    var line = buffer[i - 1] == '\r' ? sb.ToStringTrimEnd("\r") : sb.ToString();
+                    var line = buffer[i] == '\n' ? sb.ToStringTrimEnd("\n") : sb.ToStringTrimEnd("\r");
                     sb.Clear();
                     _log.Information("{Data}", line);
                     onNewLine?.Invoke(line);
@@ -217,6 +217,11 @@ public class FFmpeg : IDisposable
                 {
                     sb.Append(buffer[i]);
                 }
+            }
+
+            if (sb.Length > 4096)
+            {
+                _log.Warning("StringBuilder length exceeding 4096 characters");
             }
         }
     }
@@ -232,7 +237,16 @@ public class FFmpeg : IDisposable
         if (line.Contains("out_time_ms"))
         {
             // Ignore the last 3 characters since for some reason ffmpeg outputs microseconds instead of milliseconds
-            var currentTimeMs = Convert.ToDouble(line.Split('=')[1][..^3]);
+            double currentTimeMs;
+            try
+            {
+                currentTimeMs = Convert.ToDouble(line.Split('=')[1][..^3]);
+            }
+            catch (Exception e)
+            {
+                _log.Warning(e, "Could not extract out time ms from line: {Line}", line);
+                return;
+            }
             if (currentTimeMs < 0) return;
             var progress = currentTimeMs / _spanTimeMs;
             Dispatcher.UIThread.Post(() => ProgressChanged!.Invoke(progress));

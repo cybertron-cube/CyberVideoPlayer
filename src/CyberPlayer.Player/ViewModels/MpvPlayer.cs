@@ -11,6 +11,7 @@ using Avalonia.Threading;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Models;
 using CyberPlayer.Player.RendererVideoViews;
+using CyberPlayer.Player.Services;
 using Cybertron;
 using LibMpv.Client;
 using LibMpv.Context;
@@ -575,6 +576,10 @@ public class MpvPlayer : ViewModelBase
         {
             MediaPath = mediaPath;
             LoadFile();
+        }
+        else
+        {
+            ViewModelLocator.Main.ShowErrorMessage(_log, "Attempted to load a non-existent file in the path \"{0}\"", mediaPath);
         }
     }
     

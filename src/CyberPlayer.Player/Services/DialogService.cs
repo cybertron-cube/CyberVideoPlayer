@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -139,6 +140,7 @@ public static class DialogService
             };
         }
         
+        LogPopup(popupParams, title, message);
         await popup.popup.OpenAsync();
         await dataContext.CloseDialog.TakeUntil(x => x);
         
@@ -187,7 +189,8 @@ public static class DialogService
                 disposables.Dispose();
             }));
         }));
-        
+
+        LogPopup(popupParams, title, message);
         popup.popup.Open();
     }
     
@@ -292,5 +295,26 @@ public static class DialogService
             popup.Padding = (Thickness)popupParams.Padding;
 
         return popup;
+    }
+
+    private static void LogPopup(PopupParams popupParams, string title, string message)
+    {
+        if (popupParams.MessagePopupLog == MessagePopupLog.None)
+        {
+        }
+        else if ((popupParams.MessagePopupLog & MessagePopupLog.Title) == MessagePopupLog.Title)
+        {
+            Log.ForContext(typeof(DialogService)).Write(popupParams.LogEventLevel, title);
+        }
+        else if ((popupParams.MessagePopupLog & MessagePopupLog.Message) == MessagePopupLog.Message)
+        {
+            Log.ForContext(typeof(DialogService)).Write(popupParams.LogEventLevel, message);
+        }
+        else if (popupParams.MessagePopupLog == (MessagePopupLog.Title | MessagePopupLog.Message))
+        {
+            Log.ForContext(typeof(DialogService))
+                .Write(popupParams.LogEventLevel, "{Title}{Separator}{Message}", title, popupParams.LogSeparator, message);
+        }
+        else throw new InvalidEnumArgumentException(nameof(MessagePopupLog));
     }
 }

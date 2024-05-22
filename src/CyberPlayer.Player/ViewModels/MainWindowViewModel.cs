@@ -125,6 +125,9 @@ public class MainWindowViewModel : ViewModelBase
     private async Task CheckForUpdates()
     {
         _log.Information("Checking for updates...");
+        _log.Information("Current version: {Version}", BuildConfig.Version.ToString());
+        _log.Information("Pre-releases: {State}", Settings.UpdaterIncludePreReleases ? "enabled" : "disabled");
+        
         var result = await Updater.GithubCheckForUpdatesAsync(
             "CyberVideoPlayer",
             "https://api.github.com/repos/cybertron-cube/CyberVideoPlayer",
@@ -136,23 +139,19 @@ public class MainWindowViewModel : ViewModelBase
             
         if (result.UpdateAvailable)
         {
-            _log.Information("Latest github release found\nTagName: {TagName}\nBody:\n{Body}",
-                result.TagName,
-                result.Body);
+            _log.Information("New version \"{TagName}\" found", result.TagName);
             
             var msgBoxResult = await this.ShowMessagePopupAsync(MessagePopupButtons.YesNo,
                 "Would you like to update?",
                 TempWebLinkFix(result.Body),
-                new PopupParams(PopupSize: 0.7));
+                new PopupParams(PopupSize: 0.7, MessagePopupLog: MessagePopupLog.Title | MessagePopupLog.Message, LogSeparator: "\n"));
 
             if (msgBoxResult != MessagePopupResult.Yes) return;
-
+            _log.Information("Starting updater...");
+            
             if (result.DownloadLink == null)
             {
-                await this.ShowMessagePopupAsync(MessagePopupButtons.Ok,
-                    "An error occurred",
-                    $"This build was not included in release {result.TagName}",
-                    new PopupParams());
+                this.ShowErrorMessage(_log, "This build was not included in release {0}", result.TagName);
                 return;
             }
             
@@ -171,10 +170,9 @@ public class MainWindowViewModel : ViewModelBase
         }
         else
         {
-            await this.ShowMessagePopupAsync(MessagePopupButtons.Ok,
-                "No updates found",
-                "",
-                new PopupParams());
+            this.ShowMessagePopup("No updates found",
+                "You are currently using the latest version available",
+                new PopupParams(MessagePopupLog: MessagePopupLog.Title));
         }
     }
 

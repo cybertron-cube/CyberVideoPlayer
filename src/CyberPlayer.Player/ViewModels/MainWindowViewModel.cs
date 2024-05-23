@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using CyberPlayer.Player.AppSettings;
 using Cybertron;
 using Cybertron.CUpdater;
@@ -248,8 +249,11 @@ public class MainWindowViewModel : ViewModelBase
         {
             ffmpeg.ProgressChanged += progress =>
             {
-                dialog.ProgressValue = progress;
-                Debug.WriteLine("PROGRESS: " + progress);
+                Dispatcher.UIThread.Invoke(() =>
+                {
+                    _log.Verbose("Progress: {Progress * 100:N2}%", progress);
+                    dialog.ProgressValue = progress;
+                });
             };
 
             await dialog.OpenAsync();

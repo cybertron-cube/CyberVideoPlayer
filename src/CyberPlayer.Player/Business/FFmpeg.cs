@@ -249,11 +249,11 @@ public class FFmpeg : IDisposable
             }
             if (currentTimeMs < 0) return;
             var progress = currentTimeMs / _spanTimeMs;
-            Dispatcher.UIThread.Post(() => ProgressChanged!.Invoke(progress));
+            ProgressChanged?.Invoke(progress);
         }
         else if (line.Contains("progress=end"))
         {
-            Dispatcher.UIThread.Post(() => ProgressChanged!.Invoke(1));
+            ProgressChanged?.Invoke(1);
         }
     }
     

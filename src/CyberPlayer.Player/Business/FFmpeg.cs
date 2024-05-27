@@ -234,9 +234,10 @@ public class FFmpeg : IDisposable
     private void OnNewLineStandardOutput(string line)
     {
         // EX: out_time_ms=659434000
-        if (line.Contains("out_time_ms"))
+        if (line.Contains("out_time_us"))
         {
-            // Ignore the last 3 characters since for some reason ffmpeg outputs microseconds instead of milliseconds
+            // Read milliseconds since for some reason ffmpeg outputs microseconds instead of milliseconds
+            // for out_time_ms
             double currentTimeMs;
             try
             {

@@ -72,3 +72,12 @@ jobs:
     uses: ./.github/workflows/build-osx.yml
     with:
       release-version: ${{ needs.release.outputs.VERSION }}
+  publish:
+    name: Publish release
+    runs-on: ubuntu-latest
+    needs: [release, build-windows, build-linux, build-osx]
+    if: ${{ needs.release.outputs.VERSION != '' }}
+    permissions:
+      contents: write
+    steps:
+      - run: gh release edit ${{ needs.release.outputs.VERSION }} --draft=false

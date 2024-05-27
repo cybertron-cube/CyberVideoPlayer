@@ -3,6 +3,7 @@
 #define MyAppURL "https://github.com/cybertron-cube/CyberVideoPlayer"
 #define MyAppExeName "CyberVideoPlayer.exe"
 #define MyRepoPath SourcePath + "\..\.."
+#define MyOutputPath "\..\output"
 #define MyAppBuildPath "\..\output\win-x64"
 #ifndef MyAppVersion
   #define MyAppVersion "1.0.0"
@@ -27,7 +28,7 @@ InfoBeforeFile={#MyAppBuildPath}\LICENSE-3RD-PARTY.md
 InfoAfterFile={#MyAppBuildPath}\README.md
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
-OutputDir=\output
+OutputDir={#MyOutputPath}
 OutputBaseFilename=CVP-win-x64-setup
 SetupIconFile={#MyRepoPath}\src\CyberPlayer.Player\Assets\Logo\cyber-logo-ocean.ico
 Compression=lzma

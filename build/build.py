@@ -44,7 +44,7 @@ def getOS() -> str:
 def getArchitecture() -> str:
     if platform.machine().lower() in ("amd64", "x86_64"):
         return "x64"
-    elif platform.machine() == "arm64":
+    elif platform.machine().lower() == "arm64":
         return "arm64"
     else:
         raise Exception("Architecture not supported")
@@ -217,6 +217,7 @@ def SetVersion(version: str):
     global VBuild
     Version = version
 
+    # Assign version segments
     if '-' in version: # pre-release
         matchResult = re.search(r"([0-9]*?)\.([0-9]*?)\.([0-9]*?)-([a-z]*?)\.([0-9]*?)$", version)
         VMajor = int(matchResult.group(1))
@@ -231,27 +232,39 @@ def SetVersion(version: str):
         VPatch = int(matchResult.group(3))
         #VIdentifier = "null"
         VBuild = 0
+
+    # Set version for compile targets
     for target in CompileTargets:
         CompileTargets[target] = CompileTargets[target].replace("-p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0", f"-p:AssemblyVersion={VMajor}.{VMinor}.{VPatch}.{VBuild} -p:Version={version}")
 
-    versionLine = "public static readonly SemanticVersion Version = new(1, 0, 0);"
+    # Set version for the executable
     if VIdentifier == None:
-        newVersionLine = f"public static readonly SemanticVersion Version = new({VMajor}, {VMinor}, {VPatch});"
+        versionParams = f"{VMajor}, {VMinor}, {VPatch}"
     else:
-        newVersionLine = f"public static readonly SemanticVersion Version = new({VMajor}, {VMinor}, {VPatch}, \"{VIdentifier}\", {VBuild});"
+        versionParams = f"{VMajor}, {VMinor}, {VPatch}, \"{VIdentifier}\", {VBuild}"
     
     with cd(os.path.join(RepoDir, "src", "CyberPlayer.Player")):
         with open("BuildConfig.cs", 'r') as file:
-            data = file.read()
-            data = data.replace(versionLine, newVersionLine)
+            buildConfigData = file.read()
+            buildConfigData = re.sub(r'(?<=public static readonly SemanticVersion Version = new\().*(?=\);)', versionParams, buildConfigData)
         with open("BuildConfig.cs", 'w') as file:
-            file.write(data)
+            file.write(buildConfigData)
+
+    # Set version for osx config
     with cd(ConfigOsxDir):
         with open("Info.plist", 'r') as file:
             plistData = file.read()
             plistData = re.sub(r"(?<=<key>CFBundleShortVersionString</key>\n        <string>).*?(?=</string>)", version, plistData)
         with open("Info.plist", 'w') as file:
             file.write(plistData)
+        
+        with open("distribution.xml", 'r') as file:
+            distData = file.read()
+            distData = re.sub(r"(?<!\?xml version=\")(?<=version=\").*?(?=\")", version, distData)
+            distData = re.sub(r"(?<=versStr=\").*?(?=\")", version, distData)
+            distData = re.sub(r"(?<=hostArchitectures=\").*?(?=\")", platform.machine().lower(), distData)
+        with open("distribution.xml", 'w') as file:
+            file.write(distData)
 
 def ResetVersion():
     print(f"Resetting version to default ...")
@@ -267,20 +280,31 @@ def ResetVersion():
     VPatch = None
     VIdentifier = None
     VBuild = None
+    
     for target in CompileTargets:
         CompileTargets[target] = re.sub(r'-p:AssemblyVersion=.*', '-p:AssemblyVersion=1.0.0.0 -p:Version=1.0.0.0', CompileTargets[target])
+
     with cd(os.path.join(RepoDir, "src", "CyberPlayer.Player")):
         with open("BuildConfig.cs", 'r') as file:
             data = file.read()
             data = re.sub(r'public static readonly SemanticVersion Version = new[^;]*', 'public static readonly SemanticVersion Version = new(1, 0, 0)', data)
         with open("BuildConfig.cs", 'w') as file:
             file.write(data)
+
     with cd(ConfigOsxDir):
         with open("Info.plist", 'r') as file:
             plistData = file.read()
             plistData = re.sub(r"(?<=<key>CFBundleShortVersionString</key>\n        <string>).*?(?=</string>)", PLIST_VERSION_PLACEHOLDER, plistData)
         with open("Info.plist", 'w') as file:
             file.write(plistData)
+
+        with open("distribution.xml", 'r') as file:
+            distData = file.read()
+            distData = re.sub(r"(?<!\?xml version=\")(?<=version=\").*?(?=\")", "1.0.0", distData)
+            distData = re.sub(r"(?<=versStr=\").*?(?=\")", "1.0.0", distData)
+            distData = re.sub(r"(?<=hostArchitectures=\").*?(?=\")", "", distData)
+        with open("distribution.xml", 'w') as file:
+            file.write(distData)
 
 def Compile(chosenTargets: str):
     if ";" in chosenTargets:
@@ -439,6 +463,18 @@ def CreateWindowsInstaller():
     else:
         subprocess.call(["iscc", f"-DMyAppVersion={VMajor}.{VMinor}.{VPatch}.{VBuild}", setupScriptPath])
 
+def DocsToHtml(dest: str):
+    import markdown
+    mds = ListFiles(DocsDir, filter=".md")
+    for md in mds:
+        with open(md, "r") as file:
+            html = "<!DOCTYPE html>\n<html>\n"
+            html += markdown.markdown(file.read())
+            html += "\n</html>\n"
+        with open(os.path.join(dest, os.path.basename(md).split('.')[0] + ".html"), "w") as output_file:
+            output_file.write(html)
+    #markdown.markdownFromFile(input=md, output=os.path.join(dest, os.path.basename(md).split('.')[0] + ".html"))
+
 Command = collections.namedtuple('Command', ['description', 'function', 'hasParam'])
 
 Commands = {
@@ -458,7 +494,8 @@ Commands = {
     "cpympv": Command("Copy libmpv to builds", CopyMpvLib, False),
     "cpymediainfo": Command("Copy mediainfo executables to builds", CopyMediaInfo, False),
     "zip": Command("Zip each build", ZipBuilds, False),
-    "winpkg": Command("Creates a windows installer with innosetup", CreateWindowsInstaller, False)
+    "winpkg": Command("Creates a windows installer with innosetup", CreateWindowsInstaller, False),
+    "docstohtml": Command("Converts all .md doc files to .html format", DocsToHtml, True)
 }
 
 def ParseArgs(args: list[str]) -> list[Command]:

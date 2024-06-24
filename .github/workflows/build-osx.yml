@@ -46,4 +46,4 @@ jobs:
       - name: Upload assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ inputs.release-version }} build/output/CVP-osx-x64-setup.dmg build/output/osx-x64.tar.gz build/output/CVP-osx-arm64-setup.dmg build/output/osx-arm64.tar.gz
+        run: gh release upload ${{ inputs.release-version }} build/output/CVP-osx-x64-setup.pkg build/output/osx-x64.tar.gz build/output/CVP-osx-arm64-setup.pkg build/output/osx-arm64.tar.gz

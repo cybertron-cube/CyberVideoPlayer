@@ -7,8 +7,8 @@ CFG_DIR="$BUILD_DIR/setup-config-osx"
 PY_SCRIPT="$BUILD_DIR/build.py"
 
 # $1 = Architecture
-CreateAppPackageAndDMG() {
-    local APP_NAME="$OUTPUT_DIR/CVP-$1/CyberVideoPlayer.app"
+CreateAppPackageAndPKG() {
+    local APP_NAME="$OUTPUT_DIR/CVP-$1/Applications/CyberVideoPlayer.app"
     local PUBLISH_OUTPUT_DIRECTORY="$OUTPUT_DIR/$1/."
     local INFO_PLIST="$CFG_DIR/Info.plist"
     local ICON_FILE="cyber-logo-sunset.icns"
@@ -28,9 +28,14 @@ CreateAppPackageAndDMG() {
     cp "$ICON_PATH" "$APP_NAME/Contents/Resources/$ICON_FILE"
     cp -a "$PUBLISH_OUTPUT_DIRECTORY" "$APP_NAME/Contents/MacOS"
 
-    ln -s "/Applications" "$OUTPUT_DIR/CVP-$1/Applications"
-    echo "creating dmg for $1 ..."
-    hdiutil create -volname "CyberVideoPlayer" -srcfolder "$OUTPUT_DIR/CVP-$1" -ov -format UDZO "$OUTPUT_DIR/CVP-$1-setup.dmg"
+    echo "creating pkg for $1 ..."
+    local dir="$(pwd)"
+    cd "$CFG_DIR"
+    chmod +x scripts/postinstall
+    pkgbuild --root "$OUTPUT_DIR/CVP-$1" --scripts scripts --component-plist MainComponent.plist --ownership preserve MainComponent.pkg
+    productbuild --resources resources --distribution distribution.xml --package-path MainComponent.pkg "$OUTPUT_DIR/CVP-$1-setup.pkg"
+    rm -f MainComponent.pkg
+    cd "$dir"
 }
 
 TarBuilds() {
@@ -103,10 +108,10 @@ fi
 
 if [ "$ARCHITECTURE" = "osx-arm64;osx-x64" ]
 then
-    CreateAppPackageAndDMG "osx-arm64"
-    CreateAppPackageAndDMG "osx-x64"
+    CreateAppPackageAndPKG "osx-arm64"
+    CreateAppPackageAndPKG "osx-x64"
 else
-    CreateAppPackageAndDMG "$ARCHITECTURE"
+    CreateAppPackageAndPKG "$ARCHITECTURE"
 fi
 
 $PYTHON "$PY_SCRIPT" -resetversion

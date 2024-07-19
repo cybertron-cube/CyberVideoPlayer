@@ -24,9 +24,9 @@ CreateAppPackageAndPKG() {
     mkdir "$APP_NAME/Contents/MacOS"
     mkdir "$APP_NAME/Contents/Resources"
 
-    cp "$INFO_PLIST" "$APP_NAME/Contents/Info.plist"
-    cp "$ICON_PATH" "$APP_NAME/Contents/Resources/$ICON_FILE"
-    cp -a "$PUBLISH_OUTPUT_DIRECTORY" "$APP_NAME/Contents/MacOS"
+    cp -f "$INFO_PLIST" "$APP_NAME/Contents/Info.plist"
+    cp -f "$ICON_PATH" "$APP_NAME/Contents/Resources/$ICON_FILE"
+    cp -f -a "$PUBLISH_OUTPUT_DIRECTORY" "$APP_NAME/Contents/MacOS"
 
     echo "creating pkg for $1 ..."
     local dir="$(pwd)"

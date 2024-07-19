@@ -27,6 +27,8 @@ public static class BuildConfig
                 "CyberVideoPlayer", SettingsFileName)
         : OperatingSystem.IsWindows() ?
             Path.Combine(GetFolderPath(SpecialFolder.ApplicationData), "CyberVideoPlayer", SettingsFileName)
+        : OperatingSystem.IsLinux() ?
+            Path.Combine(GetFolderPath(SpecialFolder.UserProfile), ".config", "CyberVideoPlayer", SettingsFileName)
         : GenStatic.GetFullPathFromRelative(SettingsFileName);
     
     public static readonly string LogDirectory =

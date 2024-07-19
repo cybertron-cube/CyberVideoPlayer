@@ -80,4 +80,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - run: gh release edit ${{ needs.release.outputs.VERSION }} --draft=false
+      - name: Publish
+        run: gh release edit ${{ needs.release.outputs.VERSION }} --draft=false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

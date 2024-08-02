@@ -15,9 +15,9 @@ public static class BuildConfig
     
     //RELATIVE PATHS ONLY
     public static readonly string[] Preservables =
-    {
+    [
         SettingsFileName
-    };
+    ];
 
     public static readonly SemanticVersion Version = new(1, 0, 0);
 

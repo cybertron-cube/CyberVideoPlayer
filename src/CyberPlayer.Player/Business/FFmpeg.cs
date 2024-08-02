@@ -236,8 +236,8 @@ public class FFmpeg : IDisposable
         // EX: out_time_ms=659434000
         if (line.Contains("out_time_us"))
         {
-            // Read milliseconds since for some reason ffmpeg outputs microseconds instead of milliseconds
-            // for out_time_ms
+            // Read microseconds and convert to milliseconds since for some reason ffmpeg outputs
+            // microseconds instead of milliseconds for out_time_ms
             double currentTimeMs;
             try
             {

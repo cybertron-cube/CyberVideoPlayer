@@ -302,7 +302,7 @@ def ResetVersion():
             distData = file.read()
             distData = re.sub(r"(?<!\?xml version=\")(?<=version=\").*?(?=\")", "1.0.0", distData)
             distData = re.sub(r"(?<=versStr=\").*?(?=\")", "1.0.0", distData)
-            distData = re.sub(r"(?<=hostArchitectures=\").*?(?=\")", "", distData)
+            distData = re.sub(r"(?<=hostArchitectures=\").*?(?=\")", "x86_64,arm64", distData)
         with open("distribution.xml", 'w') as file:
             file.write(distData)
 

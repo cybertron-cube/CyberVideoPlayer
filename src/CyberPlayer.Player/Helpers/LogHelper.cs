@@ -98,7 +98,6 @@ public static class LogHelper
         .Enrich.FromLogContext()
         .Enrich.WithThreadId()
         .Enrich.WithThreadName()
-        .Enrich.WithProperty(ThreadNameEnricher.ThreadNamePropertyName, "None")
         .Enrich.WithMemoryUsage();
     }
     

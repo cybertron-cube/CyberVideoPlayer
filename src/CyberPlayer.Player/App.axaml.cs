@@ -1,9 +1,11 @@
 using System;
 using System.IO;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using Serilog;
 
@@ -28,8 +30,8 @@ namespace CyberPlayer.Player
                 
                 if (OperatingSystem.IsMacOS())
                 {
-                    var activatable = (IActivatableApplicationLifetime)ApplicationLifetime;
-                    activatable.Activated += ActivatableOnActivated;
+                    var activatable = Current?.TryGetFeature<IActivatableLifetime>();
+                    if (activatable != null) activatable.Activated += ActivatableOnActivated;
                 }
 
                 var mainWindow = ViewLocator.Main;
@@ -44,13 +46,27 @@ namespace CyberPlayer.Player
 
         private static void ActivatableOnActivated(object? sender, ActivatedEventArgs e)
         {
-            if (e is not ProtocolActivatedEventArgs { Kind: ActivationKind.OpenUri } protocolArgs) return;
-            
-            Log.Information($"App activated via Uri: {protocolArgs.Uri}\nLocal Path: {protocolArgs.Uri.LocalPath}");
+            string mediaPath;
+
+            switch (e)
+            {
+                case ProtocolActivatedEventArgs { Kind: ActivationKind.OpenUri } protocolArgs:
+                    Log.Information("App activated via Uri: {Uri}\nLocal Path: {Path}", protocolArgs.Uri, protocolArgs.Uri.LocalPath);
+                    mediaPath = protocolArgs.Uri.LocalPath;
+                    break;
+                case FileActivatedEventArgs { Kind: ActivationKind.File } fileArgs:
+                    var allPaths = string.Join(", ", fileArgs.Files.Select(x => x.Path.LocalPath));
+                    Log.Information("App activated via file, local path/s: {Paths}", allPaths);
+                    mediaPath = fileArgs.Files[0].Path.LocalPath;
+                    break;
+                default:
+                    Log.Verbose("App activated, Kind: {Kind}", e.Kind);
+                    return;
+            }
             
             Dispatcher.UIThread.Post(() =>
             {
-                ViewModelLocator.Main.MpvPlayer.LoadFile(protocolArgs.Uri.LocalPath);
+                ViewModelLocator.Main.MpvPlayer.LoadFile(mediaPath);
             }, DispatcherPriority.Input);
         }
     }

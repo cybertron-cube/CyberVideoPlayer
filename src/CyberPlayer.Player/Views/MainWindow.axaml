@@ -82,8 +82,8 @@
 					<NativeMenuItem Header="Resize" Command="{Binding ResizeCommand}" />
 					<NativeMenuItem Header="Timecode Format">
 						<NativeMenu>
-							<NativeMenuItem Header="Basic" ToggleType="CheckBox" IsChecked="{Binding TimeCodeFormats[0].Activated}" Command="{Binding TimeCodeFormatCommand}" CommandParameter="{x:Static cybertron:TimeCodeFormat.Basic}" />
-							<NativeMenuItem Header="SMPTE" ToggleType="CheckBox" IsChecked="{Binding TimeCodeFormats[1].Activated}" Command="{Binding TimeCodeFormatCommand}" CommandParameter="{x:Static cybertron:TimeCodeFormat.SMPTE}" />
+							<NativeMenuItem Header="Basic" ToggleType="Radio" IsChecked="{Binding TimeCodeFormats[0].Activated}" Command="{Binding TimeCodeFormatCommand}" CommandParameter="{x:Static cybertron:TimeCodeFormat.Basic}" />
+							<NativeMenuItem Header="SMPTE" ToggleType="Radio" IsChecked="{Binding TimeCodeFormats[1].Activated}" Command="{Binding TimeCodeFormatCommand}" CommandParameter="{x:Static cybertron:TimeCodeFormat.SMPTE}" />
 						</NativeMenu>
 					</NativeMenuItem>
 				</NativeMenu>

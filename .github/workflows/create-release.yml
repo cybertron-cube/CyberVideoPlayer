@@ -80,6 +80,10 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Publish
         run: gh release edit ${{ needs.release.outputs.VERSION }} --draft=false
         env:

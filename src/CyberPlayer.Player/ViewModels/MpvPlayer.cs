@@ -134,6 +134,11 @@ public class MpvPlayer : ViewModelBase
             this.RaisePropertyChanged(nameof(SeekTimeCodeString));
             
             GetTracks();
+
+            var fps = SelectedVideoTrack!.VideoDemuxFps ??= 0;
+            _seekTimeCode.Fps = fps;
+            _durationTimeCode.Fps = fps;
+            
             if (GetMainWindowState() == WindowState.Normal)
                 ResizeAndCenterWindow();
         }
@@ -160,7 +165,7 @@ public class MpvPlayer : ViewModelBase
         {
             if (value - _trimStartTime == 0) return;
             _trimStartTime = value;
-            _trimStartTimeCode.SetExactUnits(value, TimeCode.TimeUnit.Second);
+            _trimStartTimeCode.SetExactUnits(value, TimeCodeUnit.Second);
             this.RaisePropertyChanged();
             this.RaisePropertyChanged(nameof(TrimStartTimeCodeString));
         }
@@ -181,7 +186,7 @@ public class MpvPlayer : ViewModelBase
         {
             if (value - _trimEndTime == 0) return;
             _trimEndTime = value;
-            _trimEndTimeCode.SetExactUnits(value, TimeCode.TimeUnit.Second);
+            _trimEndTimeCode.SetExactUnits(value, TimeCodeUnit.Second);
             this.RaisePropertyChanged();
             this.RaisePropertyChanged(nameof(TrimEndTimeCodeString));
         }
@@ -205,7 +210,7 @@ public class MpvPlayer : ViewModelBase
         {
             if (value - _duration == 0) return;
             _duration = value;
-            _durationTimeCode.SetExactUnits(value, TimeCode.TimeUnit.Second);
+            _durationTimeCode.SetExactUnits(value, TimeCodeUnit.Second);
             this.RaisePropertyChanged();
             this.RaisePropertyChanged(nameof(DurationTimeCodeString));
         }
@@ -213,7 +218,9 @@ public class MpvPlayer : ViewModelBase
 
     private readonly TimeCode _durationTimeCode;
 
-    public string DurationTimeCodeString => _durationTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength);
+    public string DurationTimeCodeString => TimeCodeFormat == TimeCodeFormat.Basic
+        ? _durationTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength)
+        : _durationTimeCode.FormattedString;
     
     private bool _isPlaying = false;
     
@@ -288,7 +295,7 @@ public class MpvPlayer : ViewModelBase
             if (value - _seekValue == 0) return;
             
             _seekValue = value;
-            _seekTimeCode.SetExactUnits(value, TimeCode.TimeUnit.Second);
+            _seekTimeCode.SetExactUnits(value, TimeCodeUnit.Second);
             
             this.RaisePropertyChanged();
             this.RaisePropertyChanged(nameof(SeekTimeCodeString));
@@ -299,10 +306,24 @@ public class MpvPlayer : ViewModelBase
             }
         }
     }
+    
+    public TimeCodeFormat TimeCodeFormat
+    {
+        get => _seekTimeCode.StringFormat;
+        set
+        {
+            _seekTimeCode.StringFormat = value;
+            _durationTimeCode.StringFormat = value;
+            this.RaisePropertyChanged(nameof(SeekTimeCodeString));
+            this.RaisePropertyChanged(nameof(DurationTimeCodeString));
+        }
+    }
 
     private readonly TimeCode _seekTimeCode;
 
-    public string SeekTimeCodeString => _seekTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength);
+    public string SeekTimeCodeString => TimeCodeFormat == TimeCodeFormat.Basic
+        ? _seekTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength)
+        : _seekTimeCode.FormattedString;
 
     private double _volumeValue = 100; //TODO THIS SHOULD PERSIST THROUGH RESTARTING APPLICATION???
 
@@ -586,7 +607,7 @@ public class MpvPlayer : ViewModelBase
     private void SetSliderValueNoSeek(double val)
     {
         _seekValue = val;
-        _seekTimeCode.SetExactUnits(val, TimeCode.TimeUnit.Second);
+        _seekTimeCode.SetExactUnits(val, TimeCodeUnit.Second);
         this.RaisePropertyChanged(nameof(SeekValue));
         this.RaisePropertyChanged(nameof(SeekTimeCodeString));
     }

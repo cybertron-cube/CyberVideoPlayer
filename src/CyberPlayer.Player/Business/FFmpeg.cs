@@ -96,8 +96,8 @@ public class FFmpeg : IDisposable
 
     public async Task<FFmpegResult> FFmpegCommandAsync(TimeCode startTime, TimeCode endTime, string commandName, string args, CancellationToken ct)
     {
-        _startTimeMs = startTime.GetExactUnits(TimeCode.TimeUnit.Millisecond);
-        _endTimeMs = endTime.GetExactUnits(TimeCode.TimeUnit.Millisecond);
+        _startTimeMs = startTime.GetExactUnits(TimeCodeUnit.Millisecond);
+        _endTimeMs = endTime.GetExactUnits(TimeCodeUnit.Millisecond);
         _spanTimeMs = _endTimeMs - _startTimeMs;
         
         SetArgsWithDefaults(args);

@@ -1,6 +1,7 @@
 ﻿using System;
 using Avalonia;
 using Avalonia.Media;
+using Serilog.Events;
 
 namespace CyberPlayer.Player.Services;
 
@@ -21,5 +22,8 @@ public record PopupParams(
     bool CloseOnClickAway = false,
     bool AnimateOpacity = true,
     IBrush? Brush = null,
-    Thickness? Padding = null
+    Thickness? Padding = null,
+    LogEventLevel LogEventLevel = LogEventLevel.Information,
+    MessagePopupLog MessagePopupLog = MessagePopupLog.Message,
+    string LogSeparator = ". "
 );

@@ -129,8 +129,10 @@ public partial class VideoInfoWindow : ReactiveWindow<VideoInfoViewModel>
             var view = new JsonTreeView();
             var viewModel = new JsonTreeViewModel();
             viewModel.RawText = ViewModel!.RawText;
-            _textBinding = ViewModel!.WhenPropertyChanged(x => x.RawText)
-                .Subscribe(_ => viewModel.RawText = ViewModel!.RawText);
+            _textBinding = ViewModel!.WhenPropertyChanged(x => x.RawText).Subscribe(_ =>
+            {
+                Dispatcher.UIThread.Invoke(() => viewModel.RawText = ViewModel!.RawText);
+            });
             view.DataContext = viewModel;
             ContentControl.Content = view;
         }

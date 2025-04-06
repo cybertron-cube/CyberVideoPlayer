@@ -4,11 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Models;
+using CyberPlayer.Player.RendererVideoViews;
+using CyberPlayer.Player.Services;
 using Cybertron;
 using LibMpv.Client;
 using LibMpv.Context;
@@ -26,7 +29,7 @@ public class MpvPlayer : ViewModelBase
 
     private CompositeDisposable? _disposables;
     
-    private MpvContext _mpvContext;
+    private MpvContext _mpvContext = new();
 
     public MpvContext MpvContext
     {
@@ -46,7 +49,9 @@ public class MpvPlayer : ViewModelBase
         _log = logger.ForContext<MpvPlayer>();
         _settings = settings;
 
-        _mpvContext = new MpvContext();
+        if (_settings.Renderer != Renderer.Native)
+            MpvContext.SetOptionString("vo", "libmpv");
+        
         MpvContext.FileLoaded += MpvContext_FileLoaded;
         MpvContext.EndFile += MpvContext_EndFile;
         ObserveProperties();
@@ -77,7 +82,7 @@ public class MpvPlayer : ViewModelBase
                         SetSliderValueNoSeek(x);
                 });
             }),
-            _mpvContext.ObserveProperty<bool>(MpvProperties.Paused).Subscribe(isPaused =>
+            _mpvContext.ObserveProperty<bool>(MpvProperties.Paused).Skip(1).Subscribe(isPaused =>
             {
                 Dispatcher.UIThread.Post(() =>
                 {
@@ -102,6 +107,7 @@ public class MpvPlayer : ViewModelBase
     {
         _log.Information("File \"{FilePath}\" loaded", MediaPath);
         IsFileLoaded = true;
+        IsPlaying = true;
         
         if (!double.IsNaN(_lastSeekValue)) //loading from seeking after hitting the end of the video
         {
@@ -128,6 +134,11 @@ public class MpvPlayer : ViewModelBase
             this.RaisePropertyChanged(nameof(SeekTimeCodeString));
             
             GetTracks();
+
+            var fps = SelectedVideoTrack!.VideoDemuxFps ??= 0;
+            _seekTimeCode.Fps = fps;
+            _durationTimeCode.Fps = fps;
+            
             if (GetMainWindowState() == WindowState.Normal)
                 ResizeAndCenterWindow();
         }
@@ -154,7 +165,7 @@ public class MpvPlayer : ViewModelBase
         {
             if (value - _trimStartTime == 0) return;
             _trimStartTime = value;
-            _trimStartTimeCode.SetExactUnits(value, TimeCode.TimeUnit.Second);
+            _trimStartTimeCode.SetExactUnits(value, TimeCodeUnit.Second);
             this.RaisePropertyChanged();
             this.RaisePropertyChanged(nameof(TrimStartTimeCodeString));
         }
@@ -175,7 +186,7 @@ public class MpvPlayer : ViewModelBase
         {
             if (value - _trimEndTime == 0) return;
             _trimEndTime = value;
-            _trimEndTimeCode.SetExactUnits(value, TimeCode.TimeUnit.Second);
+            _trimEndTimeCode.SetExactUnits(value, TimeCodeUnit.Second);
             this.RaisePropertyChanged();
             this.RaisePropertyChanged(nameof(TrimEndTimeCodeString));
         }
@@ -199,7 +210,7 @@ public class MpvPlayer : ViewModelBase
         {
             if (value - _duration == 0) return;
             _duration = value;
-            _durationTimeCode.SetExactUnits(value, TimeCode.TimeUnit.Second);
+            _durationTimeCode.SetExactUnits(value, TimeCodeUnit.Second);
             this.RaisePropertyChanged();
             this.RaisePropertyChanged(nameof(DurationTimeCodeString));
         }
@@ -207,7 +218,9 @@ public class MpvPlayer : ViewModelBase
 
     private readonly TimeCode _durationTimeCode;
 
-    public string DurationTimeCodeString => _durationTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength);
+    public string DurationTimeCodeString => TimeCodeFormat == TimeCodeFormat.Basic
+        ? _durationTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength)
+        : _durationTimeCode.FormattedString;
     
     private bool _isPlaying = false;
     
@@ -282,7 +295,7 @@ public class MpvPlayer : ViewModelBase
             if (value - _seekValue == 0) return;
             
             _seekValue = value;
-            _seekTimeCode.SetExactUnits(value, TimeCode.TimeUnit.Second);
+            _seekTimeCode.SetExactUnits(value, TimeCodeUnit.Second);
             
             this.RaisePropertyChanged();
             this.RaisePropertyChanged(nameof(SeekTimeCodeString));
@@ -293,10 +306,24 @@ public class MpvPlayer : ViewModelBase
             }
         }
     }
+    
+    public TimeCodeFormat TimeCodeFormat
+    {
+        get => _seekTimeCode.StringFormat;
+        set
+        {
+            _seekTimeCode.StringFormat = value;
+            _durationTimeCode.StringFormat = value;
+            this.RaisePropertyChanged(nameof(SeekTimeCodeString));
+            this.RaisePropertyChanged(nameof(DurationTimeCodeString));
+        }
+    }
 
     private readonly TimeCode _seekTimeCode;
 
-    public string SeekTimeCodeString => _seekTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength);
+    public string SeekTimeCodeString => TimeCodeFormat == TimeCodeFormat.Basic
+        ? _seekTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength)
+        : _seekTimeCode.FormattedString;
 
     private double _volumeValue = 100; //TODO THIS SHOULD PERSIST THROUGH RESTARTING APPLICATION???
 
@@ -508,12 +535,9 @@ public class MpvPlayer : ViewModelBase
             }
             MpvContext.Command(MpvCommands.Cycle, "pause");
         }
-        else
+        else if (File.Exists(MediaPath))
         {
-            if (!string.IsNullOrWhiteSpace(MediaPath))
-            {
-                LoadFile();
-            }
+            LoadFile();
         }
     }
 
@@ -561,19 +585,29 @@ public class MpvPlayer : ViewModelBase
         });
     }
 
-    public void LoadFile(string? mediaPath = null)
+    public void LoadFile()
     {
-        if (mediaPath != null)
-            MediaPath = mediaPath;
-        
         MpvContext.Command(MpvCommands.LoadFile, MediaPath, "replace");
         MpvContext.SetPropertyFlag(MpvProperties.Paused, false);
+    }
+    
+    public void LoadFile(string mediaPath)
+    {
+        if (File.Exists(mediaPath))
+        {
+            MediaPath = mediaPath;
+            LoadFile();
+        }
+        else
+        {
+            ViewModelLocator.Main.ShowErrorMessage(_log, "Attempted to load a non-existent file in the path \"{0}\"", mediaPath);
+        }
     }
     
     private void SetSliderValueNoSeek(double val)
     {
         _seekValue = val;
-        _seekTimeCode.SetExactUnits(val, TimeCode.TimeUnit.Second);
+        _seekTimeCode.SetExactUnits(val, TimeCodeUnit.Second);
         this.RaisePropertyChanged(nameof(SeekValue));
         this.RaisePropertyChanged(nameof(SeekTimeCodeString));
     }

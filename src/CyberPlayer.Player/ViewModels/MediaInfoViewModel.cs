@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Business;
 using CyberPlayer.Player.Services;
+using Serilog;
 
 namespace CyberPlayer.Player.ViewModels;
 
@@ -28,19 +29,19 @@ public class MediaInfoViewModel : VideoInfoViewModel
 
     protected override FrozenDictionary<string, string> FileExtensions => FileTypes;
 
-    public MediaInfoViewModel(MpvPlayer mpvPlayer, Settings settings)
-        : base(VideoInfoType.MediaInfo, DefaultFormat, mpvPlayer, settings)
+    public MediaInfoViewModel(MpvPlayer mpvPlayer, Settings settings, ILogger log)
+        : base(VideoInfoType.MediaInfo, DefaultFormat, mpvPlayer, settings, log.ForContext<MediaInfoViewModel>())
     { }
 
     protected override void SetFormat()
     {
-        using (var mediaInfo = new MediaInfo(_settings))
+        using (var mediaInfo = new MediaInfo(Settings))
         {
             //TODO Complete should be an option
             //Complete information is automatically shown if requesting json though
             //mediaInfo.Option("Complete", "1");
             mediaInfo.Option("output", CurrentFormat);
-            mediaInfo.Open(_mpvPlayer.MediaPath);
+            mediaInfo.Open(MpvPlayer.MediaPath);
             RawText = mediaInfo.Inform();
         }
     }

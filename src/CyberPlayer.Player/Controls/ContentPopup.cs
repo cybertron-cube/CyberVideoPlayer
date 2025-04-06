@@ -317,29 +317,30 @@ public class ContentPopup : ContentControl
     public void Open()
     {
         IsOpen = true;
-        //_parentPanel.Children.Add(_underlayPanel);
+        IsAnimating = true;
         _animationTimer.Start();
     }
     
     public async Task OpenAsync()
     {
         IsOpen = true;
-        _animationTimer.Start();
         IsAnimating = true;
+        _animationTimer.Start();
         await this.WhenValueChanged(x => x.IsAnimating).TakeUntil(x => x == false);
     }
 
     public void Close()
     {
         IsOpen = false;
+        IsAnimating = true;
         _animationTimer.Start();
     }
     
     public async Task CloseAsync()
     {
         IsOpen = false;
-        _animationTimer.Start();
         IsAnimating = true;
+        _animationTimer.Start();
         await this.WhenValueChanged(x => x.IsAnimating).TakeUntil(x => x == false);
     }
 

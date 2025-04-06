@@ -2,6 +2,7 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq.Expressions;
 using System.Reactive;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using CyberPlayer.Player.Services;
 using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using Serilog;
 
 namespace CyberPlayer.Player.ViewModels;
 
@@ -51,8 +53,9 @@ public abstract class VideoInfoViewModel : ViewModelBase
     
     public Subject<Unit> ExportFinished { get; }
 
-    protected readonly MpvPlayer _mpvPlayer;
-    protected readonly Settings _settings;
+    protected readonly MpvPlayer MpvPlayer;
+    protected readonly Settings Settings;
+    protected readonly ILogger Log;
     private IStorageFolder? _lastFolderLocation;
 
 #if DEBUG
@@ -66,13 +69,15 @@ public abstract class VideoInfoViewModel : ViewModelBase
         RawText = BuildConfig.GetTestInfo("mediainfo-default-output.txt");
     }
 #endif
-    
-    public VideoInfoViewModel(VideoInfoType videoInfoType, string currentFormat, MpvPlayer mpvPlayer, Settings settings)
+
+    protected VideoInfoViewModel(VideoInfoType videoInfoType, string currentFormat, MpvPlayer mpvPlayer,
+        Settings settings, ILogger log, Expression<Func<MpvPlayer, object>>? triggerProperty = null)
     {
         VideoInfoType = videoInfoType;
-        _mpvPlayer = mpvPlayer;
-        _settings = settings;
         _currentFormat = currentFormat;
+        MpvPlayer = mpvPlayer;
+        Settings = settings;
+        Log = log;
 
         ExportCommand = ReactiveCommand.CreateFromTask(Export);
         ExportFinished = new Subject<Unit>();
@@ -80,10 +85,17 @@ public abstract class VideoInfoViewModel : ViewModelBase
         if (_currentFormat.Equals("json", StringComparison.CurrentCultureIgnoreCase))
             JsonTreeView = true;
         
-        //TODO This probably won't work for mpv as the TrackListJson property most likely
-        //... will not be changed until after RawText is set (loaded event will take too long)
-        //... maybe need a separate subscription for TrackListJson if videotypeinfo is Mpv
-        mpvPlayer.WhenPropertyChanged(x => x.MediaPath).Subscribe(_ => SetFormat());
+        
+        // TODO potential memory leak. However currently it wouldn't be since the 3 inheritors of this class
+        // are singletons anyway
+        if (triggerProperty is null)
+        {
+            mpvPlayer.WhenPropertyChanged(x => x.MediaPath).Subscribe(_ => SetFormat());
+        }
+        else
+        {
+            mpvPlayer.WhenPropertyChanged(triggerProperty).Subscribe(_ => SetFormat());
+        }
     }
 
     private async Task Export()
@@ -91,7 +103,7 @@ public abstract class VideoInfoViewModel : ViewModelBase
         if (Sidecar)
         {
             var extension = FileExtensions[CurrentFormat];
-            await File.WriteAllTextAsync($"{_mpvPlayer.MediaPath}.{extension}", RawText);
+            await File.WriteAllTextAsync($"{MpvPlayer.MediaPath}.{extension}", RawText);
         }
         else
         {
@@ -104,8 +116,15 @@ public abstract class VideoInfoViewModel : ViewModelBase
             });
 
             if (saveFile == null) return;
-            
-            _lastFolderLocation = await saveFile.GetParentAsync();
+
+            try
+            {
+                _lastFolderLocation = await saveFile.GetParentAsync();
+            }
+            catch (Exception e)
+            {
+                Log.Warning(e, "Could not save previous folder location for open file dialog");
+            }
 
             await using var stream = await saveFile.OpenWriteAsync();
             await using var streamWriter = new StreamWriter(stream);

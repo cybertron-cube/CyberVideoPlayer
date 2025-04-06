@@ -9,6 +9,7 @@ using CyberPlayer.Player.AppSettings;
 using Cybertron;
 using Serilog;
 using CyberPlayer.Player.Helpers;
+using Serilog.Context;
 using Serilog.Core;
 
 namespace CyberPlayer.Player.Business;
@@ -95,8 +96,8 @@ public class FFmpeg : IDisposable
 
     public async Task<FFmpegResult> FFmpegCommandAsync(TimeCode startTime, TimeCode endTime, string commandName, string args, CancellationToken ct)
     {
-        _startTimeMs = startTime.GetExactUnits(TimeCode.TimeUnit.Millisecond);
-        _endTimeMs = endTime.GetExactUnits(TimeCode.TimeUnit.Millisecond);
+        _startTimeMs = startTime.GetExactUnits(TimeCodeUnit.Millisecond);
+        _endTimeMs = endTime.GetExactUnits(TimeCodeUnit.Millisecond);
         _spanTimeMs = _endTimeMs - _startTimeMs;
         
         SetArgsWithDefaults(args);
@@ -190,30 +191,37 @@ public class FFmpeg : IDisposable
     
     private async Task ReadStreamAsync(StreamReader stream, string name, Action<string>? onNewLine = null)
     {
+        using var logContext = LogContext.PushProperty("StreamName", name);
+        
         var buffer = new char[4096];
         var sb = new StringBuilder();
         int charRead;
         while ((charRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
         {
-            _log.Verbose("[{StreamName}] Chars Read: {Chars} | Buffer Length: {Length}", name, charRead, buffer.Length);
+            _log.Verbose("Chars Read: {Chars} | Buffer Length: {Length}", charRead, buffer.Length);
             if (charRead >= buffer.Length * 0.8)
             {
-                _log.Warning("[{StreamName}] Buffer is approaching overflow -> Chars Read: {Chars} | Buffer Length: {Length}", name, charRead, buffer.Length);
+                _log.Warning("Buffer is approaching overflow -> Chars Read: {Chars} | Buffer Length: {Length}", charRead, buffer.Length);
             }
             
             for (int i = 0; i < charRead; i++)
             {
-                if (buffer[i] == '\n')
+                if (buffer[i] == '\n' || buffer[i] == '\r')
                 {
-                    var line = buffer[i - 1] == '\r' ? sb.ToStringTrimEnd("\r") : sb.ToString();
+                    var line = buffer[i] == '\n' ? sb.ToStringTrimEnd("\n") : sb.ToStringTrimEnd("\r");
                     sb.Clear();
-                    _log.Information("[{StreamName}] {Data}", name, line);
+                    _log.Information("{Data}", line);
                     onNewLine?.Invoke(line);
                 }
                 else
                 {
                     sb.Append(buffer[i]);
                 }
+            }
+
+            if (sb.Length > 4096)
+            {
+                _log.Warning("StringBuilder length exceeding 4096 characters");
             }
         }
     }
@@ -226,17 +234,27 @@ public class FFmpeg : IDisposable
     private void OnNewLineStandardOutput(string line)
     {
         // EX: out_time_ms=659434000
-        if (line.Contains("out_time_ms"))
+        if (line.Contains("out_time_us"))
         {
-            // Ignore the last 3 characters since for some reason ffmpeg outputs microseconds instead of milliseconds
-            var currentTimeMs = Convert.ToDouble(line.Split('=')[1][..^3]);
+            // Read microseconds and convert to milliseconds since for some reason ffmpeg outputs
+            // microseconds instead of milliseconds for out_time_ms
+            double currentTimeMs;
+            try
+            {
+                currentTimeMs = Convert.ToDouble(line.Split('=')[1][..^3]);
+            }
+            catch (Exception e)
+            {
+                _log.Warning(e, "Could not extract out time ms from line: {Line}", line);
+                return;
+            }
             if (currentTimeMs < 0) return;
             var progress = currentTimeMs / _spanTimeMs;
-            Dispatcher.UIThread.Post(() => ProgressChanged!.Invoke(progress));
+            ProgressChanged?.Invoke(progress);
         }
         else if (line.Contains("progress=end"))
         {
-            Dispatcher.UIThread.Post(() => ProgressChanged!.Invoke(1));
+            ProgressChanged?.Invoke(1);
         }
     }
     

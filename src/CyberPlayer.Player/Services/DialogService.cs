@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia;
@@ -9,7 +11,11 @@ using CyberPlayer.Player.Controls;
 using CyberPlayer.Player.ViewModels;
 using CyberPlayer.Player.Views;
 using HanumanInstitute.MvvmDialogs.Avalonia;
+using ReactiveUI;
+using Serilog;
+using Serilog.Core;
 using Splat;
+using ILogger = Serilog.ILogger;
 
 namespace CyberPlayer.Player.Services;
 
@@ -58,7 +64,21 @@ public static class DialogService
         videoInfoView.Show();
     }
     
-    public static async Task<MessagePopupResult> ShowMessagePopup(this ViewModelBase viewModel, MessagePopupButtons buttons, string title, string message, PopupParams popupParams)
+    [MessageTemplateFormatMethod("messageTemplate")]
+    public static void ShowErrorMessage(this ViewModelBase viewModel, ILogger log, Exception? exception, string messageTemplate, params object?[]? propertyValues)
+    {
+        log.Error(exception, messageTemplate, propertyValues);
+        var message = propertyValues == null ? messageTemplate : string.Format(messageTemplate, propertyValues);
+        ShowMessagePopup(viewModel, "An error occurred", message, new PopupParams(CloseOnClickAway: true));
+    }
+    
+    [MessageTemplateFormatMethod("messageTemplate")]
+    public static void ShowErrorMessage(this ViewModelBase viewModel, ILogger log, string messageTemplate, params object?[]? propertyValues)
+    {
+        ShowErrorMessage(viewModel, log, null, messageTemplate, propertyValues);
+    }
+    
+    public static async Task<MessagePopupResult> ShowMessagePopupAsync(this ViewModelBase viewModel, MessagePopupButtons buttons, string title, string message, PopupParams popupParams)
     {
         var content = Locator.Current.GetService<MessagePopupView>()!;
         var dataContext = Locator.Current.GetService<MessagePopupViewModel>()!;
@@ -120,10 +140,58 @@ public static class DialogService
             };
         }
         
+        LogPopup(popupParams, title, message);
         await popup.popup.OpenAsync();
         await dataContext.CloseDialog.TakeUntil(x => x);
         
         return result;
+    }
+    
+    public static void ShowMessagePopup(this ViewModelBase viewModel, string title, string message, PopupParams popupParams)
+    {
+        var content = Locator.Current.GetService<MessagePopupView>()!;
+        var dataContext = Locator.Current.GetService<MessagePopupViewModel>()!;
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            content.MainGrid.Children.Remove(content.MarkdownBorder);
+            Grid.SetRow(content.Label, 1);
+            content.Label.Margin = new Thickness(0, -2, 0, 5);
+        }
+        else
+        {
+            dataContext.Message = message;
+        }
+        dataContext.Title = title;
+        content.DataContext = dataContext;
+
+        var button = new Button
+        {
+            Content = "Ok"
+        };
+        button.Click += (_, _) => dataContext.Close = true;
+        content.ButtonPanel.Children.Add(button);
+
+        var popup = GetPopup(viewModel, content, popupParams);
+
+        var disposables = new CompositeDisposable(2);
+        
+        disposables.Add(popup.popup.WhenAnyValue(x => x.IsOpen).Skip(1)
+            .Subscribe(isOpen =>
+        {
+            if (isOpen) return;
+            
+            disposables.Add(popup.popup.WhenAnyValue(x => x.IsAnimating).Skip(1)
+                .Subscribe(animating =>
+            {
+                if (animating) return;
+                
+                popup.attachedView.MainPanel.Children.Remove(popup.popup);
+                disposables.Dispose();
+            }));
+        }));
+
+        LogPopup(popupParams, title, message);
+        popup.popup.Open();
     }
     
     public static ProgressPopupHandler GetProgressPopup(this ViewModelBase viewModel, PopupParams popupParams)
@@ -227,5 +295,26 @@ public static class DialogService
             popup.Padding = (Thickness)popupParams.Padding;
 
         return popup;
+    }
+
+    private static void LogPopup(PopupParams popupParams, string title, string message)
+    {
+        if (popupParams.MessagePopupLog == MessagePopupLog.None)
+        {
+        }
+        else if ((popupParams.MessagePopupLog & MessagePopupLog.Title) == MessagePopupLog.Title)
+        {
+            Log.ForContext(typeof(DialogService)).Write(popupParams.LogEventLevel, title);
+        }
+        else if ((popupParams.MessagePopupLog & MessagePopupLog.Message) == MessagePopupLog.Message)
+        {
+            Log.ForContext(typeof(DialogService)).Write(popupParams.LogEventLevel, message);
+        }
+        else if (popupParams.MessagePopupLog == (MessagePopupLog.Title | MessagePopupLog.Message))
+        {
+            Log.ForContext(typeof(DialogService))
+                .Write(popupParams.LogEventLevel, "{Title}{Separator}{Message}", title, popupParams.LogSeparator, message);
+        }
+        else throw new InvalidEnumArgumentException(nameof(MessagePopupLog));
     }
 }

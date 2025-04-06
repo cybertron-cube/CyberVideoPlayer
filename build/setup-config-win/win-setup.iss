@@ -2,8 +2,9 @@
 #define MyAppPublisher "Cybertron-Cube"
 #define MyAppURL "https://github.com/cybertron-cube/CyberVideoPlayer"
 #define MyAppExeName "CyberVideoPlayer.exe"
-#define MyRepoPath SourcePath + "\.."
-#define MyAppBuildPath MyRepoPath + "\build\win-x64"
+#define MyRepoPath SourcePath + "\..\.."
+#define MyOutputPath SourcePath + "\..\output"
+#define MyAppBuildPath SourcePath + "\..\output\win-x64"
 #ifndef MyAppVersion
   #define MyAppVersion "1.0.0"
 #endif
@@ -18,8 +19,8 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-ArchitecturesAllowed=x64
-ArchitecturesInstallIn64BitMode=x64
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
 DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
 LicenseFile={#MyAppBuildPath}\LICENSE.md
@@ -27,7 +28,7 @@ InfoBeforeFile={#MyAppBuildPath}\LICENSE-3RD-PARTY.md
 InfoAfterFile={#MyAppBuildPath}\README.md
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
-OutputDir={#MyRepoPath}\package
+OutputDir={#MyOutputPath}
 OutputBaseFilename=CVP-win-x64-setup
 SetupIconFile={#MyRepoPath}\src\CyberPlayer.Player\Assets\Logo\cyber-logo-ocean.ico
 Compression=lzma

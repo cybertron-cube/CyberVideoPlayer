@@ -40,10 +40,10 @@ jobs:
       - name: Install nuget package dependencies
         run: dotnet restore --locked-mode
       - name: Download FFmpeg Binaries
-        run: python scripts/build.py -dlffmpeg
+        run: python build/build.py -dlffmpeg
       - name: Run build script
-        run: python scripts/build.py -version ${{ inputs.release-version }} -compile win-x64 -buildupdater -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -zip -winpkg
+        run: python build/build.py -version ${{ inputs.release-version }} -compile win-x64 -buildupdater -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -zip -winpkg
       - name: Upload assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ inputs.release-version }} build/win-x64.zip package/CVP-win-x64-setup.exe
+        run: gh release upload ${{ inputs.release-version }} build/output/win-x64.zip build/output/CVP-win-x64-setup.exe

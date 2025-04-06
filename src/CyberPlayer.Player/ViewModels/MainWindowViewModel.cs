@@ -1,5 +1,6 @@
 ﻿using ReactiveUI;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
@@ -8,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using CyberPlayer.Player.AppSettings;
 using Cybertron;
 using Cybertron.CUpdater;
@@ -16,6 +18,7 @@ using CyberPlayer.Player.Business;
 using CyberPlayer.Player.Models;
 using CyberPlayer.Player.Services;
 using CyberPlayer.Player.Views;
+using Cybertron.CUpdater.Github;
 using LibMpv.Client;
 using ReactiveUI.Fody.Helpers;
 using Serilog;
@@ -47,6 +50,11 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> CenterCommand { get; }
     
     public ReactiveCommand<Unit, Unit> ResizeCommand { get; }
+    
+    public ReactiveCommand<TimeCodeFormat, Unit> TimeCodeFormatCommand { get; }
+    
+    public List<Activatable<TimeCodeFormat>> TimeCodeFormats { get; } = Enum.GetValues<TimeCodeFormat>()
+        .Select(f => new Activatable<TimeCodeFormat> { Entity = f, Activated = false }).ToList();
     
     [Reactive]
     public object? VideoContent { get; set; }
@@ -85,6 +93,7 @@ public class MainWindowViewModel : ViewModelBase
         _log = logger.ForContext<MainWindowViewModel>();
         Settings = settings;
         MpvPlayer = mpvPlayer;
+        TimeCodeFormats.Single(x => x.Entity == TimeCodeFormat.Basic).Activated = true;
 
         AppExiting.Subscribe(_ =>
         {
@@ -100,49 +109,73 @@ public class MainWindowViewModel : ViewModelBase
         CenterResizeCommand = ReactiveCommand.Create(() => { MpvPlayer.SetWindowSize(); MpvPlayer.CenterWindow(); });
         CenterCommand = ReactiveCommand.Create(MpvPlayer.CenterWindow);
         ResizeCommand = ReactiveCommand.Create(MpvPlayer.SetWindowSize);
+        TimeCodeFormatCommand = ReactiveCommand.Create<TimeCodeFormat>(SetTimeCodeFormat);
         
         CheckForUpdatesCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
         ViewVideoInfoCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
         CenterResizeCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
         CenterCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
         ResizeCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
+        TimeCodeFormatCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
     }
 
     private async void HandleCommandExceptions(Exception ex)
     {
         _log.Error(ex, "{Message}", ex.Message);
-        await this.ShowMessagePopup(MessagePopupButtons.Ok, "An error occured", ex.Message, new PopupParams());
+        await this.ShowMessagePopupAsync(MessagePopupButtons.Ok, "An error occured", ex.Message, new PopupParams());
     }
 
+    private void SetTimeCodeFormat(TimeCodeFormat timeCodeFormat)
+    {
+        // This is only for native menu. For some reason the binding in the native menu is not able to use
+        // the setter correctly when referencing an element within a list. However, the getter is used by the native
+        // menu weirdly enough.
+        // TODO If avalonia eventually allows an items source property on native menus then this should not be needed
+        MpvPlayer.TimeCodeFormat = timeCodeFormat;
+        foreach (var activatable in TimeCodeFormats)
+        {
+            activatable.Activated = activatable.Entity == timeCodeFormat;
+            activatable.RaisePropertyChanged(nameof(Activatable<TimeCodeFormat>.Activated));
+        }
+    }
+
+    private bool UpdaterAssetResolver(GithubAsset githubAsset)
+    {
+        return githubAsset.name.Contains(BuildConfig.AssetIdentifierPlatform)
+               && githubAsset.name.Contains(BuildConfig.AssetIdentifierArchitecture)
+               && !githubAsset.name.Contains("setup");
+    }
+    
     private async Task CheckForUpdates()
     {
         _log.Information("Checking for updates...");
-        var result = await Updater.GithubCheckForUpdatesAsync("CyberVideoPlayer",
-            new[] { BuildConfig.AssetIdentifierPlatform, BuildConfig.AssetIdentifierArchitecture },
+        _log.Information("Current version: {Version}", BuildConfig.Version.ToString());
+        _log.Information("Pre-releases: {State}", Settings.UpdaterIncludePreReleases ? "enabled" : "disabled");
+        
+        var result = await Updater.GithubCheckForUpdatesAsync(
+            "CyberVideoPlayer",
             "https://api.github.com/repos/cybertron-cube/CyberVideoPlayer",
             BuildConfig.Version,
-            Locator.Current.GetService<HttpClient>()!,
-            Settings.UpdaterIncludePreReleases);
-            
-        _log.Information("Latest github release found\nTagName: {TagName}\nBody:\n{Body}",
-            result.TagName,
-            result.Body);
+            UpdaterAssetResolver,
+            Settings.UpdaterIncludePreReleases,
+            Locator.Current.GetService<HttpClient>()!
+            );
             
         if (result.UpdateAvailable)
         {
-            var msgBoxResult = await this.ShowMessagePopup(MessagePopupButtons.YesNo,
+            _log.Information("New version \"{TagName}\" found", result.TagName);
+            
+            var msgBoxResult = await this.ShowMessagePopupAsync(MessagePopupButtons.YesNo,
                 "Would you like to update?",
                 TempWebLinkFix(result.Body),
-                new PopupParams(PopupSize: 0.7));
+                new PopupParams(PopupSize: 0.7, MessagePopupLog: MessagePopupLog.Title | MessagePopupLog.Message, LogSeparator: "\n"));
 
             if (msgBoxResult != MessagePopupResult.Yes) return;
-
+            _log.Information("Starting updater...");
+            
             if (result.DownloadLink == null)
             {
-                await this.ShowMessagePopup(MessagePopupButtons.Ok,
-                    "An error occurred",
-                    $"This build was not included in release {result.TagName}",
-                    new PopupParams());
+                this.ShowErrorMessage(_log, "This build was not included in release {0}", result.TagName);
                 return;
             }
             
@@ -161,10 +194,9 @@ public class MainWindowViewModel : ViewModelBase
         }
         else
         {
-            await this.ShowMessagePopup(MessagePopupButtons.Ok,
-                "No updates found",
-                "",
-                new PopupParams());
+            this.ShowMessagePopup("No updates found",
+                "You are currently using the latest version available",
+                new PopupParams(MessagePopupLog: MessagePopupLog.Title));
         }
     }
 
@@ -240,8 +272,11 @@ public class MainWindowViewModel : ViewModelBase
         {
             ffmpeg.ProgressChanged += progress =>
             {
-                dialog.ProgressValue = progress;
-                Debug.WriteLine("PROGRESS: " + progress);
+                Dispatcher.UIThread.Invoke(() =>
+                {
+                    _log.Verbose("Progress: {Progress * 100:N2}%", progress);
+                    dialog.ProgressValue = progress;
+                });
             };
 
             await dialog.OpenAsync();
@@ -275,7 +310,14 @@ public class MainWindowViewModel : ViewModelBase
         var mediaPath = result.SingleOrDefault()?.Path.LocalPath;
         if (mediaPath == null) return;
 
-        _lastFolderLocation = await result.Single().GetParentAsync();
+        try
+        {
+            _lastFolderLocation = await result.Single().GetParentAsync();
+        }
+        catch (Exception e)
+        {
+            _log.Warning(e, "Could not save previous folder location for open file dialog");
+        }
             
         MpvPlayer.LoadFile(mediaPath);
     }

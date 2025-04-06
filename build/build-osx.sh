@@ -1,14 +1,16 @@
 #!/bin/sh
 
-SCRIPT_DIR=$( dirname -- "$( readlink -f -- "$0"; )"; )
-REPO_DIR=$( dirname "$SCRIPT_DIR" )
-PY_SCRIPT="$SCRIPT_DIR/build.py"
+BUILD_DIR=$( dirname -- "$( readlink -f -- "$0"; )"; )
+REPO_DIR=$( dirname "$BUILD_DIR" )
+OUTPUT_DIR="$BUILD_DIR/output"
+CFG_DIR="$BUILD_DIR/setup-config-osx"
+PY_SCRIPT="$BUILD_DIR/build.py"
 
 # $1 = Architecture
-CreateAppPackageAndDMG() {
-    local APP_NAME="$REPO_DIR/build/CVP-$1/CyberVideoPlayer.app"
-    local PUBLISH_OUTPUT_DIRECTORY="$REPO_DIR/build/$1/."
-    local INFO_PLIST="$REPO_DIR/Info.plist"
+CreateAppPackageAndPKG() {
+    local APP_NAME="$OUTPUT_DIR/CVP-$1/Applications/CyberVideoPlayer.app"
+    local PUBLISH_OUTPUT_DIRECTORY="$OUTPUT_DIR/$1/."
+    local INFO_PLIST="$CFG_DIR/Info.plist"
     local ICON_FILE="cyber-logo-sunset.icns"
     local ICON_PATH="$REPO_DIR/src/CyberPlayer.Player/Assets/Logo/$ICON_FILE"
 
@@ -22,18 +24,23 @@ CreateAppPackageAndDMG() {
     mkdir "$APP_NAME/Contents/MacOS"
     mkdir "$APP_NAME/Contents/Resources"
 
-    cp "$INFO_PLIST" "$APP_NAME/Contents/Info.plist"
-    cp "$ICON_PATH" "$APP_NAME/Contents/Resources/$ICON_FILE"
-    cp -a "$PUBLISH_OUTPUT_DIRECTORY" "$APP_NAME/Contents/MacOS"
+    cp -f "$INFO_PLIST" "$APP_NAME/Contents/Info.plist"
+    cp -f "$ICON_PATH" "$APP_NAME/Contents/Resources/$ICON_FILE"
+    cp -f -a "$PUBLISH_OUTPUT_DIRECTORY" "$APP_NAME/Contents/MacOS"
 
-    ln -s "/Applications" "$REPO_DIR/build/CVP-$1/Applications"
-    echo "creating dmg for $1 ..."
-    hdiutil create -volname "CyberVideoPlayer" -srcfolder "$REPO_DIR/build/CVP-$1" -ov -format UDZO "$REPO_DIR/build/CVP-$1-setup.dmg"
+    echo "creating pkg for $1 ..."
+    local dir="$(pwd)"
+    cd "$CFG_DIR"
+    chmod +x scripts/postinstall
+    pkgbuild --root "$OUTPUT_DIR/CVP-$1" --scripts scripts --component-plist MainComponent.plist --ownership preserve MainComponent.pkg
+    productbuild --resources resources --distribution distribution.xml --package-path MainComponent.pkg "$OUTPUT_DIR/CVP-$1-setup.pkg"
+    rm -f MainComponent.pkg
+    cd "$dir"
 }
 
 TarBuilds() {
     local dir="$(pwd)"
-    cd "$REPO_DIR/build"
+    cd "$OUTPUT_DIR"
     if [ "$ARCHITECTURE" = "osx-arm64;osx-x64" ]
     then
         echo "archiving osx-arm64 ..."
@@ -83,7 +90,7 @@ fi
 
 if [ "$VERSION" != "n" ]
 then
-    rm -rf "$REPO_DIR/build"
+    rm -rf "$OUTPUT_DIR"
     if [ "$BUILD_UPDATE" = "y" ]
     then
         $PYTHON "$PY_SCRIPT" -version $VERSION -compile $ARCHITECTURE -buildupdater -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -delbinrel
@@ -101,10 +108,10 @@ fi
 
 if [ "$ARCHITECTURE" = "osx-arm64;osx-x64" ]
 then
-    CreateAppPackageAndDMG "osx-arm64"
-    CreateAppPackageAndDMG "osx-x64"
+    CreateAppPackageAndPKG "osx-arm64"
+    CreateAppPackageAndPKG "osx-x64"
 else
-    CreateAppPackageAndDMG "$ARCHITECTURE"
+    CreateAppPackageAndPKG "$ARCHITECTURE"
 fi
 
 $PYTHON "$PY_SCRIPT" -resetversion

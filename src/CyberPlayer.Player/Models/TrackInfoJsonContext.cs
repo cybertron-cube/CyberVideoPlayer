@@ -6,5 +6,4 @@ namespace CyberPlayer.Player.Models;
 [JsonSourceGenerationOptions(WriteIndented = true, IncludeFields = false)]
 [JsonSerializable(typeof(ObservableCollection<TrackInfo>))]
 [JsonSerializable(typeof(TrackInfo[]))]
-internal partial class TrackInfoJsonContext : JsonSerializerContext
-{ }
+internal partial class TrackInfoJsonContext : JsonSerializerContext;

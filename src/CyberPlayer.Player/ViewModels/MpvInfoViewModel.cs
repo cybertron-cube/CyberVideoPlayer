@@ -6,7 +6,10 @@ using Serilog;
 
 namespace CyberPlayer.Player.ViewModels;
 
-public class MpvInfoViewModel : VideoInfoViewModel
+public class MpvInfoViewModel(MpvPlayer mpvPlayer, Settings settings, ILogger log) :
+    VideoInfoViewModel(VideoInfoType.Mpv, DefaultFormat, mpvPlayer, settings,
+        log.ForContext<MpvInfoViewModel>(),
+        player => player.TrackListJson)
 {
     private const string DefaultFormat = "json";
     
@@ -18,11 +21,6 @@ public class MpvInfoViewModel : VideoInfoViewModel
     public override IEnumerable<string> FormatOptions => FileTypes.Keys;
 
     protected override FrozenDictionary<string, string> FileExtensions => FileTypes;
-
-    public MpvInfoViewModel(MpvPlayer mpvPlayer, Settings settings, ILogger log)
-        : base(VideoInfoType.Mpv, DefaultFormat, mpvPlayer, settings, log.ForContext<MpvInfoViewModel>(),
-            player => player.TrackListJson)
-    { }
 
     protected override void SetFormat()
     {

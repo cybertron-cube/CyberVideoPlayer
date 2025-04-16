@@ -7,7 +7,9 @@ using Serilog;
 
 namespace CyberPlayer.Player.ViewModels;
 
-public class FFprobeInfoViewModel : VideoInfoViewModel
+public class FFprobeInfoViewModel(MpvPlayer mpvPlayer, Settings settings, ILogger log)
+    : VideoInfoViewModel(VideoInfoType.FFprobe, DefaultFormat, mpvPlayer, settings,
+        log.ForContext<FFprobeInfoViewModel>())
 {
     private const string DefaultFormat = "json";
     
@@ -25,10 +27,6 @@ public class FFprobeInfoViewModel : VideoInfoViewModel
     public override IEnumerable<string> FormatOptions => FileTypes.Keys;
 
     protected override FrozenDictionary<string, string> FileExtensions => FileTypes;
-
-    public FFprobeInfoViewModel(MpvPlayer mpvPlayer, Settings settings, ILogger log)
-        : base(VideoInfoType.FFprobe, DefaultFormat, mpvPlayer, settings, log.ForContext<FFprobeInfoViewModel>())
-    { }
 
     protected override void SetFormat()
     {

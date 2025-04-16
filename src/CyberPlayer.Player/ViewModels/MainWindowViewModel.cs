@@ -1,6 +1,5 @@
 ﻿using ReactiveUI;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
@@ -51,11 +50,6 @@ public class MainWindowViewModel : ViewModelBase
     
     public ReactiveCommand<Unit, Unit> ResizeCommand { get; }
     
-    public ReactiveCommand<TimeCodeFormat, Unit> TimeCodeFormatCommand { get; }
-    
-    public List<Activatable<TimeCodeFormat>> TimeCodeFormats { get; } = Enum.GetValues<TimeCodeFormat>()
-        .Select(f => new Activatable<TimeCodeFormat> { Entity = f, Activated = false }).ToList();
-    
     [Reactive]
     public object? VideoContent { get; set; }
 
@@ -93,7 +87,6 @@ public class MainWindowViewModel : ViewModelBase
         _log = logger.ForContext<MainWindowViewModel>();
         Settings = settings;
         MpvPlayer = mpvPlayer;
-        TimeCodeFormats.Single(x => x.Entity == TimeCodeFormat.Basic).Activated = true;
 
         AppExiting.Subscribe(_ =>
         {
@@ -109,34 +102,18 @@ public class MainWindowViewModel : ViewModelBase
         CenterResizeCommand = ReactiveCommand.Create(() => { MpvPlayer.SetWindowSize(); MpvPlayer.CenterWindow(); });
         CenterCommand = ReactiveCommand.Create(MpvPlayer.CenterWindow);
         ResizeCommand = ReactiveCommand.Create(MpvPlayer.SetWindowSize);
-        TimeCodeFormatCommand = ReactiveCommand.Create<TimeCodeFormat>(SetTimeCodeFormat);
         
         CheckForUpdatesCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
         ViewVideoInfoCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
         CenterResizeCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
         CenterCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
         ResizeCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
-        TimeCodeFormatCommand.ThrownExceptions.Subscribe(HandleCommandExceptions);
     }
 
     private async void HandleCommandExceptions(Exception ex)
     {
         _log.Error(ex, "{Message}", ex.Message);
         await this.ShowMessagePopupAsync(MessagePopupButtons.Ok, "An error occured", ex.Message, new PopupParams());
-    }
-
-    private void SetTimeCodeFormat(TimeCodeFormat timeCodeFormat)
-    {
-        // This is only for native menu. For some reason the binding in the native menu is not able to use
-        // the setter correctly when referencing an element within a list. However, the getter is used by the native
-        // menu weirdly enough.
-        // TODO If avalonia eventually allows an items source property on native menus then this should not be needed
-        MpvPlayer.TimeCodeFormat = timeCodeFormat;
-        foreach (var activatable in TimeCodeFormats)
-        {
-            activatable.Activated = activatable.Entity == timeCodeFormat;
-            activatable.RaisePropertyChanged(nameof(Activatable<TimeCodeFormat>.Activated));
-        }
     }
 
     private bool UpdaterAssetResolver(GithubAsset githubAsset)

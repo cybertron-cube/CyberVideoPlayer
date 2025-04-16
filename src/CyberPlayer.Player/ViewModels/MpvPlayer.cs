@@ -135,11 +135,6 @@ public class MpvPlayer : ViewModelBase
             this.RaisePropertyChanged(nameof(SeekTimeCodeString));
             
             GetTracks();
-
-            var fps = SelectedVideoTrack!.VideoDemuxFps ??= 0;
-            _seekTimeCode.Fps = fps;
-            _durationTimeCode.Fps = fps;
-            
             if (GetMainWindowState() == WindowState.Normal)
                 ResizeAndCenterWindow();
         }
@@ -219,9 +214,7 @@ public class MpvPlayer : ViewModelBase
 
     private readonly TimeCode _durationTimeCode;
 
-    public string DurationTimeCodeString => TimeCodeFormat == TimeCodeFormat.Basic
-        ? _durationTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength)
-        : _durationTimeCode.FormattedString;
+    public string DurationTimeCodeString => _durationTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength);
     
     private bool _isPlaying = false;
     
@@ -307,24 +300,10 @@ public class MpvPlayer : ViewModelBase
             }
         }
     }
-    
-    public TimeCodeFormat TimeCodeFormat
-    {
-        get => _seekTimeCode.StringFormat;
-        set
-        {
-            _seekTimeCode.StringFormat = value;
-            _durationTimeCode.StringFormat = value;
-            this.RaisePropertyChanged(nameof(SeekTimeCodeString));
-            this.RaisePropertyChanged(nameof(DurationTimeCodeString));
-        }
-    }
 
     private readonly TimeCode _seekTimeCode;
 
-    public string SeekTimeCodeString => TimeCodeFormat == TimeCodeFormat.Basic
-        ? _seekTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength)
-        : _seekTimeCode.FormattedString;
+    public string SeekTimeCodeString => _seekTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength);
 
     private double _volumeValue = 100; //TODO THIS SHOULD PERSIST THROUGH RESTARTING APPLICATION???
 

@@ -1,6 +1,9 @@
 using System;
 using System.IO;
+using System.Reactive;
+using System.Reactive.Subjects;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using CyberPlayer.Player.AppSettings;
 
 namespace CyberPlayer.Player.Business;
@@ -80,6 +83,9 @@ public class MediaInfo : IDisposable
     public MediaInfoFunctions.MediaInfo_State_Get MediaInfo_State_Get { get; private set; } = null!;
     public MediaInfoFunctions.MediaInfo_Count_Get MediaInfo_Count_Get { get; private set; } = null!;
 
+    public IObservable<object> FileOpened => _fileOpened;
+    
+    private readonly Subject<object> _fileOpened = new();
     private static readonly bool MustUseAnsi;
     private readonly IntPtr _handle;
     private IntPtr _lib;
@@ -152,8 +158,13 @@ public class MediaInfo : IDisposable
         var fileNamePtr = Marshal.StringToHGlobalAnsi(fileName);
         var toReturn = (int)MediaInfoA_Open(_handle, fileNamePtr);
         Marshal.FreeHGlobal(fileNamePtr);
+        
+        _fileOpened.OnNext(Unit.Default);
+        
         return toReturn;
     }
+
+    public async Task<int> OpenAsync(string fileName) => await Task.Run(() => Open(fileName));
     
     public string? Inform()
     {
@@ -179,15 +190,10 @@ public class MediaInfo : IDisposable
         Marshal.FreeHGlobal(parameterPtr);
         return toReturn;
     }
-    
-    public string? Get(StreamKind streamKind, int streamNumber, int parameter, InfoKind kindOfInfo = InfoKind.Text)
-    {
-        if (_handle == 0)
-            return "Unable to load MediaInfo library";
 
-        return MustUseAnsi ?
-            Marshal.PtrToStringAnsi(MediaInfoA_GetI(_handle, (IntPtr)streamKind, streamNumber, parameter, (IntPtr)kindOfInfo))
-            : Marshal.PtrToStringUni(MediaInfo_GetI(_handle, (IntPtr)streamKind, streamNumber, parameter, (IntPtr)kindOfInfo));
+    public T Get<T>(StreamKind streamKind, int streamNumber, string parameter, InfoKind kindOfInfo = InfoKind.Text, InfoKind kindOfSearch = InfoKind.Name)
+    {
+        return (T)Convert.ChangeType(Get(streamKind, streamNumber, parameter, kindOfInfo, kindOfSearch), typeof(T));
     }
     
     public string? Option(string option, string value = "")

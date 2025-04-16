@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using CyberPlayer.Player.AppSettings;
+using CyberPlayer.Player.Business;
 using CyberPlayer.Player.ViewModels;
 using CyberPlayer.Player.Views;
 using LibMpv.Client;
@@ -108,6 +109,7 @@ public static class Setup
         container.Register(() => new MessagePopupViewModel());
         
         SplatRegistrations.RegisterLazySingleton<MpvPlayer>();
+        SplatRegistrations.RegisterLazySingleton<MediaInfo>();
         SplatRegistrations.RegisterLazySingleton<MainWindowViewModel>();
         SplatRegistrations.RegisterLazySingleton<MediaInfoViewModel>();
         SplatRegistrations.RegisterLazySingleton<FFprobeInfoViewModel>();

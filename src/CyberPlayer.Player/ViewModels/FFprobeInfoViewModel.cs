@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Business;
 using CyberPlayer.Player.Services;
@@ -28,11 +29,10 @@ public class FFprobeInfoViewModel(MpvPlayer mpvPlayer, Settings settings, ILogge
 
     protected override FrozenDictionary<string, string> FileExtensions => FileTypes;
 
-    protected override void SetFormat()
+    protected override Task SetFormat()
     {
-        using (var ffmpeg = new FFmpeg(MpvPlayer.MediaPath, Settings))
-        {
-            RawText = CurrentFormat == "default" ? ffmpeg.Probe() : ffmpeg.ProbeFormat(CurrentFormat);
-        }
+        using var ffmpeg = new FFmpeg(MpvPlayer.MediaPath, Settings);
+        RawText = CurrentFormat == "default" ? ffmpeg.Probe() : ffmpeg.ProbeFormat(CurrentFormat);
+        return Task.CompletedTask;
     }
 }

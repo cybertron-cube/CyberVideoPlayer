@@ -103,6 +103,7 @@ public class MpvPlayer : ViewModelBase
         SetSliderValueNoSeek(Duration);
     }
 
+    // WARNING: Events are running on a different thread!
     private void MpvContext_FileLoaded(object? sender, EventArgs e)
     {
         _log.Information("File \"{FilePath}\" loaded", MediaPath);

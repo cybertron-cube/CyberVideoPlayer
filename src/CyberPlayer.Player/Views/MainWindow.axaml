@@ -80,10 +80,10 @@
 					<NativeMenuItem Header="Center" Command="{Binding CenterCommand}" />
 					<NativeMenuItem Header="Resize" Command="{Binding ResizeCommand}" />
 					<NativeMenuItem Header="Timecode Format">
-						<NativeMenu>
-							<NativeMenuItem Header="Basic" ToggleType="Radio" IsChecked="{Binding TimeCodeFormats[0].Activated}" Command="{Binding TimeCodeFormatCommand}" CommandParameter="{x:Static cybertron:TimeCodeFormat.Basic}" />
-							<NativeMenuItem Header="SMPTE" ToggleType="Radio" IsChecked="{Binding TimeCodeFormats[1].Activated}" Command="{Binding TimeCodeFormatCommand}" CommandParameter="{x:Static cybertron:TimeCodeFormat.SMPTE}" />
-						</NativeMenu>
+						<!-- DO NOT REMOVE -->
+						<!-- NativeMenu items are added in CreateTimeCodeFormatNativeMenuItems method -->
+						<!-- See MainWindow_Opened for explanation -->
+						<NativeMenu  />
 					</NativeMenuItem>
 				</NativeMenu>
 			</NativeMenuItem>
@@ -117,6 +117,18 @@
 				<MenuItem Header="Center/Resize" Command="{Binding CenterResizeCommand}" />
 				<MenuItem Header="Center" Command="{Binding CenterCommand}" />
 				<MenuItem Header="Resize" Command="{Binding ResizeCommand}" />
+				<MenuItem Header="Timecode Format" Classes="SubItems" ItemsSource="{Binding MpvPlayer.TimeCodeFormats}">
+					<MenuItem.Styles>
+						<Style Selector="MenuItem.SubItems MenuItem">
+							<Setter Property="Command" Value="{Binding $parent[MenuItem].((vm:MainWindowViewModel)DataContext).MpvPlayer.set_TimeCodeFormat}" />
+							<Setter Property="CommandParameter" Value="{ReflectionBinding Entity}" />
+							<Setter Property="Header" Value="{ReflectionBinding Entity}" />
+							<Setter Property="ToggleType" Value="Radio" />
+							<Setter Property="GroupName" Value="TimecodeFormatSelection" />
+							<Setter Property="IsChecked" Value="{ReflectionBinding Activated}" />
+						</Style>
+					</MenuItem.Styles>
+				</MenuItem>
 			</MenuItem>
 			<MenuItem Header="_Help">
 				<MenuItem Header="_Licenses" />

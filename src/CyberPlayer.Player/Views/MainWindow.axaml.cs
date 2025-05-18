@@ -18,11 +18,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Platform;
-using Avalonia.Rendering;
 using Avalonia.Threading;
+using CyberPlayer.Player.Models;
 using CyberPlayer.Player.RendererVideoViews;
 using Serilog;
 using LibMpv.Context;
+using TimeCodeFormat = CyberPlayer.Player.Models.TimeCodeFormat;
 
 namespace CyberPlayer.Player.Views;
 
@@ -144,6 +145,10 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         SetSeekControlType(SeekControlTypes.Normal);
         SetVideoRenderer(ViewModel!.Settings.Renderer);
         
+        // This is needed in order to dynamically create NativeMenuItems. The way timecode format menu items are
+        // handled in the normal MenuItem cannot be replicated for the NativeMenu
+        CreateTimeCodeFormatNativeMenuItems();
+        
         //This var isn't necessary, just makes it so that if you change the value in xaml you don't have to change here
         var foregroundBrush = VolumeSlider.Foreground;
         ViewModel!.WhenPropertyChanged(x => x.MpvPlayer.IsMuted).Subscribe(x =>
@@ -154,6 +159,19 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         if (OperatingSystem.IsMacOS())
         {
             ToggleMenuBar(false, false);
+        }
+    }
+
+    private void CreateTimeCodeFormatNativeMenuItems()
+    {
+        var nativeMenu = NativeMenu.GetMenu(this);
+        var viewMenuItem = nativeMenu!.Items.Single(i => ((NativeMenuItem)i).Header == "View");
+        var timeCodeFormatMenuItem = ((NativeMenuItem)viewMenuItem).Menu!.Items.Single(i => ((NativeMenuItem)i).Header == "Timecode Format");
+        var timeCodeFormatMenu = ((NativeMenuItem)timeCodeFormatMenuItem).Menu!;
+
+        foreach (var item in ViewModel!.MpvPlayer.TimeCodeFormats.Select(CreateNativeMenuItem))
+        {
+            timeCodeFormatMenu.Items.Add(item);
         }
     }
 
@@ -263,6 +281,37 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
     {
         Normal,
         Trim
+    }
+
+    [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "<Pending>")]
+    private NativeMenuItem CreateNativeMenuItem(Activatable<TimeCodeFormat> format)
+    {
+        var checkedBinding = new Binding
+        {
+            Source = format,
+            Path = nameof(Activatable<TimeCodeFormat>.Activated)
+        };
+        var commandParamBinding = new Binding
+        {
+            Source = format,
+            Path = nameof(format.Entity)
+        };
+        var commandBinding = new Binding
+        {
+            Source = ViewModel!.MpvPlayer,
+            Path = nameof(ViewModel.MpvPlayer.TimeCodeFormatCommand)
+        };
+        var item = new NativeMenuItem
+        {
+            Header = format.Entity.ToString(),
+            ToggleType = NativeMenuItemToggleType.Radio,
+            IsChecked = format.Activated
+        };
+        item.Bind(NativeMenuItem.IsCheckedProperty, checkedBinding);
+        item.Bind(NativeMenuItem.CommandProperty, commandBinding);
+        item.Bind(NativeMenuItem.CommandParameterProperty, commandParamBinding);
+
+        return item;
     }
 
     [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "<Pending>")]

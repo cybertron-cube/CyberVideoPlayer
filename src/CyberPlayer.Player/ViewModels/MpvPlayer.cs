@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,11 +14,13 @@ using CyberPlayer.Player.Models;
 using CyberPlayer.Player.RendererVideoViews;
 using CyberPlayer.Player.Services;
 using Cybertron;
+using DynamicData.Binding;
 using LibMpv.Client;
 using LibMpv.Context;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Serilog;
+using TimeCodeFormat = CyberPlayer.Player.Models.TimeCodeFormat;
 
 namespace CyberPlayer.Player.ViewModels;
 
@@ -63,10 +66,13 @@ public class MpvPlayer : ViewModelBase
         _timeCodeStartIndex = 0;
         _timeCodeLength = _settings.TimeCodeLength;
         TrackListJson = string.Empty;
+        SeekTimeCodeString = _seekTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength);
+        TimeCodeFormats.Single(x => x.Entity == TimeCodeFormat.Basic).Activated = true;
 
         FrameStepCommand = ReactiveCommand.Create<string>(FrameStep);
         SeekCommand = ReactiveCommand.Create<double>(Seek);
         VolumeCommand = ReactiveCommand.Create<double>(ChangeVolume);
+        TimeCodeFormatCommand = ReactiveCommand.Create<TimeCodeFormat>(SetTimeCodeFormat);
     }
 
     private void ObserveProperties()
@@ -88,8 +94,52 @@ public class MpvPlayer : ViewModelBase
                 {
                     IsPlaying = !isPaused;
                 });
+            }),
+            _mpvContext.ObserveProperty<Dictionary<string, object?>>("video-frame-info").Subscribe(videoFrameInfo =>
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    VideoFrameInfo = videoFrameInfo;
+                });
+            }),
+            this.WhenValueChanged(mpvPlayer => mpvPlayer.VideoFrameInfo).Subscribe(videoFrameInfo =>
+            {
+                if (videoFrameInfo is null)
+                    return;
+                
+                switch (TimeCodeFormat)
+                {
+                    case TimeCodeFormat.Basic:
+                        break;
+                    case TimeCodeFormat.SMPTE:
+                        SeekTimeCodeString = videoFrameInfo.GetValue<string?>("smpte-timecode") ?? string.Empty;
+                        break;
+                    case TimeCodeFormat.EstimatedSMPTE:
+                        SeekTimeCodeString = videoFrameInfo.GetValue<string?>("estimated-smpte-timecode") ?? string.Empty;
+                        break;
+                    case TimeCodeFormat.GOP:
+                        SeekTimeCodeString = videoFrameInfo.GetValue<string?>("gop-timecode") ?? string.Empty;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             })
         };
+    }
+    
+    // This is only for native menu. For some reason the binding in the native menu is not able to use
+    // the setter correctly when referencing an element within a list. However, the getter is used by the native
+    // menu weirdly enough. Also GroupName is not a property on NativeMenuItem so radio button dots wouldn't change
+    // properly without setting the Activated property manually. The property binded to IsChecked would be
+    // automatically set/handled by Avalonia if this was a normal MenuItem with radio ToggleType and had a GroupName
+    private void SetTimeCodeFormat(TimeCodeFormat timeCodeFormat)
+    {
+        TimeCodeFormat = timeCodeFormat;
+        
+        foreach (var activatable in TimeCodeFormats)
+        {
+            activatable.Activated = activatable.Entity == timeCodeFormat;
+        }
     }
 
     private void MpvContext_EndFile(object? sender, MpvEndFileEventArgs e)
@@ -145,7 +195,15 @@ public class MpvPlayer : ViewModelBase
     public ReactiveCommand<double, Unit> SeekCommand { get; }
     
     public ReactiveCommand<double, Unit> VolumeCommand { get; }
+
+    [Reactive]
+    public Dictionary<string, object?>? VideoFrameInfo { get; set; }
     
+    public ReactiveCommand<TimeCodeFormat, Unit> TimeCodeFormatCommand { get; }
+    
+    public FrozenSet<Activatable<TimeCodeFormat>> TimeCodeFormats { get; } = Enum.GetValues<TimeCodeFormat>()
+        .Select(f => new Activatable<TimeCodeFormat> { Entity = f, Activated = false }).ToFrozenSet();
+
     private double _lastSeekValue = double.NaN;
     
     private int _timeCodeStartIndex;
@@ -292,7 +350,8 @@ public class MpvPlayer : ViewModelBase
             _seekTimeCode.SetExactUnits(value, TimeCodeUnit.Second);
             
             this.RaisePropertyChanged();
-            this.RaisePropertyChanged(nameof(SeekTimeCodeString));
+            if (TimeCodeFormat == TimeCodeFormat.Basic)
+                SeekTimeCodeString = _seekTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength);
             
             if (IsFileLoaded)
             {
@@ -303,7 +362,11 @@ public class MpvPlayer : ViewModelBase
 
     private readonly TimeCode _seekTimeCode;
 
-    public string SeekTimeCodeString => _seekTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength);
+    [Reactive]
+    public string SeekTimeCodeString { get; set; }
+
+    [Reactive]
+    public TimeCodeFormat TimeCodeFormat { get; set; } = TimeCodeFormat.Basic;
 
     private double _volumeValue = 100; //TODO THIS SHOULD PERSIST THROUGH RESTARTING APPLICATION???
 
@@ -589,7 +652,9 @@ public class MpvPlayer : ViewModelBase
         _seekValue = val;
         _seekTimeCode.SetExactUnits(val, TimeCodeUnit.Second);
         this.RaisePropertyChanged(nameof(SeekValue));
-        this.RaisePropertyChanged(nameof(SeekTimeCodeString));
+
+        if (TimeCodeFormat == TimeCodeFormat.Basic)
+            SeekTimeCodeString = _seekTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength);
     }
 
     private static WindowState GetMainWindowState() => Dispatcher.UIThread.Invoke(() => ViewLocator.Main.WindowState);

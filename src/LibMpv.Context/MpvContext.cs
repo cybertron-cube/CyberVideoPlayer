@@ -1,5 +1,4 @@
-﻿using System.Collections.Frozen;
-using System.Reactive.Linq;
+﻿using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using LibMpv.Client;
@@ -11,14 +10,6 @@ public unsafe partial class MpvContext : IDisposable
 {
     private readonly mpv_handle* _ctx;
     private readonly MpvEventLoop _eventLoop;
-    private readonly FrozenDictionary<Type, mpv_format> _mpvFormatTypeMapping = new Dictionary<Type, mpv_format>
-    {
-        { typeof(object), mpv_format.MPV_FORMAT_NONE },
-        { typeof(string), mpv_format.MPV_FORMAT_STRING },
-        { typeof(bool), mpv_format.MPV_FORMAT_FLAG },
-        { typeof(long), mpv_format.MPV_FORMAT_INT64 },
-        { typeof(double), mpv_format.MPV_FORMAT_DOUBLE }
-    }.ToFrozenDictionary();
 
     // TODO Reuse userdata values that have been unobserved
     // Cap out at 18,446,744,073,709,551,615 from 0
@@ -153,7 +144,7 @@ public unsafe partial class MpvContext : IDisposable
     /// <returns></returns>
     public IObservable<T> ObserveProperty<T>(string propertyName)
     {
-        var mpvFormat = _mpvFormatTypeMapping[typeof(T)];
+        var mpvFormat = FormatTypeMapping[typeof(T)];
         if (PropertyChangedObservables.TryGetValue((propertyName, mpvFormat),
                 out var mpvPropertyObservable))
         {

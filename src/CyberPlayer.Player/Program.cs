@@ -25,7 +25,8 @@ internal class Program
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
 
-        if (settings.MultipleAppInstances) return;
+        if (settings.MultipleAppInstances)
+            return;
         
         Setup.GlobalMutex.ReleaseMutex();
         Setup.GlobalMutex.Dispose();

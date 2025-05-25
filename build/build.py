@@ -197,6 +197,50 @@ def DownloadFFmpeg():
     os.remove(os.path.join(location, assetName))
     shutil.rmtree(os.path.join(location, dirName))
 
+def DownloadMpv():
+    location = os.path.join(DepsDir, "mpv", OS)
+    os.makedirs(location, exist_ok=True)
+
+    # linux and osx should rely on resolving this dependency path (get mpv through package manager such as homebrew)
+    if OS == "osx" or OS == "linux":
+        return
+
+    apiurl = "https://api.github.com/repos/shinchiro/mpv-winbuild-cmake/releases/latest"
+    with urllib.request.urlopen(apiurl) as url:
+        releaseJsonData = json.loads(url.read().decode())
+
+    assets = releaseJsonData["assets"]
+
+    assetName = ""
+    releaseDL = ""
+    
+    for asset in assets:
+        assetName = asset["name"].lower()
+        if "mpv-dev-x86_64-v3" in assetName:
+            releaseDL = asset["browser_download_url"]
+            break
+    
+    if releaseDL == "":
+        raise Exception("Could not find ffmpeg build download link")
+
+    print(f"location: {location}")
+    print(f"assetName: {assetName}")
+    print(f"releaseDL: {releaseDL}")
+
+    print("Downloading ...")
+    urllib.request.urlretrieve(releaseDL, os.path.join(location, assetName))
+    print("Finished downloading")
+
+    dirName = assetName.split('.')[0]
+
+    print("Extracting ...")
+    with cd(location):
+        subprocess.call(["7z", "x", os.path.join(location, assetName), f"-o{assetName}"])
+
+    CopyFilesProgress(os.path.join(location, assetName, "libmpv-2.dll"), location)
+    os.remove(os.path.join(location, assetName))
+    shutil.rmtree(os.path.join(location, dirName))
+
 def PrintTargetOptions():
     print()
     for compileTarget in CompileTargets:
@@ -488,6 +532,7 @@ Commands = {
     "rmpdbs": Command("Remove all pdb files", RemovePDBs, False),
     "lib": Command("Makes a library directory for dlls", MakeLibraryDir, "Enter a compile target: "), #compiletarget/s arg
     "dlffmpeg": Command("Downloads ffmpeg binaries from their recommended sources", DownloadFFmpeg, False),
+    "dlmpv": Command("Downloads mpv binaries from their recommended sources (only Windows currently)", DownloadMpv, False),
     "cpymds": Command("Copy all markdown files from working directory", CopyMDs, False),
     "cpyupdater": Command("Copy updater to each build", CopyUpdater, False),
     "cpyffmpeg": Command("Copy ffmpeg executables to builds", CopyFFmpeg, False),

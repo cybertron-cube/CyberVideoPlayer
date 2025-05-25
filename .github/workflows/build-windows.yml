@@ -39,8 +39,8 @@ jobs:
           cache-dependency-path: src\CyberPlayer.Player\packages.lock.json
       - name: Install nuget package dependencies
         run: dotnet restore --locked-mode
-      - name: Download FFmpeg Binaries
-        run: python build/build.py -dlffmpeg
+      - name: Download FFmpeg and mpv binaries
+        run: python build/build.py -dlffmpeg -dlmpv
       - name: Run build script
         run: python build/build.py -version ${{ inputs.release-version }} -compile win-x64 -buildupdater -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -zip -winpkg
       - name: Upload assets

@@ -204,12 +204,12 @@ def DownloadFFmpeg():
     shutil.rmtree(os.path.join(location, dirName))
 
 def DownloadMpv():
-    location = os.path.join(DepsDir, "mpv", OS)
-    os.makedirs(location, exist_ok=True)
-
     # linux and osx should rely on resolving this dependency path (get mpv through package manager such as homebrew)
     if OS == "osx" or OS == "linux":
         return
+    
+    location = os.path.join(DepsDir, "mpv", OS)
+    os.makedirs(location, exist_ok=True)
 
     apiurl = "https://api.github.com/repos/shinchiro/mpv-winbuild-cmake/releases/latest"
     with urllib.request.urlopen(apiurl) as url:
@@ -241,9 +241,9 @@ def DownloadMpv():
 
     print("Extracting ...")
     with cd(location):
-        subprocess.call(["7z", "x", os.path.join(location, assetName), f"-o{assetName}"])
+        subprocess.call(["7z", "x", os.path.join(location, assetName), f"-o{dirName}"])
 
-    CopyFilesProgress(os.path.join(location, assetName, "libmpv-2.dll"), location)
+    CopyFilesProgress(os.path.join(location, dirName, "libmpv-2.dll"), location)
     os.remove(os.path.join(location, assetName))
     shutil.rmtree(os.path.join(location, dirName))
 

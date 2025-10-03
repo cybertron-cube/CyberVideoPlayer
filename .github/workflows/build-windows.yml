@@ -41,6 +41,10 @@ jobs:
         run: dotnet restore --locked-mode
       - name: Download FFmpeg and mpv binaries
         run: python build/build.py -dlffmpeg -dlmpv
+      - name: Install Inno Setup
+        run: |
+          winget install --id JRSoftware.InnoSetup -e -s winget
+          $env:path += ";$env:LOCALAPPDATA/Programs/Inno Setup 6"
       - name: Run build script
         run: python build/build.py -version ${{ inputs.release-version }} -compile win-x64 -buildupdater -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -zip -winpkg
       - name: Upload assets

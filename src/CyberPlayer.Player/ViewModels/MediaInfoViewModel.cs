@@ -40,5 +40,6 @@ public class MediaInfoViewModel(MpvPlayer mpvPlayer, MediaInfo mediaInfo, Settin
         await mediaInfo.OpenAsync(MpvPlayer.MediaPath);
         mediaInfo.Option("output", CurrentFormat);
         RawText = mediaInfo.Inform();
+        mediaInfo.Close();
     }
 }

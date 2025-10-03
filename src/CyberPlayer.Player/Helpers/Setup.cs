@@ -85,6 +85,7 @@ public static class Setup
                 }, DispatcherPriority.Input, ct);
 
                 serverPipe.Disconnect();
+                await serverPipe.DisposeAsync();
             }
         }
         catch (OperationCanceledException) { }

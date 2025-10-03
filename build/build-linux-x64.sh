@@ -57,9 +57,9 @@ rm -rf "$OUTPUT_DIR"
 
 if [ "$BUILD_UPDATE" = "y" ]
 then
-    $PYTHON "$PY_SCRIPT" -version $VERSION -compile "linux-x64" -buildupdater -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -delbinrel -resetversion
+    $PYTHON "$PY_SCRIPT" -version $VERSION -compile "linux-x64" -buildupdater -cpymds -cpyffmpeg -cpymediainfo -cpyupdater -rmpdbs -delbinrel -resetversion
 else
-    $PYTHON "$PY_SCRIPT" -version $VERSION -compile "linux-x64" -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -delbinrel -resetversion
+    $PYTHON "$PY_SCRIPT" -version $VERSION -compile "linux-x64" -cpymds -cpyffmpeg -cpymediainfo -cpyupdater -rmpdbs -delbinrel -resetversion
 fi
 
 chmod -R 777 "$OUTPUT_DIR"

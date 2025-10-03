@@ -1,10 +1,13 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Subjects;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using CyberPlayer.Player.AppSettings;
+// ReSharper disable InconsistentNaming
 
 namespace CyberPlayer.Player.Business;
 
@@ -60,28 +63,28 @@ public class MediaInfo : IDisposable
         Finalized   =       0x08,
     }
     
-    public MediaInfoFunctions.MediaInfo_New MediaInfo_New { get; private set; } = null!;
-    public MediaInfoFunctions.MediaInfo_Delete MediaInfo_Delete { get; private set; } = null!;
-    public MediaInfoFunctions.MediaInfo_Open MediaInfo_Open { get; private set; } = null!;
-    public MediaInfoFunctions.MediaInfoA_Open MediaInfoA_Open { get; private set; } = null!;
-    public MediaInfoFunctions.MediaInfo_Open_Buffer_Init MediaInfo_Open_Buffer_Init { get; private set; } = null!;
-    public MediaInfoFunctions.MediaInfo_Open_Buffer_Continue MediaInfo_Open_Buffer_Continue { get; private set; } = null!;
-    public MediaInfoFunctions.MediaInfoA_Open_Buffer_Continue MediaInfoA_Open_Buffer_Continue { get; private set; } = null!;
-    public MediaInfoFunctions.MediaInfo_Open_Buffer_Continue_GoTo_Get MediaInfo_Open_Buffer_Continue_GoTo_Get { get; private set; } = null!;
-    public MediaInfoFunctions.MediaInfoA_Open_Buffer_Continue_GoTo_Get MediaInfoA_Open_Buffer_Continue_GoTo_Get { get; private set; } = null!;
-    public MediaInfoFunctions.MediaInfo_Open_Buffer_Finalize MediaInfo_Open_Buffer_Finalize { get; private set; } = null!;
-    public MediaInfoFunctions.MediaInfoA_Open_Buffer_Finalize MediaInfoA_Open_Buffer_Finalize { get; private set; } = null!;
-    public MediaInfoFunctions.MediaInfo_Close MediaInfo_Close { get; private set; } = null!;
-    public MediaInfoFunctions.MediaInfo_Inform MediaInfo_Inform { get; private set; } = null!;
-    public MediaInfoFunctions.MediaInfoA_Inform MediaInfoA_Inform { get; private set; } = null!;
-    public MediaInfoFunctions.MediaInfo_GetI MediaInfo_GetI { get; private set; } = null!;
-    public MediaInfoFunctions.MediaInfoA_GetI MediaInfoA_GetI { get; private set; } = null!;
-    public MediaInfoFunctions.MediaInfo_Get MediaInfo_Get { get; private set; } = null!;
-    public MediaInfoFunctions.MediaInfoA_Get MediaInfoA_Get { get; private set; } = null!;
-    public MediaInfoFunctions.MediaInfo_Option MediaInfo_Option { get; private set; } = null!;
-    public MediaInfoFunctions.MediaInfoA_Option MediaInfoA_Option { get; private set; } = null!;
-    public MediaInfoFunctions.MediaInfo_State_Get MediaInfo_State_Get { get; private set; } = null!;
-    public MediaInfoFunctions.MediaInfo_Count_Get MediaInfo_Count_Get { get; private set; } = null!;
+    private MediaInfoFunctions.MediaInfo_New MediaInfo_New { get; set; } = null!;
+    private MediaInfoFunctions.MediaInfo_Delete MediaInfo_Delete { get; set; } = null!;
+    private MediaInfoFunctions.MediaInfo_Open MediaInfo_Open { get; set; } = null!;
+    private MediaInfoFunctions.MediaInfoA_Open MediaInfoA_Open { get; set; } = null!;
+    private MediaInfoFunctions.MediaInfo_Open_Buffer_Init MediaInfo_Open_Buffer_Init { get; set; } = null!;
+    private MediaInfoFunctions.MediaInfo_Open_Buffer_Continue MediaInfo_Open_Buffer_Continue { get; set; } = null!;
+    private MediaInfoFunctions.MediaInfoA_Open_Buffer_Continue MediaInfoA_Open_Buffer_Continue { get; set; } = null!;
+    private MediaInfoFunctions.MediaInfo_Open_Buffer_Continue_GoTo_Get MediaInfo_Open_Buffer_Continue_GoTo_Get { get; set; } = null!;
+    private MediaInfoFunctions.MediaInfoA_Open_Buffer_Continue_GoTo_Get MediaInfoA_Open_Buffer_Continue_GoTo_Get { get; set; } = null!;
+    private MediaInfoFunctions.MediaInfo_Open_Buffer_Finalize MediaInfo_Open_Buffer_Finalize { get; set; } = null!;
+    private MediaInfoFunctions.MediaInfoA_Open_Buffer_Finalize MediaInfoA_Open_Buffer_Finalize { get; set; } = null!;
+    private MediaInfoFunctions.MediaInfo_Close MediaInfo_Close { get; set; } = null!;
+    private MediaInfoFunctions.MediaInfo_Inform MediaInfo_Inform { get; set; } = null!;
+    private MediaInfoFunctions.MediaInfoA_Inform MediaInfoA_Inform { get; set; } = null!;
+    private MediaInfoFunctions.MediaInfo_GetI MediaInfo_GetI { get; set; } = null!;
+    private MediaInfoFunctions.MediaInfoA_GetI MediaInfoA_GetI { get; set; } = null!;
+    private MediaInfoFunctions.MediaInfo_Get MediaInfo_Get { get; set; } = null!;
+    private MediaInfoFunctions.MediaInfoA_Get MediaInfoA_Get { get; set; } = null!;
+    private MediaInfoFunctions.MediaInfo_Option MediaInfo_Option { get; set; } = null!;
+    private MediaInfoFunctions.MediaInfoA_Option MediaInfoA_Option { get; set; } = null!;
+    private MediaInfoFunctions.MediaInfo_State_Get MediaInfo_State_Get { get; set; } = null!;
+    private MediaInfoFunctions.MediaInfo_Count_Get MediaInfo_Count_Get { get; set; } = null!;
 
     public IObservable<object> FileOpened => _fileOpened;
     
@@ -92,18 +95,13 @@ public class MediaInfo : IDisposable
 
     static MediaInfo() => MustUseAnsi = !OperatingSystem.IsWindows();
 
+    [RequiresUnreferencedCode("")]
+    [RequiresDynamicCode("")]
     public MediaInfo(Settings settings)
     {
         FindAndLoadLibrary(settings);
         InitializeFunctions();
-        try
-        {
-            _handle = MediaInfo_New();
-        }
-        catch
-        {
-            _handle = 0;
-        }
+        _handle = MediaInfo_New();
     }
 
     ~MediaInfo()
@@ -117,41 +115,26 @@ public class MediaInfo : IDisposable
         GC.SuppressFinalize(this);
     }
     
-    public int Open_Buffer_Init(long fileSize, long fileOffset)
-    {
-        return _handle == 0 ? 0 : (int)MediaInfo_Open_Buffer_Init(_handle, fileSize, fileOffset);
-    }
-    
-    public int Open_Buffer_Continue(IntPtr buffer, IntPtr bufferSize)
-    {
-        return _handle == 0 ? 0 : (int)MediaInfo_Open_Buffer_Continue(_handle, buffer, bufferSize);
-    }
-    
-    public long Open_Buffer_Continue_GoTo_Get()
-    {
-        return _handle == 0 ? 0 : MediaInfo_Open_Buffer_Continue_GoTo_Get(_handle);
-    }
-    
-    public int Open_Buffer_Finalize()
-    {
-        return _handle == 0 ? 0 : (int)MediaInfo_Open_Buffer_Finalize(_handle);
-    }
+    public int OpenBufferInit(long fileSize, long fileOffset) =>
+        (int)MediaInfo_Open_Buffer_Init(_handle, fileSize, fileOffset);
 
-    public int State_Get()
-    {
-        return _handle == 0 ? 0 : (int)MediaInfo_State_Get(_handle);
-    }
+    public int OpenBufferContinue(IntPtr buffer, IntPtr bufferSize) =>
+        (int)MediaInfo_Open_Buffer_Continue(_handle, buffer, bufferSize);
 
-    public int Count_Get(StreamKind streamKind, int streamNumber = -1)
-    {
-        return _handle == 0 ? 0 : (int)MediaInfo_Count_Get(_handle, (IntPtr)streamKind, streamNumber);
-    }
-    
+    public long OpenBufferContinueGoToGet() =>
+        MediaInfo_Open_Buffer_Continue_GoTo_Get(_handle);
+
+    public int OpenBufferFinalize() =>
+        (int)MediaInfo_Open_Buffer_Finalize(_handle);
+
+    public int StateGet() =>
+        (int)MediaInfo_State_Get(_handle);
+
+    public int CountGet(StreamKind streamKind, int streamNumber = -1) =>
+        (int)MediaInfo_Count_Get(_handle, (IntPtr)streamKind, streamNumber);
+
     public int Open(string fileName)
     {
-        if (_handle == 0)
-            return 0;
-        
         if (!MustUseAnsi)
             return (int)MediaInfo_Open(_handle, fileName);
         
@@ -164,22 +147,15 @@ public class MediaInfo : IDisposable
         return toReturn;
     }
 
-    public async Task<int> OpenAsync(string fileName) => await Task.Run(() => Open(fileName));
+    public async Task<int> OpenAsync(string fileName) =>
+        await Task.Run(() => Open(fileName));
     
-    public string? Inform()
-    {
-        if (_handle == 0)
-            return "Unable to load MediaInfo library";
-        
-        return MustUseAnsi ? Marshal.PtrToStringAnsi(MediaInfoA_Inform(_handle, 0))
+    public string? Inform() =>
+        MustUseAnsi ? Marshal.PtrToStringAnsi(MediaInfoA_Inform(_handle, 0))
             : Marshal.PtrToStringUni(MediaInfo_Inform(_handle, 0));
-    }
-    
+
     public string? Get(StreamKind streamKind, int streamNumber, string parameter, InfoKind kindOfInfo = InfoKind.Text, InfoKind kindOfSearch = InfoKind.Name)
     {
-        if (_handle == 0)
-            return "Unable to load MediaInfo library";
-        
         if (!MustUseAnsi)
             return Marshal.PtrToStringUni(MediaInfo_Get(_handle, (IntPtr)streamKind, streamNumber, parameter,
                 (IntPtr)kindOfInfo, (IntPtr)kindOfSearch));
@@ -191,16 +167,11 @@ public class MediaInfo : IDisposable
         return toReturn;
     }
 
-    public T Get<T>(StreamKind streamKind, int streamNumber, string parameter, InfoKind kindOfInfo = InfoKind.Text, InfoKind kindOfSearch = InfoKind.Name)
-    {
-        return (T)Convert.ChangeType(Get(streamKind, streamNumber, parameter, kindOfInfo, kindOfSearch), typeof(T));
-    }
-    
+    public T Get<T>(StreamKind streamKind, int streamNumber, string parameter, InfoKind kindOfInfo = InfoKind.Text, InfoKind kindOfSearch = InfoKind.Name) =>
+        (T)Convert.ChangeType(Get(streamKind, streamNumber, parameter, kindOfInfo, kindOfSearch), typeof(T))!;
+
     public string? Option(string option, string value = "")
     {
-        if (_handle == 0)
-            return "Unable to load MediaInfo library";
-        
         if (!MustUseAnsi)
             return Marshal.PtrToStringUni(MediaInfo_Option(_handle, option, value));
         
@@ -211,6 +182,9 @@ public class MediaInfo : IDisposable
         Marshal.FreeHGlobal(valuePtr);
         return toReturn;
     }
+
+    public void Close() =>
+        MediaInfo_Close(_handle);
 
     private static string GetOsFileName()
     {
@@ -241,6 +215,8 @@ public class MediaInfo : IDisposable
         _lib = NativeLibrary.Load(libPath);
     }
 
+    [RequiresUnreferencedCode("Calls System.Type.GetNestedTypes()")]
+    [RequiresDynamicCode("Calls System.Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(nint, Type)")]
     private void InitializeFunctions()
     {
         var type = typeof(MediaInfoFunctions);
@@ -251,7 +227,7 @@ public class MediaInfo : IDisposable
         foreach (var delegateType in delegatesTypes)
         {
             var functionPtr = NativeLibrary.GetExport(_lib, delegateType.Name);
-            var prop = thisType.GetProperty(delegateType.Name);
+            var prop = thisType.GetProperty(delegateType.Name, BindingFlags.Instance | BindingFlags.NonPublic);
             var function = Marshal.GetDelegateForFunctionPointer(functionPtr, delegateType);
             prop!.SetValue(this, function);
         }

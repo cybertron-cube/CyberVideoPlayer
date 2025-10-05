@@ -69,10 +69,13 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
             else
                 _cursorTimer.Change(1000, Timeout.Infinite);
         });
+        
         if (!OperatingSystem.IsMacOS()) //This could be an issue on linux too?
         {
             VideoPanel.DoubleTapped += VideoPanel_OnDoubleTapped;
         }
+        
+        VideoPanel.PointerWheelChanged += VideoPanelOnPointerWheelChanged;
             
 #if DEBUG
         Button testButton = new()
@@ -117,6 +120,19 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
     {
         return Screens.ScreenFromWindow(this)
             ?? Screens.ScreenFromPoint(Position);
+    }
+    
+    private void VideoPanelOnPointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    {
+        switch (e.Delta.Y)
+        {
+            case > 0:
+                ViewModel!.MpvPlayer.VolumeValue += ViewModel.Settings.VolumeChange;
+                break;
+            case < 0:
+                ViewModel!.MpvPlayer.VolumeValue -= ViewModel.Settings.VolumeChange;
+                break;
+        }
     }
     
     private static void DragOver(object sender, DragEventArgs e)

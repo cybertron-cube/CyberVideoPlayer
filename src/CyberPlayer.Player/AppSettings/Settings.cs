@@ -32,7 +32,7 @@ public class Settings
 
     public double SeekChange { get; set; } = 5;
 
-    public double VolumeChange { get; set; } = 10;
+    public int VolumeChange { get; set; } = 10;
 
     public string LibMpvPath { get; set; } = Resolve;
 

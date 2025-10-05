@@ -71,7 +71,7 @@ public class MpvPlayer : ViewModelBase
 
         FrameStepCommand = ReactiveCommand.Create<string>(FrameStep);
         SeekCommand = ReactiveCommand.Create<double>(Seek);
-        VolumeCommand = ReactiveCommand.Create<double>(ChangeVolume);
+        VolumeCommand = ReactiveCommand.Create<int>(offset => VolumeValue += offset);
         TimeCodeFormatCommand = ReactiveCommand.Create<TimeCodeFormat>(SetTimeCodeFormat);
     }
 
@@ -194,7 +194,7 @@ public class MpvPlayer : ViewModelBase
     
     public ReactiveCommand<double, Unit> SeekCommand { get; }
     
-    public ReactiveCommand<double, Unit> VolumeCommand { get; }
+    public ReactiveCommand<int, Unit> VolumeCommand { get; }
 
     [Reactive]
     public Dictionary<string, object?>? VideoFrameInfo { get; set; }
@@ -368,17 +368,18 @@ public class MpvPlayer : ViewModelBase
     [Reactive]
     public TimeCodeFormat TimeCodeFormat { get; set; } = TimeCodeFormat.Basic;
 
-    private double _volumeValue = 100; //TODO THIS SHOULD PERSIST THROUGH RESTARTING APPLICATION???
+    private int _volumeValue = 100; //TODO THIS SHOULD PERSIST THROUGH RESTARTING APPLICATION???
 
-    public double VolumeValue
+    public int VolumeValue
     {
         get => _volumeValue;
         set //TODO Have interacting with this automatically unmute sound if muted?
         {
-            this.RaiseAndSetIfChanged(ref _volumeValue, value);
+            var clampedValue = Math.Clamp(value, 0, 100);
+            this.RaiseAndSetIfChanged(ref _volumeValue, clampedValue);
             if (IsFileLoaded)
             {
-                MpvContext.SetPropertyString(MpvProperties.Volume, value.ToString("0"));
+                MpvContext.SetPropertyString(MpvProperties.Volume, clampedValue.ToString());
             }
         }
     }
@@ -534,17 +535,6 @@ public class MpvPlayer : ViewModelBase
             CenterWindow();
         if (_settings.AutoFocus)
             Dispatcher.UIThread.Post(ViewLocator.Main.Activate);
-    }
-
-    private void ChangeVolume(double offset)
-    {
-        var newVolume = VolumeValue + offset;
-        VolumeValue = newVolume switch
-        {
-            > 100 => 100,
-            < 0 => 0,
-            _ => newVolume
-        };
     }
 
     private void FrameStep(string param)

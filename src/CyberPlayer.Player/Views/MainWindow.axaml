@@ -224,7 +224,7 @@
 					VerticalContentAlignment="Center"
 					Width="41"
 					DockPanel.Dock="Right"
-					Content="{Binding MpvPlayer.VolumeValue, StringFormat='{}{0:0}%'}" />
+					Content="{Binding MpvPlayer.VolumeValue, StringFormat='{}{0}%'}" />
 				<Slider
 					Name="VolumeSlider"
 					Classes="Volume"

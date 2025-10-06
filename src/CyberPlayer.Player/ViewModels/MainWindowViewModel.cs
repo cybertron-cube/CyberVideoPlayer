@@ -90,6 +90,7 @@ public class MainWindowViewModel : ViewModelBase
 
         AppExiting.Subscribe(_ =>
         {
+            Settings.Volume = MpvPlayer.VolumeValue;
             MpvPlayer.MpvContext.Dispose();
             Settings.Export(BuildConfig.SettingsPath);
         });

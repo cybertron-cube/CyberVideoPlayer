@@ -34,6 +34,8 @@ public class Settings
 
     public int VolumeChange { get; set; } = 10;
 
+    public int Volume { get; set; } = 100;
+
     public string LibMpvPath { get; set; } = Resolve;
 
     public string MediaInfoPath { get; set; } = Resolve;

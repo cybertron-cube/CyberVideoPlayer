@@ -65,6 +65,7 @@ public class MpvPlayer : ViewModelBase
         _trimEndTimeCode = new TimeCode(1);
         _timeCodeStartIndex = 0;
         _timeCodeLength = _settings.TimeCodeLength;
+        VolumeValue = _settings.Volume;
         TrackListJson = string.Empty;
         SeekTimeCodeString = _seekTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength);
         TimeCodeFormats.Single(x => x.Entity == TimeCodeFormat.Basic).Activated = true;
@@ -368,7 +369,7 @@ public class MpvPlayer : ViewModelBase
     [Reactive]
     public TimeCodeFormat TimeCodeFormat { get; set; } = TimeCodeFormat.Basic;
 
-    private int _volumeValue = 100; //TODO THIS SHOULD PERSIST THROUGH RESTARTING APPLICATION???
+    private int _volumeValue;
 
     public int VolumeValue
     {

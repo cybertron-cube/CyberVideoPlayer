@@ -5,7 +5,8 @@ namespace LibMpv.Client;
 
 public class MarshalHelper : IDisposable
 {
-    bool disposed = false;
+    private bool _disposed;
+    
     public static TStruct PtrToStructure<TStruct>(IntPtr ptr) where TStruct : struct
     {
         if (ptr == IntPtr.Zero)
@@ -13,7 +14,6 @@ public class MarshalHelper : IDisposable
 
         return (TStruct)Marshal.PtrToStructure(ptr, typeof(TStruct));
     }
-
 
     public static string PtrToStringUTF8OrEmpty(IntPtr ptr)
     {
@@ -112,7 +112,7 @@ public class MarshalHelper : IDisposable
     }
     public void Dispose()
     {
-        if (disposed) return;
+        if (_disposed) return;
         foreach(var item in toBeFree)
         {
             if (item.isHGlobal)
@@ -120,6 +120,6 @@ public class MarshalHelper : IDisposable
             else
                 Marshal.FreeCoTaskMem(item.intPtr);
         }
-        disposed = true;
+        _disposed = true;
     }
 }

@@ -1,13 +1,16 @@
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Business;
 using CyberPlayer.Player.Services;
-using Serilog;
+using ILogger = Serilog.ILogger;
 
 namespace CyberPlayer.Player.ViewModels;
 
-public class MediaInfoViewModel : VideoInfoViewModel
+public class MediaInfoViewModel(MpvPlayer mpvPlayer, MediaInfo mediaInfo, Settings settings, ILogger log)
+    : VideoInfoViewModel(VideoInfoType.MediaInfo, DefaultFormat, mpvPlayer, settings,
+        log.ForContext<MediaInfoViewModel>())
 {
     private const string DefaultFormat = "JSON";
     
@@ -29,20 +32,14 @@ public class MediaInfoViewModel : VideoInfoViewModel
 
     protected override FrozenDictionary<string, string> FileExtensions => FileTypes;
 
-    public MediaInfoViewModel(MpvPlayer mpvPlayer, Settings settings, ILogger log)
-        : base(VideoInfoType.MediaInfo, DefaultFormat, mpvPlayer, settings, log.ForContext<MediaInfoViewModel>())
-    { }
-
-    protected override void SetFormat()
+    protected override async Task SetFormat()
     {
-        using (var mediaInfo = new MediaInfo(Settings))
-        {
-            //TODO Complete should be an option
-            //Complete information is automatically shown if requesting json though
-            //mediaInfo.Option("Complete", "1");
-            mediaInfo.Option("output", CurrentFormat);
-            mediaInfo.Open(MpvPlayer.MediaPath);
-            RawText = mediaInfo.Inform();
-        }
+        //TODO Complete should be an option
+        //Complete information is automatically shown if requesting json though
+        //mediaInfo.Option("Complete", "1");
+        await mediaInfo.OpenAsync(MpvPlayer.MediaPath);
+        mediaInfo.Option("output", CurrentFormat);
+        RawText = mediaInfo.Inform();
+        mediaInfo.Close();
     }
 }

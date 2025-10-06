@@ -1,0 +1,16 @@
+#!/bin/sh
+
+#set -e
+
+APP_PATH="/Applications/CyberVideoPlayer.app"
+
+echo "Post installation process started"
+
+# Add application shortcut
+rm -f "/usr/local/bin/cvp"
+ln -s "$APP_PATH/Contents/MacOS/CyberVideoPlayer" "/usr/local/bin/cvp"
+
+# Remove from quarantine
+#xattr -d com.apple.quarantine "$APP_PATH"
+
+echo "Post installation process finished"

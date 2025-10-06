@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
 using Avalonia.Controls;
 using CyberPlayer.Player.Models;
 using ReactiveUI;
@@ -11,10 +9,11 @@ namespace CyberPlayer.Player.ViewModels;
 public class JsonTreeViewModel : ViewModelBase
 {
     private static readonly char[] ValueStartFlags =
-    {
+    [
         '{', '[', '"',
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
-    };
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        'n'
+    ];
 
     private record ParentHeader(string Header, int NodeCount) { public int NodeCount { get; set; } = NodeCount; }
     
@@ -102,17 +101,31 @@ public class JsonTreeViewModel : ViewModelBase
                     var node = new Node(text[i..endIndex], text[(nextValIndex + 1)..valueEndIndex]);
                     node.Parent = currentParentNode;
                     
-                    currentParentNode.Children.Add(node);
+                    if (currentParentNode is null && root == 0)
+                    {
+                        returnList.Add(node);
+                    }
+                    else
+                    {
+                        currentParentNode.Children.Add(node);
+                    }
 
                     i = valueEndIndex;
                 }
                 else //integer
                 {
-                    var valueEndIndex = text.IndexOfAny(new []{ ',', '}' }, nextValIndex + 1);
+                    var valueEndIndex = text.IndexOfAny([',', '}', '\n'], nextValIndex + 1);
                     var node = new Node(text[i..endIndex], text[nextValIndex..valueEndIndex]);
                     node.Parent = currentParentNode;
                     
-                    currentParentNode.Children.Add(node);
+                    if (currentParentNode is null && root == 0)
+                    {
+                        returnList.Add(node);
+                    }
+                    else
+                    {
+                        currentParentNode.Children.Add(node);
+                    }
 
                     i = valueEndIndex - 1;
                 }

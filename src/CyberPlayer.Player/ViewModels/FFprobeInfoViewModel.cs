@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Business;
 using CyberPlayer.Player.Services;
@@ -7,7 +8,9 @@ using Serilog;
 
 namespace CyberPlayer.Player.ViewModels;
 
-public class FFprobeInfoViewModel : VideoInfoViewModel
+public class FFprobeInfoViewModel(MpvPlayer mpvPlayer, Settings settings, ILogger log)
+    : VideoInfoViewModel(VideoInfoType.FFprobe, DefaultFormat, mpvPlayer, settings,
+        log.ForContext<FFprobeInfoViewModel>())
 {
     private const string DefaultFormat = "json";
     
@@ -26,15 +29,10 @@ public class FFprobeInfoViewModel : VideoInfoViewModel
 
     protected override FrozenDictionary<string, string> FileExtensions => FileTypes;
 
-    public FFprobeInfoViewModel(MpvPlayer mpvPlayer, Settings settings, ILogger log)
-        : base(VideoInfoType.FFprobe, DefaultFormat, mpvPlayer, settings, log.ForContext<FFprobeInfoViewModel>())
-    { }
-
-    protected override void SetFormat()
+    protected override Task SetFormat()
     {
-        using (var ffmpeg = new FFmpeg(MpvPlayer.MediaPath, Settings))
-        {
-            RawText = CurrentFormat == "default" ? ffmpeg.Probe() : ffmpeg.ProbeFormat(CurrentFormat);
-        }
+        using var ffmpeg = new FFmpeg(MpvPlayer.MediaPath, Settings);
+        RawText = CurrentFormat == "default" ? ffmpeg.Probe() : ffmpeg.ProbeFormat(CurrentFormat);
+        return Task.CompletedTask;
     }
 }

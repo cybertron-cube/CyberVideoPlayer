@@ -1,6 +1,0 @@
---enable-gpl
---enable-libx264
---enable-libx265
---enable-libmp3lame
---enable-libvorbis
---enable-libass

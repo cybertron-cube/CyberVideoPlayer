@@ -386,13 +386,14 @@ FodyWeavers.xsd
 
 # Custom
 /mpv/android/
-/build/
-/ffmpeg/
+/build/output/
+/deps/ffmpeg/
+/deps/mpv/
 /ignore/
 /package/
 /.venv/
 /src/CyberPlayer.Player/.avalonia-build-tasks/id
-/.releaserc
+/.releaserc.json
 /package.json
 /package-lock.json
 *.mkv

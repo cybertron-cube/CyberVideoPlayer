@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Runtime.InteropServices;
 using LibMpv.Client;
 
 namespace LibMpv.Context;
@@ -177,41 +176,10 @@ public sealed unsafe partial class MpvContext
         );
     }
 
-
     private MpvPropertyEventArgs ToPropertyChangedEventArgs(mpv_event @event)
     {
         var property = MarshalHelper.PtrToStructure<mpv_event_property>((nint)@event.data);
-
-        object? value;
-
-        switch (property.format)
-        {
-            case mpv_format.MPV_FORMAT_NONE:
-                value = null;
-                break;
-            case mpv_format.MPV_FORMAT_STRING:
-                value = MarshalHelper.PtrToStringUTF8OrNull((nint)property.data) ?? string.Empty;
-                break;
-            case mpv_format.MPV_FORMAT_INT64:
-                value = Marshal.ReadInt64((nint)property.data);
-                break;
-            case mpv_format.MPV_FORMAT_FLAG:
-            {
-                var flag = Marshal.ReadInt32((nint)property.data);
-                value = flag == 1;
-                break;
-            }
-            case mpv_format.MPV_FORMAT_DOUBLE:
-            {
-                var doubleBytes = new byte[sizeof(double)];
-                Marshal.Copy((nint)property.data, doubleBytes, 0, sizeof(double));
-                value = BitConverter.ToDouble(doubleBytes, 0);
-                break;
-            }
-            default:
-                throw new ArgumentOutOfRangeException(nameof(mpv_format));
-        }
-        
+        var value = MpvDataToSharpType((nint)property.data, property.format);
         var name = MarshalHelper.PtrToStringUTF8OrEmpty((nint)property.name);
         return new MpvPropertyEventArgs(property.format, name, value, @event.reply_userdata, @event.error);
     }

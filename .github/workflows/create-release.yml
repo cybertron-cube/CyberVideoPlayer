@@ -33,11 +33,11 @@ jobs:
         with:
           node-version: "lts/*"
           cache: 'npm'
-          cache-dependency-path: scripts/package-lock.json
+          cache-dependency-path: build/release-config/package-lock.json
       - name: Install semantic-release/exec
         run: npm install @semantic-release/exec -D
       - name: Apply semantic release config
-        run: sh scripts/config-apply.sh release
+        run: sh build/release-config/config-apply.sh release
       - name: Create release
         id: create-release
         env:
@@ -72,3 +72,19 @@ jobs:
     uses: ./.github/workflows/build-osx.yml
     with:
       release-version: ${{ needs.release.outputs.VERSION }}
+  publish:
+    name: Publish release
+    runs-on: ubuntu-latest
+    needs: [release, build-windows, build-linux, build-osx]
+    if: ${{ needs.release.outputs.VERSION != '' }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Publish
+        run: gh release edit ${{ needs.release.outputs.VERSION }} --draft=false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

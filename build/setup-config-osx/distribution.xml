@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="1">
+    <pkg-ref id="com.cybertron-cube.cvp"/>
+    <product id="com.cybertron-cube.cvp" version="1.0.0"/>
+    <title>Cyber Video Player</title>
+    <license file="LICENSE.html" mime-type="text/html"/>
+    <readme file="README.html" mime-type="text/html"/>
+    <options customize="never" require-scripts="false" hostArchitectures="x86_64,arm64"/>
+    <volume-check>
+        <allowed-os-versions>
+            <os-version min="10.12"/>
+        </allowed-os-versions>
+    </volume-check>
+    <choices-outline>
+        <line choice="default">
+            <line choice="com.cybertron-cube.cvp"/>
+        </line>
+    </choices-outline>
+    <choice id="default" title="Cyber Video Player" versStr="1.0.0"/>
+    <choice id="com.cybertron-cube.cvp" title="Cyber Video Player" visible="false">
+        <pkg-ref id="com.cybertron-cube.cvp"/>
+    </choice>
+    <pkg-ref id="com.cybertron-cube.cvp" version="1.0.0" onConclusion="none">MainComponent.pkg</pkg-ref>
+</installer-gui-script>

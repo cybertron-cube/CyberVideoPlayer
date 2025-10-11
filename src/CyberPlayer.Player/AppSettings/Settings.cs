@@ -32,7 +32,9 @@ public class Settings
 
     public double SeekChange { get; set; } = 5;
 
-    public double VolumeChange { get; set; } = 10;
+    public int VolumeChange { get; set; } = 10;
+
+    public int Volume { get; set; } = 100;
 
     public string LibMpvPath { get; set; } = Resolve;
 
@@ -217,7 +219,9 @@ public class Settings
     {
         ApplyPlaceholders(this);
         var settingsJson = JsonSerializer.Serialize(this, SettingsJsonContext.Default.Settings);
-        Directory.CreateDirectory(Path.GetDirectoryName(settingsPath));
+        var dirName = Path.GetDirectoryName(settingsPath);
+        if (dirName is not null)
+            Directory.CreateDirectory(dirName);
         File.WriteAllText(settingsPath, settingsJson);
     }
 }

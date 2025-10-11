@@ -79,11 +79,7 @@
   </Target>
   
   <Target Name="LibMpvCopy" AfterTargets="FFmpegCopy" Condition=" '$(Configuration)' == 'Debug' ">
-    <Copy Condition=" $(DefineConstants.Contains(WINDOWS)) Or $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\deps\mpv\win\libmpv-2.dll" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
-    <Copy Condition=" $(DefineConstants.Contains(LINUX)) " SourceFiles="..\..\deps\mpv\linux-2.1.0\libmpv.so.2" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
-    <Copy Condition=" $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\deps\mpv\linux-2.1.0\libmpv.so.2" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
-    <!-- TODO Compile libmpv for osx -->
-    <!--<Copy Condition=" $(DefineConstants.Contains(PORTABLE)) " SourceFiles="..\..\mpv\osx\" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />-->
+    <Copy Condition=" $(DefineConstants.Contains(WINDOWS)) " SourceFiles="..\..\deps\mpv\win\libmpv-2.dll" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
   </Target>
 
   <Target Name="MediaInfoCopy" AfterTargets="LibMpvCopy" Condition=" '$(Configuration)' == 'Debug' ">

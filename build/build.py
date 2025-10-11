@@ -22,11 +22,11 @@ ConfigOsxDir = os.path.join(BuildDir, "setup-config-osx")
 ConfigWinDir = os.path.join(BuildDir, "setup-config-win")
 
 Version: str | None = None
-VMajor: int = None
-VMinor: int = None
-VPatch: int = None
-VIdentifier: str = None
-VBuild: int = None
+VMajor: int | None = None
+VMinor: int | None = None
+VPatch: int | None = None
+VIdentifier: str | None = None
+VBuild: int | None = None
 
 print = functools.partial(print, flush=True)
 
@@ -75,7 +75,7 @@ class cd:
         os.chdir(self.savedPath)
 
 
-def ListFiles(dir: str = os.getcwd(), recursive = False, filter: str = None, exclude: str = None) -> list[str]:
+def ListFiles(dir: str = os.getcwd(), recursive = False, filter: str | None = None, exclude: str | None = None) -> list[str]:
     r = []
     for root, dirs, files in os.walk(dir):
         for name in files:
@@ -167,11 +167,17 @@ def DownloadFFmpeg():
     else:
         arch = Architecture
 
+    assetName = ""
+    releaseDL = ""
+
     for asset in assets:
-        assetName : str = asset["name"].lower()
+        assetName = asset["name"].lower()
         if OS.lower() in assetName and arch in assetName and "-gpl" in assetName and "shared" not in assetName and "-master" in assetName:
-            releaseDL : str = asset["browser_download_url"]
+            releaseDL = asset["browser_download_url"]
             break
+    
+    if releaseDL == "":
+        raise Exception("Could not find ffmpeg build download link")
 
     print(f"location: {location}")
     print(f"assetName: {assetName}")
@@ -194,6 +200,50 @@ def DownloadFFmpeg():
 
     files = ListFiles(os.path.join(location, dirName, "bin"), exclude='ffplay')
     CopyFilesProgress(files, location)
+    os.remove(os.path.join(location, assetName))
+    shutil.rmtree(os.path.join(location, dirName))
+
+def DownloadMpv():
+    # linux and osx should rely on resolving this dependency path (get mpv through package manager such as homebrew)
+    if OS == "osx" or OS == "linux":
+        return
+    
+    location = os.path.join(DepsDir, "mpv", OS)
+    os.makedirs(location, exist_ok=True)
+
+    apiurl = "https://api.github.com/repos/shinchiro/mpv-winbuild-cmake/releases/latest"
+    with urllib.request.urlopen(apiurl) as url:
+        releaseJsonData = json.loads(url.read().decode())
+
+    assets = releaseJsonData["assets"]
+
+    assetName = ""
+    releaseDL = ""
+    
+    for asset in assets:
+        assetName = asset["name"].lower()
+        if "mpv-dev-x86_64-v3" in assetName:
+            releaseDL = asset["browser_download_url"]
+            break
+    
+    if releaseDL == "":
+        raise Exception("Could not find ffmpeg build download link")
+
+    print(f"location: {location}")
+    print(f"assetName: {assetName}")
+    print(f"releaseDL: {releaseDL}")
+
+    print("Downloading ...")
+    urllib.request.urlretrieve(releaseDL, os.path.join(location, assetName))
+    print("Finished downloading")
+
+    dirName = assetName.split('.')[0]
+
+    print("Extracting ...")
+    with cd(location):
+        subprocess.call(["7z", "x", os.path.join(location, assetName), f"-o{dirName}"])
+
+    CopyFilesProgress(os.path.join(location, dirName, "libmpv-2.dll"), location)
     os.remove(os.path.join(location, assetName))
     shutil.rmtree(os.path.join(location, dirName))
 
@@ -220,6 +270,8 @@ def SetVersion(version: str):
     # Assign version segments
     if '-' in version: # pre-release
         matchResult = re.search(r"([0-9]*?)\.([0-9]*?)\.([0-9]*?)-([a-z]*?)\.([0-9]*?)$", version)
+        if matchResult == None:
+            raise Exception("Version is not in correct format")
         VMajor = int(matchResult.group(1))
         VMinor = int(matchResult.group(2))
         VPatch = int(matchResult.group(3))
@@ -227,6 +279,8 @@ def SetVersion(version: str):
         VBuild = int(matchResult.group(5))
     else: # normal release
         matchResult = re.search(r"([0-9]*?)\.([0-9]*?)\.([0-9]*?)$", version)
+        if matchResult == None:
+            raise Exception("Version is not in correct format")
         VMajor = int(matchResult.group(1))
         VMinor = int(matchResult.group(2))
         VPatch = int(matchResult.group(3))
@@ -310,8 +364,8 @@ def Compile(chosenTargets: str):
     if ";" in chosenTargets:
         if chosenTargets.endswith(";"):
             chosenTargets = chosenTargets[0:-1]
-        chosenTargets = chosenTargets.split(";")
-        for target in chosenTargets:
+        chosenTargetsList = chosenTargets.split(";")
+        for target in chosenTargetsList:
             os.makedirs(os.path.join(OutputDir, target), exist_ok=True)
             cmds = f"dotnet publish \"{os.path.join(RepoDir, 'src', 'CyberPlayer.Player', 'CyberPlayer.Player.csproj')}\" {CompileTargets[target]}"
             subprocess.call(ParseCmds(cmds))
@@ -371,15 +425,15 @@ def MakeLibraryDir(chosenTargets: str):
             else:
                 subprocess.call(f"nbeauty2 --loglevel Detail {os.path.join(OutputDir, compileTarget)} lib \"libmpv-2.dll;\"")
     elif ";" in chosenTargets:
-        chosenTargets = chosenTargets.split(";")
-        if "all" in chosenTargets:
+        chosenTargetsList = chosenTargets.split(";")
+        if "all" in chosenTargetsList:
             raise Exception("All is not valid when using multiple compile targets")
-        if "sc" in chosenTargets:
-            chosenTargets.remove("sc")
+        if "sc" in chosenTargetsList:
+            chosenTargetsList.remove("sc")
             for target in CompileTargets:
-                if "--sc true" in CompileTargets[target] and target not in chosenTargets:
-                    chosenTargets.append(target)
-        for target in chosenTargets:
+                if "--sc true" in CompileTargets[target] and target not in chosenTargetsList:
+                    chosenTargetsList.append(target)
+        for target in chosenTargetsList:
             if "--sc true" in CompileTargets[target]:
                 subprocess.call(f"nbeauty2 --usepatch --loglevel Detail --hiddens \"hostfxr;hostpolicy;*.deps.json;*.runtimeconfig*.json\" {os.path.join(OutputDir, target)} lib \"libmpv-2.dll;\"")
             else:
@@ -488,6 +542,7 @@ Commands = {
     "rmpdbs": Command("Remove all pdb files", RemovePDBs, False),
     "lib": Command("Makes a library directory for dlls", MakeLibraryDir, "Enter a compile target: "), #compiletarget/s arg
     "dlffmpeg": Command("Downloads ffmpeg binaries from their recommended sources", DownloadFFmpeg, False),
+    "dlmpv": Command("Downloads mpv binaries from their recommended sources (only Windows currently)", DownloadMpv, False),
     "cpymds": Command("Copy all markdown files from working directory", CopyMDs, False),
     "cpyupdater": Command("Copy updater to each build", CopyUpdater, False),
     "cpyffmpeg": Command("Copy ffmpeg executables to builds", CopyFFmpeg, False),

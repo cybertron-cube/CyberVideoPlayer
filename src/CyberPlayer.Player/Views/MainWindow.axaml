@@ -8,7 +8,6 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:mpv="clr-namespace:LibMpv.Context;assembly=LibMpv.Context"
-        xmlns:cybertron="clr-namespace:Cybertron;assembly=Cybertron"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         d:DataContext="{x:Static local:ViewModelLocator.Main}"
         x:Class="CyberPlayer.Player.Views.MainWindow"
@@ -81,10 +80,10 @@
 					<NativeMenuItem Header="Center" Command="{Binding CenterCommand}" />
 					<NativeMenuItem Header="Resize" Command="{Binding ResizeCommand}" />
 					<NativeMenuItem Header="Timecode Format">
-						<NativeMenu>
-							<NativeMenuItem Header="Basic" ToggleType="CheckBox" IsChecked="{Binding TimeCodeFormats[0].Activated}" Command="{Binding TimeCodeFormatCommand}" CommandParameter="{x:Static cybertron:TimeCodeFormat.Basic}" />
-							<NativeMenuItem Header="SMPTE" ToggleType="CheckBox" IsChecked="{Binding TimeCodeFormats[1].Activated}" Command="{Binding TimeCodeFormatCommand}" CommandParameter="{x:Static cybertron:TimeCodeFormat.SMPTE}" />
-						</NativeMenu>
+						<!-- DO NOT REMOVE -->
+						<!-- NativeMenu items are added in CreateTimeCodeFormatNativeMenuItems method -->
+						<!-- See MainWindow_Opened for explanation -->
+						<NativeMenu  />
 					</NativeMenuItem>
 				</NativeMenu>
 			</NativeMenuItem>
@@ -118,7 +117,7 @@
 				<MenuItem Header="Center/Resize" Command="{Binding CenterResizeCommand}" />
 				<MenuItem Header="Center" Command="{Binding CenterCommand}" />
 				<MenuItem Header="Resize" Command="{Binding ResizeCommand}" />
-				<MenuItem Name="TimecodeFormatSelection" Header="Timecode Format" Classes="SubItems" ItemsSource="{Binding TimeCodeFormats}">
+				<MenuItem Header="Timecode Format" Classes="SubItems" ItemsSource="{Binding MpvPlayer.TimeCodeFormats}">
 					<MenuItem.Styles>
 						<Style Selector="MenuItem.SubItems MenuItem">
 							<Setter Property="Command" Value="{Binding $parent[MenuItem].((vm:MainWindowViewModel)DataContext).MpvPlayer.set_TimeCodeFormat}" />
@@ -225,7 +224,7 @@
 					VerticalContentAlignment="Center"
 					Width="41"
 					DockPanel.Dock="Right"
-					Content="{Binding MpvPlayer.VolumeValue, StringFormat='{}{0:0}%'}" />
+					Content="{Binding MpvPlayer.VolumeValue, StringFormat='{}{0}%'}" />
 				<Slider
 					Name="VolumeSlider"
 					Classes="Volume"
@@ -258,7 +257,8 @@
 			
 			<Border Grid.Row="2" Background="Black">
 				<DockPanel Name="InfoPanel" Margin="3, 0" LastChildFill="False">
-					<TextBlock DockPanel.Dock="Right">
+					<TextBlock
+						DockPanel.Dock="Right">
 						<TextBlock.Text>
 							<MultiBinding StringFormat="{}{0} / {1}">
 								<Binding Path="MpvPlayer.SeekTimeCodeString" />

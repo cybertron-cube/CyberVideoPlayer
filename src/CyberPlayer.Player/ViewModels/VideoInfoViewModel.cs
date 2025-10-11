@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Services;
 using DynamicData.Binding;
@@ -71,7 +73,7 @@ public abstract class VideoInfoViewModel : ViewModelBase
 #endif
 
     protected VideoInfoViewModel(VideoInfoType videoInfoType, string currentFormat, MpvPlayer mpvPlayer,
-        Settings settings, ILogger log, Expression<Func<MpvPlayer, object>>? triggerProperty = null)
+        Settings settings, ILogger log, IObservable<object>? trigger = null)
     {
         VideoInfoType = videoInfoType;
         _currentFormat = currentFormat;
@@ -85,16 +87,16 @@ public abstract class VideoInfoViewModel : ViewModelBase
         if (_currentFormat.Equals("json", StringComparison.CurrentCultureIgnoreCase))
             JsonTreeView = true;
         
-        
         // TODO potential memory leak. However currently it wouldn't be since the 3 inheritors of this class
         // are singletons anyway
-        if (triggerProperty is null)
+        if (trigger is null)
         {
-            mpvPlayer.WhenPropertyChanged(x => x.MediaPath).Subscribe(_ => SetFormat());
+            mpvPlayer.WhenPropertyChanged(x => x.MediaPath).Subscribe(_ => Dispatcher.UIThread.InvokeAsync(SetFormat));
         }
         else
         {
-            mpvPlayer.WhenPropertyChanged(triggerProperty).Subscribe(_ => SetFormat());
+            // No initial value like WhenPropertyChanged - so must trigger the initial call to the library to get info
+            trigger.StartWith(Unit.Default).Subscribe(_ => Dispatcher.UIThread.InvokeAsync(SetFormat));
         }
     }
 
@@ -134,5 +136,5 @@ public abstract class VideoInfoViewModel : ViewModelBase
         ExportFinished.OnNext(Unit.Default);
     }
 
-    protected abstract void SetFormat();
+    protected abstract Task SetFormat();
 }

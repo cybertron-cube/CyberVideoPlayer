@@ -93,9 +93,9 @@ then
     rm -rf "$OUTPUT_DIR"
     if [ "$BUILD_UPDATE" = "y" ]
     then
-        $PYTHON "$PY_SCRIPT" -version $VERSION -compile $ARCHITECTURE -buildupdater -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -delbinrel
+        $PYTHON "$PY_SCRIPT" -version $VERSION -compile $ARCHITECTURE -buildupdater -cpymds -cpyffmpeg -cpymediainfo -cpyupdater -rmpdbs -delbinrel
     else
-        $PYTHON "$PY_SCRIPT" -version $VERSION -compile $ARCHITECTURE -cpymds -cpyffmpeg -cpympv -cpymediainfo -cpyupdater -rmpdbs -delbinrel
+        $PYTHON "$PY_SCRIPT" -version $VERSION -compile $ARCHITECTURE -cpymds -cpyffmpeg -cpymediainfo -cpyupdater -rmpdbs -delbinrel
     fi
     TarBuilds
 fi

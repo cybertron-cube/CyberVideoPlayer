@@ -46,7 +46,11 @@ public static class DialogService
 
     public static void ShowVideoInfo(this MainWindowViewModel viewModel, VideoInfoType videoInfoType)
     {
-        if (VideoInfoActive[videoInfoType] != null) return;
+        if (VideoInfoActive[videoInfoType] is not null)
+        {
+            VideoInfoActive[videoInfoType]!.Activate();
+            return;
+        }
         
         var videoInfoView = new VideoInfoWindow();
         

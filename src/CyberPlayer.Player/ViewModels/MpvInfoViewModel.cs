@@ -1,12 +1,17 @@
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Services;
+using ReactiveUI;
 using Serilog;
 
 namespace CyberPlayer.Player.ViewModels;
 
-public class MpvInfoViewModel : VideoInfoViewModel
+public class MpvInfoViewModel(MpvPlayer mpvPlayer, Settings settings, ILogger log) :
+    VideoInfoViewModel(VideoInfoType.Mpv, DefaultFormat, mpvPlayer, settings,
+        log.ForContext<MpvInfoViewModel>(),
+        mpvPlayer.ObservableForProperty(x => x.TrackListJson))
 {
     private const string DefaultFormat = "json";
     
@@ -19,14 +24,10 @@ public class MpvInfoViewModel : VideoInfoViewModel
 
     protected override FrozenDictionary<string, string> FileExtensions => FileTypes;
 
-    public MpvInfoViewModel(MpvPlayer mpvPlayer, Settings settings, ILogger log)
-        : base(VideoInfoType.Mpv, DefaultFormat, mpvPlayer, settings, log.ForContext<MpvInfoViewModel>(),
-            player => player.TrackListJson)
-    { }
-
-    protected override void SetFormat()
+    protected override Task SetFormat()
     {
         if (!string.IsNullOrWhiteSpace(MpvPlayer.TrackListJson))
             RawText = $"{{\"Track \":{MpvPlayer.TrackListJson}}}";
+        return Task.CompletedTask;
     }
 }

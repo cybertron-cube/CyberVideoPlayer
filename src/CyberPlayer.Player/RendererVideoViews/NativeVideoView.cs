@@ -44,9 +44,6 @@ public class NativeVideoView : NativeControlHost
     {
         _mpvContext?.StopRendering();
         base.DestroyNativeControlCore(control);
-        if (_platformHandle != null)
-        {
-            _platformHandle = null;
-        }
+        _platformHandle = null;
     }
 }

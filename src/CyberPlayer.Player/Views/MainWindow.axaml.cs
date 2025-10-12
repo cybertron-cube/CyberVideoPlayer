@@ -253,7 +253,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         }
     }
 
-    private IDisposable? _mpvContextBinding;
+    private BindingExpressionBase? _mpvContextBinding;
     private bool _defaultRendererSet;
 
     [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "<Pending>")]
@@ -274,16 +274,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         switch (renderer)
         {
             case Renderer.Native:
+                ViewModel!.VideoContent = null;
                 var nativeVideoWindow = new NativeVideoWindow(this, ViewModel!.MpvPlayer.MpvContext);
-                Dispatcher.UIThread.Post(() =>
-                {
-                    nativeVideoWindow.Show();
-                    Activate();
-                    TransparencyLevelHint = new[] { WindowTransparencyLevel.Transparent };
-                    Background = Brushes.Transparent;
-                    VideoPanel.Background = Brushes.Transparent;
-                }, DispatcherPriority.Loaded);
-                //Activate();
+                nativeVideoWindow.Show();
                 return;
             case Renderer.Software:
                 var softwareVideoView = new SoftwareVideoView { DataContext = ViewModel!.MpvPlayer };
@@ -295,6 +288,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
                 _mpvContextBinding = hardwareVideoView.Bind(OpenGlVideoView.MpvContextProperty, new Binding(nameof(MpvPlayer.MpvContext)));
                 ViewModel!.VideoContent = hardwareVideoView;
                 return;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(renderer), renderer, null);
         }
     }
 

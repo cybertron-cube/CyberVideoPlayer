@@ -9,7 +9,6 @@ using CyberPlayer.Player.Views;
 using LibMpv.Context;
 using ReactiveMarbles.ObservableEvents;
 using ReactiveUI;
-using Serilog;
 
 namespace CyberPlayer.Player.RendererVideoViews;
 
@@ -28,18 +27,13 @@ public class NativeVideoWindow : Window
             MpvContext = mpvContext
         };
         SystemDecorations = SystemDecorations.None;
-        Background = Brushes.Black;
         ShowInTaskbar = false;
         
-        UpdatePosition();
-        //Dispatcher.UIThread.Post(_parent.Activate);
-        Dispatcher.UIThread.Post(UpdateSize); //Try starting player with file
-        /*Dispatcher.UIThread.Post(() =>
+        Loaded += (_, _) =>
         {
-            SystemDecorations = SystemDecorations.None;
-            UpdatePosition();
-            UpdateSize();
-        });*/
+            IsVisible = false;
+            _parent.Activate();
+        };
 
         var parentEvents = _parent.Events();
         _disposables = new CompositeDisposable
@@ -49,25 +43,45 @@ public class NativeVideoWindow : Window
             // the main window will focus without the video window being brought forward with it
             parentEvents.Activated.Skip(1).Subscribe(_ => UpdateFocus()),
             // Video panel should always resize when main window resizes because it is proportionally sized
-            _parent.ObservableForProperty(x => x.ClientSize).Subscribe(_ => UpdateSize()),
+            _parent.ObservableForProperty(x => x.VideoPanel.Bounds).Subscribe(_ => UpdateSize()),
+            // Make window visible on first size change, otherwise you get a black box flicker for a second
+            _parent.ObservableForProperty(x => x.VideoPanel.Bounds).Take(1).Subscribe(_ => FirstSize()),
             this.Events().Closing.Subscribe(_ => _disposables?.Dispose())
         };
+    }
+
+    private void FirstSize()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            _parent.TransparencyLevelHint = [WindowTransparencyLevel.Transparent];
+            _parent.Background = Brushes.Transparent;
+            _parent.VideoPanel.Background = Brushes.Transparent;
+            IsVisible = true;
+            _parent.Activate();
+        });
     }
     
     private void UpdateFocus()
     {
+        // We activate the parent below which would cause infinite recursion if we don't check
+        if (_ignoreOne)
+        {
+            _ignoreOne = false;
+            return;
+        }
+        
         // Post the action so that the input events on the main window go through (like the video panel context menu)
         Dispatcher.UIThread.Post(() =>
         {
-            if (_ignoreOne)
-            {
-                _ignoreOne = false;
-                return;
-            }
-
             Activate();
-            Dispatcher.UIThread.Post(() => _parent.Activate(), DispatcherPriority.MaxValue);
-            _ignoreOne = true;
+            
+            Dispatcher.UIThread.Post(() =>
+            {
+                _ignoreOne = true;
+                _parent.Activate();
+            }, DispatcherPriority.MaxValue);
+            
         }, DispatcherPriority.MaxValue);
     }
 
@@ -78,7 +92,7 @@ public class NativeVideoWindow : Window
 
     private void UpdateSize()
     {
-        Width = _parent.ClientSize.Width;
-        Height = _parent.ClientSize.Height - _parent.MainGrid.RowDefinitions[0].ActualHeight - _parent.MainGrid.RowDefinitions[2].ActualHeight;
+        Width = _parent.VideoPanel.Bounds.Width;
+        Height = _parent.VideoPanel.Bounds.Height;
     }
 }

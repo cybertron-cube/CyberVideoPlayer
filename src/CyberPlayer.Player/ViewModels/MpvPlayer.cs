@@ -66,6 +66,7 @@ public class MpvPlayer : ViewModelBase
         _timeCodeStartIndex = 0;
         _timeCodeLength = _settings.TimeCodeLength;
         VolumeValue = _settings.Volume;
+        _mpvContext.SetOptionString(MpvProperties.Volume, Math.Clamp(VolumeValue, 0, 100).ToString());
         TrackListJson = string.Empty;
         SeekTimeCodeString = _seekTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength);
         TimeCodeFormats.Single(x => x.Entity == TimeCodeFormat.Basic).Activated = true;

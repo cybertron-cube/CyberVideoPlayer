@@ -253,7 +253,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         }
     }
 
-    private IDisposable? _mpvContextBinding;
+    private BindingExpressionBase? _mpvContextBinding;
     private bool _defaultRendererSet;
 
     [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "<Pending>")]
@@ -274,9 +274,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         switch (renderer)
         {
             case Renderer.Native:
-                var nativeVideoView = new NativeVideoView { DataContext = ViewModel!.MpvPlayer };
-                _mpvContextBinding = nativeVideoView.Bind(NativeVideoView.MpvContextProperty, new Binding(nameof(MpvPlayer.MpvContext)));
-                ViewModel!.VideoContent = nativeVideoView;
+                ViewModel!.VideoContent = null;
+                var nativeVideoWindow = new NativeVideoWindow(this, ViewModel!.MpvPlayer.MpvContext);
+                nativeVideoWindow.Show();
                 return;
             case Renderer.Software:
                 var softwareVideoView = new SoftwareVideoView { DataContext = ViewModel!.MpvPlayer };
@@ -288,6 +288,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
                 _mpvContextBinding = hardwareVideoView.Bind(OpenGlVideoView.MpvContextProperty, new Binding(nameof(MpvPlayer.MpvContext)));
                 ViewModel!.VideoContent = hardwareVideoView;
                 return;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(renderer), renderer, null);
         }
     }
 
@@ -378,7 +380,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
 #endif
     }
 
-    private void VideoPanel_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    public void VideoPanel_OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {

@@ -6,246 +6,245 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 
-namespace CyberPlayer.Player.Controls
+namespace CyberPlayer.Player.Controls;
+
+public class TimelineControl : TemplatedControl
 {
-    public class TimelineControl : TemplatedControl
+    public static readonly StyledProperty<double> MinimumProperty = AvaloniaProperty.Register<TimelineControl, double>(
+        nameof(Minimum), 0d);
+
+    public static readonly StyledProperty<double> MaximumProperty = AvaloniaProperty.Register<TimelineControl, double>(
+        nameof(Maximum), 1d);
+
+    public static readonly StyledProperty<double> LowerValueProperty = AvaloniaProperty.Register<TimelineControl, double>(
+        nameof(LowerValue),  0d, defaultBindingMode: BindingMode.TwoWay);
+
+    public static readonly StyledProperty<double> UpperValueProperty = AvaloniaProperty.Register<TimelineControl, double>(
+        nameof(UpperValue), 1d, defaultBindingMode: BindingMode.TwoWay);
+
+    public static readonly StyledProperty<double> SeekValueProperty = AvaloniaProperty.Register<TimelineControl, double>(
+        nameof(SeekValue), 0.5d, defaultBindingMode: BindingMode.TwoWay);
+
+    public static readonly StyledProperty<bool> IsLowerDraggingProperty = AvaloniaProperty.Register<TimelineControl, bool>(
+        nameof(IsLowerDragging), defaultBindingMode: BindingMode.OneWayToSource);
+
+    public static readonly StyledProperty<bool> IsUpperDraggingProperty = AvaloniaProperty.Register<TimelineControl, bool>(
+        nameof(IsUpperDragging), defaultBindingMode: BindingMode.OneWayToSource);
+
+    public static readonly StyledProperty<bool> IsSeekDraggingProperty = AvaloniaProperty.Register<TimelineControl, bool>(
+        nameof(IsSeekDragging), defaultBindingMode: BindingMode.OneWayToSource);
+
+    public static readonly StyledProperty<double> SnapThresholdProperty = AvaloniaProperty.Register<TimelineControl, double>(
+        nameof(SnapThreshold), double.NaN);
+
+    public double SnapThreshold
     {
-        public static readonly StyledProperty<double> MinimumProperty = AvaloniaProperty.Register<TimelineControl, double>(
-            nameof(Minimum), 0d);
+        get => GetValue(SnapThresholdProperty);
+        set => SetValue(SnapThresholdProperty, value);
+    }
 
-        public static readonly StyledProperty<double> MaximumProperty = AvaloniaProperty.Register<TimelineControl, double>(
-            nameof(Maximum), 1d);
+    public bool IsSeekDragging
+    {
+        get => GetValue(IsSeekDraggingProperty);
+        set => SetValue(IsSeekDraggingProperty, value);
+    }
 
-        public static readonly StyledProperty<double> LowerValueProperty = AvaloniaProperty.Register<TimelineControl, double>(
-            nameof(LowerValue),  0d, defaultBindingMode: BindingMode.TwoWay);
-
-        public static readonly StyledProperty<double> UpperValueProperty = AvaloniaProperty.Register<TimelineControl, double>(
-            nameof(UpperValue), 1d, defaultBindingMode: BindingMode.TwoWay);
-
-        public static readonly StyledProperty<double> SeekValueProperty = AvaloniaProperty.Register<TimelineControl, double>(
-            nameof(SeekValue), 0.5d, defaultBindingMode: BindingMode.TwoWay);
-
-        public static readonly StyledProperty<bool> IsLowerDraggingProperty = AvaloniaProperty.Register<TimelineControl, bool>(
-            nameof(IsLowerDragging), defaultBindingMode: BindingMode.OneWayToSource);
-
-        public static readonly StyledProperty<bool> IsUpperDraggingProperty = AvaloniaProperty.Register<TimelineControl, bool>(
-            nameof(IsUpperDragging), defaultBindingMode: BindingMode.OneWayToSource);
-
-        public static readonly StyledProperty<bool> IsSeekDraggingProperty = AvaloniaProperty.Register<TimelineControl, bool>(
-            nameof(IsSeekDragging), defaultBindingMode: BindingMode.OneWayToSource);
-
-        public static readonly StyledProperty<double> SnapThresholdProperty = AvaloniaProperty.Register<TimelineControl, double>(
-            nameof(SnapThreshold), double.NaN);
-
-        public double SnapThreshold
-        {
-            get => GetValue(SnapThresholdProperty);
-            set => SetValue(SnapThresholdProperty, value);
-        }
-
-        public bool IsSeekDragging
-        {
-            get => GetValue(IsSeekDraggingProperty);
-            set => SetValue(IsSeekDraggingProperty, value);
-        }
-
-        public double SeekValue
-        {
-            get => GetValue(SeekValueProperty);
-            set => SetValue(SeekValueProperty, value);
-        }
+    public double SeekValue
+    {
+        get => GetValue(SeekValueProperty);
+        set => SetValue(SeekValueProperty, value);
+    }
         
-        public bool IsUpperDragging
-        {
-            get => GetValue(IsUpperDraggingProperty);
-            set => SetValue(IsUpperDraggingProperty, value);
-        }
+    public bool IsUpperDragging
+    {
+        get => GetValue(IsUpperDraggingProperty);
+        set => SetValue(IsUpperDraggingProperty, value);
+    }
 
-        public bool IsLowerDragging
-        {
-            get => GetValue(IsLowerDraggingProperty);
-            set => SetValue(IsLowerDraggingProperty, value);
-        }
+    public bool IsLowerDragging
+    {
+        get => GetValue(IsLowerDraggingProperty);
+        set => SetValue(IsLowerDraggingProperty, value);
+    }
 
-        public double UpperValue
-        {
-            get => GetValue(UpperValueProperty);
-            set => SetValue(UpperValueProperty, value);
-        }
+    public double UpperValue
+    {
+        get => GetValue(UpperValueProperty);
+        set => SetValue(UpperValueProperty, value);
+    }
 
-        public double LowerValue
-        {
-            get => GetValue(LowerValueProperty);
-            set => SetValue(LowerValueProperty, value);
-        }
+    public double LowerValue
+    {
+        get => GetValue(LowerValueProperty);
+        set => SetValue(LowerValueProperty, value);
+    }
 
-        public double Maximum
-        {
-            get => GetValue(MaximumProperty);
-            set => SetValue(MaximumProperty, value);
-        }
+    public double Maximum
+    {
+        get => GetValue(MaximumProperty);
+        set => SetValue(MaximumProperty, value);
+    }
 
-        public double Minimum
-        {
-            get => GetValue(MinimumProperty);
-            set => SetValue(MinimumProperty, value);
-        }
+    public double Minimum
+    {
+        get => GetValue(MinimumProperty);
+        set => SetValue(MinimumProperty, value);
+    }
 
-        private CustomSlider _lowerSlider;
-        private CustomSlider _upperSlider;
-        private Thumb _lowerThumb;
-        private Thumb _upperThumb;
-        private Button _selectionPart;
-        private IDisposable? _selectionPartPressDispose;
-        private IDisposable? _selectionPartReleaseDispose;
-        private IDisposable? _pointerMovedDispose;
-        private double _xOffsetLower;
-        private double _xOffsetUpper;
-        private bool _isSnapping;
+    private CustomSlider _lowerSlider;
+    private CustomSlider _upperSlider;
+    private Thumb _lowerThumb;
+    private Thumb _upperThumb;
+    private Button _selectionPart;
+    private IDisposable? _selectionPartPressDispose;
+    private IDisposable? _selectionPartReleaseDispose;
+    private IDisposable? _pointerMovedDispose;
+    private double _xOffsetLower;
+    private double _xOffsetUpper;
+    private bool _isSnapping;
 
-        private bool _selectionDragging; //MAY NEED TO MAKE THIS A PROPERTY TO ACCESS IN MAIN WINDOW VIEWMODEL
+    private bool _selectionDragging; //MAY NEED TO MAKE THIS A PROPERTY TO ACCESS IN MAIN WINDOW VIEWMODEL
 
-        static TimelineControl()
-        {
-            Thumb.DragDeltaEvent.AddClassHandler<TimelineControl>((x, e) => x.OnThumbDelta(e),
-                RoutingStrategies.Bubble);
-        }
+    static TimelineControl()
+    {
+        Thumb.DragDeltaEvent.AddClassHandler<TimelineControl>((x, e) => x.OnThumbDelta(e),
+            RoutingStrategies.Bubble);
+    }
         
-        public TimelineControl()
+    public TimelineControl()
+    {
+        LayoutUpdated += (_, _) =>
         {
-            LayoutUpdated += (_, _) =>
-            {
-                ArrangeSelection();
-            };
-        }
+            ArrangeSelection();
+        };
+    }
         
-        protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
-        {
-            base.OnApplyTemplate(e);
+    protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+    {
+        base.OnApplyTemplate(e);
             
-            _lowerSlider = e.NameScope.Find<CustomSlider>("SliderLower");
-            _lowerSlider.TemplateApplied += (_, t) =>
-            {
-                var lowerSliderTrackPart = t.NameScope.Find<Track>("PART_Track");
-                _lowerThumb = lowerSliderTrackPart.Thumb;
+        _lowerSlider = e.NameScope.Find<CustomSlider>("SliderLower");
+        _lowerSlider.TemplateApplied += (_, t) =>
+        {
+            var lowerSliderTrackPart = t.NameScope.Find<Track>("PART_Track");
+            _lowerThumb = lowerSliderTrackPart.Thumb;
                 
-                _selectionPart = t.NameScope.Find<RepeatButton>("SelectionPart");
-                _selectionPartPressDispose?.Dispose();
-                _selectionPartReleaseDispose?.Dispose();
-                _selectionPartPressDispose = _selectionPart.AddDisposableHandler(PointerPressedEvent,
-                    SelectionPressed, RoutingStrategies.Tunnel);
-                _selectionPartReleaseDispose = _selectionPart.AddDisposableHandler(PointerReleasedEvent,
-                    SelectionRelease, RoutingStrategies.Tunnel);
-            };
+            _selectionPart = t.NameScope.Find<RepeatButton>("SelectionPart");
+            _selectionPartPressDispose?.Dispose();
+            _selectionPartReleaseDispose?.Dispose();
+            _selectionPartPressDispose = _selectionPart.AddDisposableHandler(PointerPressedEvent,
+                SelectionPressed, RoutingStrategies.Tunnel);
+            _selectionPartReleaseDispose = _selectionPart.AddDisposableHandler(PointerReleasedEvent,
+                SelectionRelease, RoutingStrategies.Tunnel);
+        };
             
-            _upperSlider = e.NameScope.Find<CustomSlider>("SliderUpper");
-            _upperSlider.TemplateApplied += (_, t) =>
-            {
-                var upperSliderTrackPart = t.NameScope.Find<Track>("PART_Track");
-                _upperThumb = upperSliderTrackPart.Thumb;
-            };
+        _upperSlider = e.NameScope.Find<CustomSlider>("SliderUpper");
+        _upperSlider.TemplateApplied += (_, t) =>
+        {
+            var upperSliderTrackPart = t.NameScope.Find<Track>("PART_Track");
+            _upperThumb = upperSliderTrackPart.Thumb;
+        };
             
-            _pointerMovedDispose?.Dispose();
-            _pointerMovedDispose =
-                this.AddDisposableHandler(PointerMovedEvent, PointerSelectionMoved, RoutingStrategies.Tunnel);
-        }
+        _pointerMovedDispose?.Dispose();
+        _pointerMovedDispose =
+            this.AddDisposableHandler(PointerMovedEvent, PointerSelectionMoved, RoutingStrategies.Tunnel);
+    }
 
-        protected override void OnKeyDown(KeyEventArgs e)
-        {
-            base.OnKeyDown(e);
-            if ((e.KeyModifiers & KeyModifiers.Shift) == 0) return;
-            if (!_isSnapping)
-                _isSnapping = true;
-        }
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+        if ((e.KeyModifiers & KeyModifiers.Shift) == 0) return;
+        if (!_isSnapping)
+            _isSnapping = true;
+    }
 
-        protected override void OnKeyUp(KeyEventArgs e)
-        {
-            base.OnKeyUp(e);
-            if (_isSnapping)
-                _isSnapping = false;
-        }
+    protected override void OnKeyUp(KeyEventArgs e)
+    {
+        base.OnKeyUp(e);
+        if (_isSnapping)
+            _isSnapping = false;
+    }
 
-        private void OnThumbDelta(VectorEventArgs e)
+    private void OnThumbDelta(VectorEventArgs e)
+    {
+        if (_isSnapping && !double.IsNaN(SnapThreshold))
         {
-            if (_isSnapping && !double.IsNaN(SnapThreshold))
+            if (IsUpperDragging)
             {
-                if (IsUpperDragging)
+                if (SeekValue < UpperValue && UpperValue < SeekValue + SnapThreshold)
+                    UpperValue = SeekValue;
+                else if (SeekValue > UpperValue && UpperValue > SeekValue - SnapThreshold)
+                    UpperValue = SeekValue;
+            }
+            else if (IsLowerDragging)
+            {
+                if (SeekValue < LowerValue && LowerValue < SeekValue + SnapThreshold)
+                    LowerValue = SeekValue;
+                else if (SeekValue > LowerValue && LowerValue > SeekValue - SnapThreshold)
+                    LowerValue = SeekValue;
+            }
+            else if (IsSeekDragging)
+            {
+                if (Math.Abs(SeekValue - LowerValue) > Math.Abs(SeekValue - UpperValue))
                 {
-                    if (SeekValue < UpperValue && UpperValue < SeekValue + SnapThreshold)
-                        UpperValue = SeekValue;
-                    else if (SeekValue > UpperValue && UpperValue > SeekValue - SnapThreshold)
-                        UpperValue = SeekValue;
+                    //Snap to upper value
+                    if (UpperValue < SeekValue && SeekValue < UpperValue + SnapThreshold)
+                        SeekValue = UpperValue;
+                    else if (UpperValue > SeekValue && SeekValue > UpperValue - SnapThreshold)
+                        SeekValue = UpperValue;
                 }
-                else if (IsLowerDragging)
+                else
                 {
-                    if (SeekValue < LowerValue && LowerValue < SeekValue + SnapThreshold)
-                        LowerValue = SeekValue;
-                    else if (SeekValue > LowerValue && LowerValue > SeekValue - SnapThreshold)
-                        LowerValue = SeekValue;
-                }
-                else if (IsSeekDragging)
-                {
-                    if (Math.Abs(SeekValue - LowerValue) > Math.Abs(SeekValue - UpperValue))
-                    {
-                        //Snap to upper value
-                        if (UpperValue < SeekValue && SeekValue < UpperValue + SnapThreshold)
-                            SeekValue = UpperValue;
-                        else if (UpperValue > SeekValue && SeekValue > UpperValue - SnapThreshold)
-                            SeekValue = UpperValue;
-                    }
-                    else
-                    {
-                        //Snap to lower value
-                        if (LowerValue < SeekValue && SeekValue < LowerValue + SnapThreshold)
-                            SeekValue = LowerValue;
-                        else if (LowerValue > SeekValue && SeekValue > LowerValue - SnapThreshold)
-                            SeekValue = LowerValue;
-                    }
+                    //Snap to lower value
+                    if (LowerValue < SeekValue && SeekValue < LowerValue + SnapThreshold)
+                        SeekValue = LowerValue;
+                    else if (LowerValue > SeekValue && SeekValue > LowerValue - SnapThreshold)
+                        SeekValue = LowerValue;
                 }
             }
         }
+    }
 
-        private void SelectionPressed(object? sender, PointerPressedEventArgs e)
+    private void SelectionPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-            {
-                _xOffsetLower = e.GetCurrentPoint(null).Position.X - _lowerThumb.Bounds.X;
-                _xOffsetUpper = _upperThumb.Bounds.X - e.GetCurrentPoint(null).Position.X;
-                _selectionDragging = true;
-            }
+            _xOffsetLower = e.GetCurrentPoint(null).Position.X - _lowerThumb.Bounds.X;
+            _xOffsetUpper = _upperThumb.Bounds.X - e.GetCurrentPoint(null).Position.X;
+            _selectionDragging = true;
         }
+    }
         
-        private void SelectionRelease(object? sender, PointerReleasedEventArgs e)
-        {
-            _selectionDragging = false;
-        }
+    private void SelectionRelease(object? sender, PointerReleasedEventArgs e)
+    {
+        _selectionDragging = false;
+    }
 
-        private void PointerSelectionMoved(object? sender, PointerEventArgs e)
+    private void PointerSelectionMoved(object? sender, PointerEventArgs e)
+    {
+        if (!IsEnabled)
         {
-            if (!IsEnabled)
-            {
-                if (_selectionDragging)
-                    _selectionDragging = false;
-                return;
-            }
             if (_selectionDragging)
-            {
-                MoveSelection(e.GetCurrentPoint(null).Position);
-            }
+                _selectionDragging = false;
+            return;
         }
-
-        private void MoveSelection(Point p)
+        if (_selectionDragging)
         {
-            _lowerSlider.MoveThumb(p.WithX(p.X - _xOffsetLower));
-            _upperSlider.MoveThumb(p.WithX(p.X + _xOffsetUpper));
+            MoveSelection(e.GetCurrentPoint(null).Position);
         }
+    }
 
-        private void ArrangeSelection()
-        {
-            var width = (_upperThumb.Bounds.X - _upperThumb.Margin.Right) - (_lowerThumb.Bounds.X + _lowerThumb.Margin.Left);
-            var x = _lowerThumb.Bounds.X + (_lowerThumb.Bounds.Width + _lowerThumb.Margin.Left * 2) / 2;
-            var rect = new Rect(_selectionPart.Bounds.Position.WithX(x), _selectionPart.Bounds.Size.WithWidth(width));
-            _selectionPart.Arrange(rect);
-        }
+    private void MoveSelection(Point p)
+    {
+        _lowerSlider.MoveThumb(p.WithX(p.X - _xOffsetLower));
+        _upperSlider.MoveThumb(p.WithX(p.X + _xOffsetUpper));
+    }
+
+    private void ArrangeSelection()
+    {
+        var width = (_upperThumb.Bounds.X - _upperThumb.Margin.Right) - (_lowerThumb.Bounds.X + _lowerThumb.Margin.Left);
+        var x = _lowerThumb.Bounds.X + (_lowerThumb.Bounds.Width + _lowerThumb.Margin.Left * 2) / 2;
+        var rect = new Rect(_selectionPart.Bounds.Position.WithX(x), _selectionPart.Bounds.Size.WithWidth(width));
+        _selectionPart.Arrange(rect);
     }
 }

@@ -250,28 +250,31 @@
 					<Grid RowDefinitions="*, 2">
 						<controls:CustomSlider
 	                        x:Name="SliderLower"
+	                        Grid.Row="0"
 	                        Maximum="{TemplateBinding Maximum}"
 	                        Minimum="{TemplateBinding Minimum}"
 	                        Value="{TemplateBinding Property=LowerValue, Mode=TwoWay}"
 							ToCoerceValue="{TemplateBinding UpperValue}"
 							ToCoerceValueIsMax="True"
-	                        IsDragging="{TemplateBinding Property=IsLowerDragging, Mode=OneWayToSource}"
+	                        IsDragging="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsLowerDragging, Mode=OneWayToSource}"
 	                        Theme="{StaticResource TimelineControlLower}"/>
 						<controls:CustomSlider
 							x:Name="SliderUpper"
+							Grid.Row="0"
 							Minimum="{TemplateBinding Minimum}"
 							Maximum="{TemplateBinding Maximum}"
 							Value="{TemplateBinding Property=UpperValue, Mode=TwoWay}"
 							ToCoerceValue="{TemplateBinding	LowerValue}"
 							ToCoerceValueIsMax="False"
-							IsDragging="{TemplateBinding Property=IsUpperDragging, Mode=OneWayToSource}"
+							IsDragging="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsUpperDragging, Mode=OneWayToSource}"
 							Theme="{StaticResource TimelineControlUpper}"/>
 						<controls:CustomSlider
 							x:Name="SliderSeek"
+							Grid.Row="0"
 							Minimum="{TemplateBinding Minimum}"
 							Maximum="{TemplateBinding Maximum}"
 							Value="{TemplateBinding Property=SeekValue, Mode=TwoWay}"
-							IsDragging="{TemplateBinding Property=IsSeekDragging, Mode=OneWayToSource}"
+							IsDragging="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsSeekDragging, Mode=OneWayToSource}"
 							Theme="{StaticResource TimelineControlSeek}"/>
 					</Grid>
 			</ControlTemplate>

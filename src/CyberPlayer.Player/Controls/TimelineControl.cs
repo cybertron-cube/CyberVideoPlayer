@@ -26,13 +26,13 @@ public class TimelineControl : TemplatedControl
         nameof(SeekValue), 0.5d, defaultBindingMode: BindingMode.TwoWay);
 
     public static readonly StyledProperty<bool> IsLowerDraggingProperty = AvaloniaProperty.Register<TimelineControl, bool>(
-        nameof(IsLowerDragging), defaultBindingMode: BindingMode.OneWayToSource);
+        nameof(IsLowerDragging), defaultBindingMode: BindingMode.Default);
 
     public static readonly StyledProperty<bool> IsUpperDraggingProperty = AvaloniaProperty.Register<TimelineControl, bool>(
-        nameof(IsUpperDragging), defaultBindingMode: BindingMode.OneWayToSource);
+        nameof(IsUpperDragging), defaultBindingMode: BindingMode.Default);
 
     public static readonly StyledProperty<bool> IsSeekDraggingProperty = AvaloniaProperty.Register<TimelineControl, bool>(
-        nameof(IsSeekDragging), defaultBindingMode: BindingMode.OneWayToSource);
+        nameof(IsSeekDragging), defaultBindingMode: BindingMode.Default);
 
     public static readonly StyledProperty<double> SnapThresholdProperty = AvaloniaProperty.Register<TimelineControl, double>(
         nameof(SnapThreshold), double.NaN);

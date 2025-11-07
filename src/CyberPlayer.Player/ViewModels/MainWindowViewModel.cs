@@ -1,6 +1,7 @@
 ﻿using ReactiveUI;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive;
@@ -160,11 +161,13 @@ public class MainWindowViewModel : ViewModelBase
             var updaterPath = GenStatic.GetFullPathFromRelative(BuildConfig.UpdaterPath);
             GenStatic.Platform.ExecutablePath(ref updaterPath);
             
-            var tempScript = Updater.StartUpdater(updaterPath,
+            var tempScript = await Updater.StartUpdater(updaterPath,
                 result.DownloadLink, 
                 GenStatic.GetFullPathFromRelative(),
-                BuildConfig.WildCardPreservables,
-                BuildConfig.Preservables);
+                [BuildConfig.WildCardPreservables],
+                BuildConfig.Preservables,
+                Path.Combine(BuildConfig.LogDirectory, "UpdaterScript.log"),
+                Locator.Current.GetService<HttpClient>());
             
             _log.Information("Wrote temporary updater script to \"{ScriptPath}\"", tempScript);
             

@@ -177,6 +177,41 @@
 							</Style>
 						</MenuItem.Styles>
 					</MenuItem>
+					<MenuItem Name="SubtitleTrackMenu" Header="Subtitle Tracks" Classes="SubItems" ItemsSource="{Binding MpvPlayer.SubtitleTrackInfos}">
+						<MenuItem.Styles>
+							<Style Selector="MenuItem.SubItems MenuItem">
+								<Setter Property="Command" Value="{Binding $parent[MenuItem].((vm:MainWindowViewModel)DataContext).MpvPlayer.set_SelectedSubtitleTrack}" />
+								<Setter Property="CommandParameter" Value="{Binding ., DataType=models:TrackInfo}" />
+								<Setter Property="Header" Value="{Binding Description, DataType=models:TrackInfo}" />
+								<Setter Property="Icon">
+									<Template>
+										<Panel>
+											<Panel.Styles>
+												<Style Selector="Path">
+													<Setter Property="Data" Value="{StaticResource CircleGeometry}" />
+													<Setter Property="Margin" Value="1, 1" />
+												</Style>
+											</Panel.Styles>
+											<Path Stroke="#635552"
+											      StrokeThickness="2"
+											      Fill="Transparent"
+											      IsVisible="{Binding !Selected, DataType=models:TrackInfo}" />
+											<Path Stroke="Gray"
+											      StrokeThickness="2"
+											      Fill="Gray"
+											      IsVisible="{Binding Selected, DataType=models:TrackInfo}" />
+											<Path Fill="Blue"
+											      IsVisible="{Binding Selected, DataType=models:TrackInfo}">
+												<Path.RenderTransform>
+													<ScaleTransform ScaleX="0.5" ScaleY="0.5" />
+												</Path.RenderTransform>
+											</Path>
+										</Panel>
+									</Template>
+								</Setter>
+							</Style>
+						</MenuItem.Styles>
+					</MenuItem>
 					<MenuItem Header="Show Menu Bar" Click="ShowMenuBarMenuItem_OnClick" />
 				</ContextMenu>
 			</Panel.ContextMenu>

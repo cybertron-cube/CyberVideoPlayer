@@ -399,6 +399,34 @@ public class MpvPlayer : ViewModelBase
             MpvContext.SetPropertyFlag(MpvProperties.Muted, value);
         }
     }
+    
+    [Reactive]
+    public IEnumerable<TrackInfo>? SubtitleTrackInfos { get; set; }
+
+    private TrackInfo? _selectedSubtitleTrack;
+
+    public TrackInfo? SelectedSubtitleTrack
+    {
+        get => _selectedSubtitleTrack;
+        set
+        {
+            if (_selectedSubtitleTrack is not null) _selectedSubtitleTrack.Selected = false;
+            
+            if (value == _selectedSubtitleTrack)
+            {
+                _selectedSubtitleTrack = null;
+                MpvContext.SetPropertyString(MpvProperties.SubtitleTrackId, "no");
+            }
+            else if (value is not null)
+            {
+                _selectedSubtitleTrack = value;
+                value.Selected = true;
+                MpvContext.SetPropertyString(MpvProperties.SubtitleTrackId, value.Id.ToString());
+            }
+            
+            this.RaisePropertyChanged();
+        }
+    }
 
     [Reactive]
     public IEnumerable<TrackInfo>? AudioTrackInfos { get; set; }
@@ -551,10 +579,12 @@ public class MpvPlayer : ViewModelBase
     {
         TrackListJson = MpvContext.GetPropertyString(MpvProperties.TrackList);
         var trackInfos = JsonSerializer.Deserialize(TrackListJson, TrackInfoJsonContext.Default.TrackInfoArray);
+        SubtitleTrackInfos = trackInfos!.Where(x => x.Type == "sub");
+        _selectedSubtitleTrack = SubtitleTrackInfos!.FirstOrDefault(x => x.Selected);
         AudioTrackInfos = trackInfos!.Where(x => x.Type == "audio");
-        SelectedAudioTrack = AudioTrackInfos.FirstOrDefault();
+        _selectedAudioTrack = AudioTrackInfos.FirstOrDefault(x => x.Selected);
         VideoTrackInfos = trackInfos!.Where(x => x.Type == "video");
-        SelectedVideoTrack = VideoTrackInfos.FirstOrDefault();
+        _selectedVideoTrack = VideoTrackInfos.FirstOrDefault(x => x.Selected);
     }
     
     public void PlayPause()

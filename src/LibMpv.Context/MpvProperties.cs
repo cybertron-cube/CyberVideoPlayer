@@ -10,4 +10,5 @@ public static class MpvProperties
     public const string TrackList = "track-list";
     public const string AudioTrackId = "aid";
     public const string VideoTrackId = "vid";
+    public const string SubtitleTrackId = "sid";
 }

@@ -65,7 +65,8 @@ public class MpvPlayer : ViewModelBase
         _trimEndTimeCode = new TimeCode(1);
         _timeCodeStartIndex = 0;
         _timeCodeLength = _settings.TimeCodeLength;
-        VolumeValue = _settings.Volume;
+        VolumeValue = _settings.Volume; //TODO clamp value in setter
+                                        //, maybe subscribe to trackinfo changes instead of setter logic for tracks
         _mpvContext.SetOptionString(MpvProperties.Volume, Math.Clamp(VolumeValue, 0, 100).ToString());
         TrackListJson = string.Empty;
         SeekTimeCodeString = _seekTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength);
@@ -149,7 +150,11 @@ public class MpvPlayer : ViewModelBase
         // In mpv paused is not set to true when reaching the end of file
         // but we still want the pause/play button to show the play symbol
         if (e.Reason == mpv_end_file_reason.MPV_END_FILE_REASON_EOF)
+        {
+            _endOfFileReached = true;
+            _oldMediaPath = _mediaPath;
             MpvContext.SetPropertyFlag(MpvProperties.Paused, true);
+        }
         
         IsFileLoaded = false;
         SetSliderValueNoSeek(Duration);
@@ -164,7 +169,14 @@ public class MpvPlayer : ViewModelBase
         
         if (!double.IsNaN(_lastSeekValue)) //loading from seeking after hitting the end of the video
         {
-            Seek();
+            Dispatcher.UIThread.Post(SetSelectedTracks);
+            Seek(); //TODO fix pause/play button mess up
+        }
+        else if (_endOfFileReached && _oldMediaPath == MediaPath)
+        {
+            _endOfFileReached = false;
+            _oldMediaPath = null;
+            Dispatcher.UIThread.Post(SetSelectedTracks);
         }
         else //loading new file
         {
@@ -191,7 +203,7 @@ public class MpvPlayer : ViewModelBase
                 ResizeAndCenterWindow();
         }
     }
-    
+
     public ReactiveCommand<string, Unit> FrameStepCommand { get; }
     
     public ReactiveCommand<double, Unit> SeekCommand { get; }
@@ -205,6 +217,10 @@ public class MpvPlayer : ViewModelBase
     
     public FrozenSet<Activatable<TimeCodeFormat>> TimeCodeFormats { get; } = Enum.GetValues<TimeCodeFormat>()
         .Select(f => new Activatable<TimeCodeFormat> { Entity = f, Activated = false }).ToFrozenSet();
+
+    private bool _endOfFileReached;
+
+    private string? _oldMediaPath;
 
     private double _lastSeekValue = double.NaN;
     
@@ -297,21 +313,22 @@ public class MpvPlayer : ViewModelBase
             this.RaisePropertyChanged();
             if (IsFileLoaded)
             {
-                switch (value)
+                if (value)
                 {
-                    case true:
-                        _wasPlaying = IsPlaying;
-                        MpvContext.SetPropertyFlag(MpvProperties.Paused, true);
-                        return;
-                    case false when SeekValue - Duration < 0:
-                        if (!double.IsNaN(_lastSeekValue))
-                        {
-                            _lastSeekValue = double.NaN;
-                            return;
-                        }
-                        MpvContext.SetPropertyFlag(MpvProperties.Paused, !_wasPlaying);
-                        return;
+                    _wasPlaying = IsPlaying;
+                    MpvContext.SetPropertyFlag(MpvProperties.Paused, true);
+                    return;
                 }
+
+                if (!(SeekValue - Duration < 0))
+                    return;
+                
+                if (!double.IsNaN(_lastSeekValue))
+                {
+                    _lastSeekValue = double.NaN;
+                    return;
+                }
+                MpvContext.SetPropertyFlag(MpvProperties.Paused, !_wasPlaying);
             }
             else
             {
@@ -585,6 +602,18 @@ public class MpvPlayer : ViewModelBase
         _selectedAudioTrack = AudioTrackInfos.FirstOrDefault(x => x.Selected);
         VideoTrackInfos = trackInfos!.Where(x => x.Type == "video");
         _selectedVideoTrack = VideoTrackInfos.FirstOrDefault(x => x.Selected);
+    }
+    
+    private void SetSelectedTracks()
+    {
+        var selectedAudioTrack = AudioTrackInfos?.FirstOrDefault(x => x.Selected);
+        var selectedSubtitleTrack = SubtitleTrackInfos?.FirstOrDefault(x => x.Selected);
+        
+        if (selectedAudioTrack is not null)
+            MpvContext.SetPropertyString(MpvProperties.AudioTrackId, selectedAudioTrack.Id.ToString());
+        
+        if (selectedSubtitleTrack is not null)
+            MpvContext.SetPropertyString(MpvProperties.SubtitleTrackId, selectedSubtitleTrack.Id.ToString());
     }
     
     public void PlayPause()

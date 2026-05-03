@@ -1,22 +1,22 @@
 ﻿using System;
 using Avalonia.Controls;
 using DynamicData.Binding;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 
 namespace CyberPlayer.Player.ViewModels;
 
-public class MessagePopupViewModel : ViewModelBase, IDialogContent
+public partial class MessagePopupViewModel : ViewModelBase, IDialogContent
 {
     public IObservable<bool> CloseDialog { get; }
     
     [Reactive]
-    public bool Close { get; set; }
+    public partial bool Close { get; set; }
 
     [Reactive]
-    public string? Message { get; set; }
+    public partial string? Message { get; set; }
 
     [Reactive]
-    public string? Title { get; set; }
+    public partial string? Title { get; set; }
 
     public MessagePopupViewModel()
     {

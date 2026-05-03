@@ -20,13 +20,13 @@ using CyberPlayer.Player.Services;
 using CyberPlayer.Player.Views;
 using Cybertron.CUpdater.Github;
 using LibMpv.Client;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Serilog;
 using ILogger = Serilog.ILogger;
 
 namespace CyberPlayer.Player.ViewModels;
 
-public class MainWindowViewModel : ViewModelBase
+public partial class MainWindowViewModel : ViewModelBase
 {
     private readonly ILogger _log;
     private IStorageFolder? _lastFolderLocation;
@@ -52,10 +52,10 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> ResizeCommand { get; }
     
     [Reactive]
-    public object? VideoContent { get; set; }
+    public partial object? VideoContent { get; set; }
 
     [Reactive]
-    public object? SeekContent { get; set; }
+    public partial object? SeekContent { get; set; }
 
 #if DEBUG
     //For previewer

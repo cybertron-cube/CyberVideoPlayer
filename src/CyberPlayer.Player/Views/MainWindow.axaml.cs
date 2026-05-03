@@ -1,5 +1,4 @@
 using Avalonia.Controls;
-using Avalonia.ReactiveUI;
 using Avalonia.Interactivity;
 using CyberPlayer.Player.ViewModels;
 using System.Diagnostics;
@@ -23,6 +22,7 @@ using CyberPlayer.Player.Models;
 using CyberPlayer.Player.RendererVideoViews;
 using Serilog;
 using LibMpv.Context;
+using ReactiveUI.Avalonia;
 using TimeCodeFormat = CyberPlayer.Player.Models.TimeCodeFormat;
 
 namespace CyberPlayer.Player.Views;
@@ -137,18 +137,17 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
     
     private static void DragOver(object sender, DragEventArgs e)
     {
-        e.DragEffects = e.DragEffects & (DragDropEffects.Copy | DragDropEffects.Link);
-        if (!e.Data.Contains(DataFormats.Text) && !e.Data.Contains(DataFormats.Files))
-        {
+        if (e.DataTransfer.Contains(DataFormat.Text) || e.DataTransfer.Contains(DataFormat.File))
+            e.DragEffects = DragDropEffects.Copy | DragDropEffects.Link;
+        else
             e.DragEffects = DragDropEffects.None;
-        }
     }
 
     private void Drop(object sender, DragEventArgs e)
     {
-        if (!e.Data.Contains(DataFormats.Files)) return;
+        if (!e.DataTransfer.Contains(DataFormat.File)) return;
             
-        var files = e.Data.GetFiles();
+        var files = e.DataTransfer.TryGetFiles();
 
         var mediaPath = files?.FirstOrDefault()?.Path.LocalPath;
         if (mediaPath == null) return;
@@ -280,12 +279,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
                 return;
             case Renderer.Software:
                 var softwareVideoView = new SoftwareVideoView { DataContext = ViewModel!.MpvPlayer };
-                _mpvContextBinding = softwareVideoView.Bind(SoftwareVideoView.MpvContextProperty, new Binding(nameof(MpvPlayer.MpvContext)));
+                _mpvContextBinding = softwareVideoView.Bind(SoftwareVideoView.MpvContextProperty, new ReflectionBinding(nameof(MpvPlayer.MpvContext)));
                 ViewModel!.VideoContent = softwareVideoView;
                 return;
             case Renderer.Hardware:
                 var hardwareVideoView = new OpenGlVideoView { DataContext = ViewModel!.MpvPlayer };
-                _mpvContextBinding = hardwareVideoView.Bind(OpenGlVideoView.MpvContextProperty, new Binding(nameof(MpvPlayer.MpvContext)));
+                _mpvContextBinding = hardwareVideoView.Bind(OpenGlVideoView.MpvContextProperty, new ReflectionBinding(nameof(MpvPlayer.MpvContext)));
                 ViewModel!.VideoContent = hardwareVideoView;
                 return;
             default:
@@ -301,20 +300,21 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         Trim
     }
 
+    [RequiresDynamicCode("Calls Avalonia.Data.ReflectionBinding.ReflectionBinding()")]
     [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "<Pending>")]
     private NativeMenuItem CreateNativeMenuItem(Activatable<TimeCodeFormat> format)
     {
-        var checkedBinding = new Binding
+        var checkedBinding = new ReflectionBinding
         {
             Source = format,
             Path = nameof(Activatable<TimeCodeFormat>.Activated)
         };
-        var commandParamBinding = new Binding
+        var commandParamBinding = new ReflectionBinding
         {
             Source = format,
             Path = nameof(format.Entity)
         };
-        var commandBinding = new Binding
+        var commandBinding = new ReflectionBinding
         {
             Source = ViewModel!.MpvPlayer,
             Path = nameof(ViewModel.MpvPlayer.TimeCodeFormatCommand)
@@ -322,7 +322,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         var item = new NativeMenuItem
         {
             Header = format.Entity.ToString(),
-            ToggleType = NativeMenuItemToggleType.Radio,
+            ToggleType = MenuItemToggleType.Radio,
             IsChecked = format.Activated
         };
         item.Bind(NativeMenuItem.IsCheckedProperty, checkedBinding);
@@ -332,6 +332,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         return item;
     }
 
+    [RequiresDynamicCode("Calls Avalonia.Data.ReflectionBinding.ReflectionBinding(String)")]
     [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "<Pending>")]
     private void SetSeekControlType(SeekControlTypes type)
     {
@@ -341,17 +342,17 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         {
             case SeekControlTypes.Normal:
                 newSlider = new CustomSlider { Margin = new Thickness(10, 0), DataContext = ViewModel!.MpvPlayer };
-                _currentSeekControlBindings.Add(newSlider.Bind(CustomSlider.ValueProperty, new Binding(nameof(MpvPlayer.SeekValue))));
-                _currentSeekControlBindings.Add(newSlider.Bind(CustomSlider.MaximumProperty, new Binding(nameof(MpvPlayer.Duration))));
-                _currentSeekControlBindings.Add(newSlider.Bind(CustomSlider.IsDraggingProperty, new Binding(nameof(MpvPlayer.IsSeeking))));
+                _currentSeekControlBindings.Add(newSlider.Bind(CustomSlider.ValueProperty, new ReflectionBinding(nameof(MpvPlayer.SeekValue))));
+                _currentSeekControlBindings.Add(newSlider.Bind(CustomSlider.MaximumProperty, new ReflectionBinding(nameof(MpvPlayer.Duration))));
+                _currentSeekControlBindings.Add(newSlider.Bind(CustomSlider.IsDraggingProperty, new ReflectionBinding(nameof(MpvPlayer.IsSeeking))));
                 break;
             case SeekControlTypes.Trim:
                 newSlider = new TimelineControl { DataContext = ViewModel!.MpvPlayer };
-                _currentSeekControlBindings.Add(newSlider.Bind(TimelineControl.SeekValueProperty, new Binding(nameof(MpvPlayer.SeekValue))));
-                _currentSeekControlBindings.Add(newSlider.Bind(TimelineControl.MaximumProperty, new Binding(nameof(MpvPlayer.Duration))));
-                _currentSeekControlBindings.Add(newSlider.Bind(TimelineControl.IsSeekDraggingProperty, new Binding(nameof(MpvPlayer.IsSeeking))));
-                _currentSeekControlBindings.Add(newSlider.Bind(TimelineControl.LowerValueProperty, new Binding(nameof(MpvPlayer.TrimStartTime))));
-                _currentSeekControlBindings.Add(newSlider.Bind(TimelineControl.UpperValueProperty, new Binding(nameof(MpvPlayer.TrimEndTime))));
+                _currentSeekControlBindings.Add(newSlider.Bind(TimelineControl.SeekValueProperty, new ReflectionBinding(nameof(MpvPlayer.SeekValue))));
+                _currentSeekControlBindings.Add(newSlider.Bind(TimelineControl.MaximumProperty, new ReflectionBinding(nameof(MpvPlayer.Duration))));
+                _currentSeekControlBindings.Add(newSlider.Bind(TimelineControl.IsSeekDraggingProperty, new ReflectionBinding(nameof(MpvPlayer.IsSeeking))));
+                _currentSeekControlBindings.Add(newSlider.Bind(TimelineControl.LowerValueProperty, new ReflectionBinding(nameof(MpvPlayer.TrimStartTime))));
+                _currentSeekControlBindings.Add(newSlider.Bind(TimelineControl.UpperValueProperty, new ReflectionBinding(nameof(MpvPlayer.TrimEndTime))));
                 ((TimelineControl)newSlider).SnapThreshold = 5; //TODO Probably bind this and change depending on duration (or make setting)
                 break;
             default:

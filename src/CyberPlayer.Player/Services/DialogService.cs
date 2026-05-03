@@ -10,7 +10,6 @@ using Avalonia.Platform.Storage;
 using CyberPlayer.Player.Controls;
 using CyberPlayer.Player.ViewModels;
 using CyberPlayer.Player.Views;
-using HanumanInstitute.MvvmDialogs.Avalonia;
 using ReactiveUI;
 using Serilog;
 using Serilog.Core;
@@ -272,10 +271,9 @@ public static class DialogService
     {
         if (viewModel is VideoInfoViewModel videoInfoViewModel)
             return VideoInfoActive[videoInfoViewModel.VideoInfoType]!;
-        
-        var viewLocator = Locator.Current.GetService<StrongViewLocator>()!;
-        var viewType = viewLocator.Locate(viewModel).ViewType;
-        return Locator.Current.GetService(viewType)!;
+
+        var viewLocator = Locator.Current.GetService<IViewLocator>()!;
+        return viewLocator.ResolveView(viewModel);
     }
     
     private static ContentPopup MakePopup(object content, PopupParams popupParams)

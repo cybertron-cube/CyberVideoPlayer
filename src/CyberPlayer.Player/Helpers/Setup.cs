@@ -10,6 +10,7 @@ using CyberPlayer.Player.Business;
 using CyberPlayer.Player.ViewModels;
 using CyberPlayer.Player.Views;
 using LibMpv.Client;
+using ReactiveUI;
 using Splat;
 using ILogger = Serilog.ILogger;
 
@@ -100,7 +101,7 @@ public static class Setup
         container.RegisterConstant(settings);
         container.RegisterLazySingleton(() => new HttpClient());
         
-        container.RegisterLazySingleton(() => new MainWindow());
+        container.RegisterLazySingleton(() => new MainWindow(), typeof(IViewFor<MainWindowViewModel>));
         container.Register(() => new ProgressView());
         container.Register(() => new MessagePopupView());
         container.Register(() => new VideoInfoWindow());

@@ -1,12 +1,12 @@
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 
 namespace CyberPlayer.Player.Models;
 
-public class Activatable<T> : ReactiveObject
+public partial class Activatable<T> : ReactiveObject
 {
     public required T Entity { get; init; }
     
     [Reactive]
-    public bool Activated { get; set; }
+    public partial bool Activated { get; set; }
 }

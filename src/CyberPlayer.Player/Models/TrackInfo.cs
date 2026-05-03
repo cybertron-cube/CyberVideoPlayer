@@ -1,10 +1,10 @@
 ﻿using System.Text.Json.Serialization;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 
 namespace CyberPlayer.Player.Models;
 
-public class TrackInfo : ReactiveObject
+public partial class TrackInfo : ReactiveObject
 {
     [JsonPropertyName("id")]
     public int Id { get; set; }
@@ -41,7 +41,7 @@ public class TrackInfo : ReactiveObject
     
     [JsonPropertyName("selected")]
     [Reactive]
-    public bool Selected { get; set; }
+    public partial bool Selected { get; set; }
     
     [JsonPropertyName("ff-index")]
     public int FFIndex { get; set; }
@@ -84,7 +84,7 @@ public class TrackInfo : ReactiveObject
 
     [Reactive]
     [JsonIgnore]
-    public bool IncludeInExport { get; set; } = true;
+    public partial bool IncludeInExport { get; set; } = true;
 
     [JsonIgnore]
     public string Description => ToString();

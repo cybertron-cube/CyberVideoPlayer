@@ -1,3 +1,4 @@
+using System;
 using Avalonia;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
@@ -41,11 +42,11 @@ public abstract class CustomRangeBase : RangeBase
             {
                 if (sender.GetValue(ToCoerceValueIsMaxProperty) && value < sender.GetValue(ToCoerceValueProperty))
                 {
-                    return MathUtilities.Clamp(value, sender.GetValue(MinimumProperty), sender.GetValue(MaximumProperty));
+                    return Math.Clamp(value, sender.GetValue(MinimumProperty), sender.GetValue(MaximumProperty));
                 }
                 else if (!sender.GetValue(ToCoerceValueIsMaxProperty) && value > sender.GetValue(ToCoerceValueProperty))
                 {
-                    return MathUtilities.Clamp(value, sender.GetValue(MinimumProperty), sender.GetValue(MaximumProperty));
+                    return Math.Clamp(value, sender.GetValue(MinimumProperty), sender.GetValue(MaximumProperty));
                 }
                 else
                 {
@@ -54,7 +55,7 @@ public abstract class CustomRangeBase : RangeBase
             }
             else
             {
-                return MathUtilities.Clamp(value, sender.GetValue(MinimumProperty), sender.GetValue(MaximumProperty));
+                return Math.Clamp(value, sender.GetValue(MinimumProperty), sender.GetValue(MaximumProperty));
             }
         }
         else

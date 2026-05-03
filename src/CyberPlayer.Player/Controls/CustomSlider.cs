@@ -11,7 +11,6 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
-using Avalonia.Utilities;
 
 namespace CyberPlayer.Player.Controls;
 
@@ -278,16 +277,16 @@ public class CustomSlider : CustomRangeBase
                 foreach (var tick in ticks)
                 {
                     // Find the smallest tick greater than value or the largest tick less than value
-                    if (greaterThan && MathUtilities.GreaterThan(tick, value) &&
-                        (MathUtilities.LessThan(tick, next) || Math.Abs(next - value) < Tolerance)
-                        || !greaterThan && MathUtilities.LessThan(tick, value) &&
-                        (MathUtilities.GreaterThan(tick, next) || Math.Abs(next - value) < Tolerance))
+                    if (greaterThan && (tick > value) &&
+                        ((tick < next) || Math.Abs(next - value) < Tolerance)
+                        || !greaterThan && (tick < value) &&
+                        ((tick > next) || Math.Abs(next - value) < Tolerance))
                     {
                         next = tick;
                     }
                 }
             }
-            else if (MathUtilities.GreaterThan(TickFrequency, 0.0))
+            else if ((TickFrequency > 0.0))
             {
                 // Find the current tick we are at
                 var tickNumber = Math.Round((value - Minimum) / TickFrequency);
@@ -350,7 +349,7 @@ public class CustomSlider : CustomRangeBase
             ? _track.Bounds.Width
             : _track.Bounds.Height) - thumbLength;
         var trackPos = orient ? posOnTrack.Position.X : posOnTrack.Position.Y;
-        var logicalPos = MathUtilities.Clamp((trackPos - thumbLength * 0.5) / trackLength, 0.0d, 1.0d);
+        var logicalPos = Math.Clamp((trackPos - thumbLength * 0.5) / trackLength, 0.0d, 1.0d);
         var invert = orient ?
             IsDirectionReversed ? 1 : 0 :
             IsDirectionReversed ? 0 : 1;
@@ -374,7 +373,7 @@ public class CustomSlider : CustomRangeBase
             ? _track.Bounds.Width
             : _track.Bounds.Height) - thumbLength;
         var trackPos = orient ? position.X : position.Y;
-        var logicalPos = MathUtilities.Clamp((trackPos - thumbLength * 0.5) / trackLength, 0.0d, 1.0d);
+        var logicalPos = Math.Clamp((trackPos - thumbLength * 0.5) / trackLength, 0.0d, 1.0d);
         var invert = orient ?
             IsDirectionReversed ? 1 : 0 :
             IsDirectionReversed ? 0 : 1;
@@ -451,29 +450,24 @@ public class CustomSlider : CustomRangeBase
             {
                 foreach (var tick in ticks)
                 {
-                    if (MathUtilities.AreClose(tick, value))
-                    {
-                        return value;
-                    }
-
-                    if (MathUtilities.LessThan(tick, value) && MathUtilities.GreaterThan(tick, previous))
+                    if ((tick < value) && (tick > previous))
                     {
                         previous = tick;
                     }
-                    else if (MathUtilities.GreaterThan(tick, value) && MathUtilities.LessThan(tick, next))
+                    else if ((tick > value) && (tick < next))
                     {
                         next = tick;
                     }
                 }
             }
-            else if (MathUtilities.GreaterThan(TickFrequency, 0.0))
+            else if ((TickFrequency > 0.0))
             {
                 previous = Minimum + Math.Round((value - Minimum) / TickFrequency) * TickFrequency;
                 next = Math.Min(Maximum, previous + TickFrequency);
             }
 
             // Choose the closest value between previous and next. If tie, snap to 'next'.
-            value = MathUtilities.GreaterThanOrClose(value, (previous + next) * 0.5) ? next : previous;
+            value = (value > (previous + next) * 0.5) ? next : previous;
         }
 
         return value;

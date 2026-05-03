@@ -1,5 +1,6 @@
 ﻿using System;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.OpenGL;
 using Avalonia.OpenGL.Controls;
@@ -60,7 +61,9 @@ public class OpenGlVideoView : OpenGlControlBase
 
     private PixelSize GetPixelSize()
     {
-        var scaling = VisualRoot!.RenderScaling;
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel is null) throw new NullReferenceException(nameof(topLevel));
+        var scaling = topLevel.RenderScaling;
         return new PixelSize(Math.Max(1, (int)(Bounds.Width * scaling)), Math.Max(1, (int)(Bounds.Height * scaling)));
     }
 

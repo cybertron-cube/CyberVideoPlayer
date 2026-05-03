@@ -1,21 +1,21 @@
 ﻿using System;
 using DynamicData.Binding;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 
 namespace CyberPlayer.Player.ViewModels;
 
-public class ProgressViewModel : ViewModelBase, IDialogContent
+public partial class ProgressViewModel : ViewModelBase, IDialogContent
 {
     public IObservable<bool> CloseDialog { get; }
 
     [Reactive]
-    public bool Close { get; set; }
+    public partial bool Close { get; set; }
 
     [Reactive]
-    public string? LabelText { get; set; }
+    public partial string? LabelText { get; set; }
 
     [Reactive]
-    public double ProgressValue { get; set; }
+    public partial double ProgressValue { get; set; }
 
     public ProgressViewModel()
     {

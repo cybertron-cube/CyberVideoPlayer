@@ -1,13 +1,12 @@
-﻿using CyberPlayer.Player.Views;
-using HanumanInstitute.MvvmDialogs.Avalonia;
+﻿using CyberPlayer.Player.ViewModels;
+using CyberPlayer.Player.Views;
+using ReactiveUI;
 using Splat;
 
 namespace CyberPlayer.Player;
 
-public class ViewLocator : ViewLocatorBase
+public static class ViewLocator
 {
-    protected override string GetViewName(object viewModel) =>
-        viewModel.GetType().FullName!.Replace("ViewModel", "View");
-
-    public static MainWindow Main => Locator.Current.GetService<MainWindow>()!;
+    public static MainWindow Main =>
+        (MainWindow)Locator.Current.GetService<IViewLocator>()!.ResolveView<MainWindowViewModel>()!;
 }

@@ -9,17 +9,17 @@ using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Models;
 using Cybertron;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 
 namespace CyberPlayer.Player.ViewModels;
 
-public class ExportWindowViewModel : ViewModelBase
+public partial class ExportWindowViewModel : ViewModelBase
 {
     [Reactive]
-    public IEnumerable<TrackInfo>? AudioTrackInfos { get; set; }
+    public partial IEnumerable<TrackInfo>? AudioTrackInfos { get; set; }
     
     [Reactive]
-    public string? Extension { get; set; }
+    public partial string? Extension { get; set; }
     
     public IList<TrackInfo> AudioTrackSelection { get; } = new List<TrackInfo>();
 

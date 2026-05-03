@@ -18,13 +18,13 @@ using DynamicData.Binding;
 using LibMpv.Client;
 using LibMpv.Context;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Serilog;
 using TimeCodeFormat = CyberPlayer.Player.Models.TimeCodeFormat;
 
 namespace CyberPlayer.Player.ViewModels;
 
-public class MpvPlayer : ViewModelBase
+public partial class MpvPlayer : ViewModelBase
 {
     private readonly Settings _settings;
 
@@ -211,7 +211,7 @@ public class MpvPlayer : ViewModelBase
     public ReactiveCommand<int, Unit> VolumeCommand { get; }
 
     [Reactive]
-    public Dictionary<string, object?>? VideoFrameInfo { get; set; }
+    public partial Dictionary<string, object?>? VideoFrameInfo { get; set; }
     
     public ReactiveCommand<TimeCodeFormat, Unit> TimeCodeFormatCommand { get; }
     
@@ -271,7 +271,7 @@ public class MpvPlayer : ViewModelBase
     public string TrimEndTimeCodeString => _trimEndTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength);
 
     [Reactive]
-    public bool IsFileLoaded { get; set; }
+    public partial bool IsFileLoaded { get; set; }
 
     private double _duration = 1;
     
@@ -382,10 +382,10 @@ public class MpvPlayer : ViewModelBase
     private readonly TimeCode _seekTimeCode;
 
     [Reactive]
-    public string SeekTimeCodeString { get; set; }
+    public partial string SeekTimeCodeString { get; set; }
 
     [Reactive]
-    public TimeCodeFormat TimeCodeFormat { get; set; } = TimeCodeFormat.Basic;
+    public partial TimeCodeFormat TimeCodeFormat { get; set; } = TimeCodeFormat.Basic;
 
     private int _volumeValue;
 
@@ -418,7 +418,7 @@ public class MpvPlayer : ViewModelBase
     }
     
     [Reactive]
-    public IEnumerable<TrackInfo>? SubtitleTrackInfos { get; set; }
+    public partial IEnumerable<TrackInfo>? SubtitleTrackInfos { get; set; }
 
     private TrackInfo? _selectedSubtitleTrack;
 
@@ -446,7 +446,7 @@ public class MpvPlayer : ViewModelBase
     }
 
     [Reactive]
-    public IEnumerable<TrackInfo>? AudioTrackInfos { get; set; }
+    public partial IEnumerable<TrackInfo>? AudioTrackInfos { get; set; }
 
     private TrackInfo? _selectedAudioTrack;
 
@@ -468,7 +468,7 @@ public class MpvPlayer : ViewModelBase
     }
     
     [Reactive]
-    public IEnumerable<TrackInfo>? VideoTrackInfos { get; set; }
+    public partial IEnumerable<TrackInfo>? VideoTrackInfos { get; set; }
 
     private TrackInfo? _selectedVideoTrack;
 
@@ -490,7 +490,7 @@ public class MpvPlayer : ViewModelBase
     }
     
     [Reactive]
-    public string TrackListJson { get; set; }
+    public partial string TrackListJson { get; set; }
 
     public double VideoHeight { get; private set; }
 

@@ -13,27 +13,27 @@ using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Services;
 using DynamicData.Binding;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Serilog;
 
 namespace CyberPlayer.Player.ViewModels;
 
-public abstract class VideoInfoViewModel : ViewModelBase
+public abstract partial class VideoInfoViewModel : ViewModelBase
 {
     protected abstract FrozenDictionary<string, string> FileExtensions { get; }
     
     public VideoInfoType VideoInfoType { get; init; }
     
     [Reactive]
-    public string? RawText { get; set; }
+    public partial string? RawText { get; set; }
     
     [Reactive]
-    public bool JsonTreeView { get; set; }
+    public partial bool JsonTreeView { get; set; }
     
     public abstract IEnumerable<string> FormatOptions { get; }
     
     [Reactive]
-    public bool Sidecar { get; set; }
+    public partial bool Sidecar { get; set; }
 
     private string _currentFormat;
 

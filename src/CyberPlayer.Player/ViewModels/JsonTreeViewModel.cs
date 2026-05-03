@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using Avalonia.Controls;
 using CyberPlayer.Player.Models;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 
 namespace CyberPlayer.Player.ViewModels;
 
-public class JsonTreeViewModel : ViewModelBase
+public partial class JsonTreeViewModel : ViewModelBase
 {
     private static readonly char[] ValueStartFlags =
     [
@@ -18,7 +18,7 @@ public class JsonTreeViewModel : ViewModelBase
     private record ParentHeader(string Header, int NodeCount) { public int NodeCount { get; set; } = NodeCount; }
     
     [Reactive]
-    public string? Title { get; set; }
+    public partial string? Title { get; set; }
 
     private string? _rawText = string.Empty;
 
@@ -38,7 +38,7 @@ public class JsonTreeViewModel : ViewModelBase
     }
     
     [Reactive]
-    public IEnumerable<Node>? Items { get; set; }
+    public partial IEnumerable<Node>? Items { get; set; }
     
     public JsonTreeViewModel()
     {

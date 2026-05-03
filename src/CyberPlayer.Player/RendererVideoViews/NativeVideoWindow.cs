@@ -26,7 +26,7 @@ public class NativeVideoWindow : Window
         {
             MpvContext = mpvContext
         };
-        SystemDecorations = SystemDecorations.None;
+        WindowDecorations = WindowDecorations.None;
         ShowInTaskbar = false;
         
         Loaded += (_, _) =>

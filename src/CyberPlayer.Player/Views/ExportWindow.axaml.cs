@@ -1,5 +1,5 @@
 using System;
-using Avalonia.ReactiveUI;
+using ReactiveUI.Avalonia;
 using CyberPlayer.Player.Models;
 using CyberPlayer.Player.ViewModels;
 using DynamicData.Binding;

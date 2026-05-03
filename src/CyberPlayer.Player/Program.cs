@@ -1,8 +1,9 @@
 ﻿using Avalonia;
-using Avalonia.ReactiveUI;
+using ReactiveUI.Avalonia;
 using System;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Helpers;
+using CyberPlayer.Player.RendererVideoViews;
 
 namespace CyberPlayer.Player;
 
@@ -22,8 +23,17 @@ internal class Program
             
         Setup.Register(settings);
             
-        BuildAvaloniaApp()
-            .StartWithClassicDesktopLifetime(args);
+        var builder = BuildAvaloniaApp();
+        // Avalonia MacOS rendering uses Metal by default.
+        // LibMpv only supports software/opengl/window embedding.
+        if (OperatingSystem.IsMacOS() && settings.Renderer == Renderer.Hardware)
+        {
+            builder.With(new AvaloniaNativePlatformOptions
+            {
+                RenderingMode = [AvaloniaNativeRenderingMode.OpenGl]
+            });
+        }
+        builder.StartWithClassicDesktopLifetime(args);
 
         if (settings.MultipleAppInstances)
             return;
@@ -37,5 +47,5 @@ internal class Program
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .LogToTrace()
-            .UseReactiveUI();
+            .UseReactiveUI(_ => { });
 }

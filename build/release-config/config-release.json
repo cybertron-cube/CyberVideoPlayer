@@ -8,24 +8,30 @@
         [
             "@semantic-release/commit-analyzer",
             {
-                "preset": "angular",
-                "releaseRules": [
-                    { "type": "deps", "release": "patch" }
-                ]
+              "preset": "conventionalcommits",
+              "releaseRules": [
+                { "type": "deps", "release": "patch" }
+              ]
             }
         ],
         [
             "@semantic-release/release-notes-generator",
             {
-                "preset": "angular",
-                "presetConfig": {
-                    "types": [
-                        { "type": "feat", "section": "Features" },
-                        { "type": "fix", "section": "Bug Fixes" },
-                        { "type": "perf", "section": "Performance Improvements" },
-                        { "type": "deps", "section": "Dependencies" }
-                    ]
-                }
+              "preset": "conventionalcommits",
+              "presetConfig": {
+                "types": [
+                    { "type": "feat", "section": "Features" },
+                    { "type": "fix", "section": "Bug Fixes" },
+                    { "type": "perf", "section": "Performance Improvements" },
+                    { "type": "deps", "section": "Dependencies" },
+                    { "type": "refactor", "section": "Refactoring" },
+                    
+                    { "type": "chore", "hidden": true },
+                    { "type": "docs", "hidden": true },
+                    { "type": "ci", "hidden": true },
+                    { "type": "test", "hidden": true }
+                ]
+              }
             }
         ],
         [

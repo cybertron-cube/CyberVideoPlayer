@@ -34,12 +34,14 @@ jobs:
           node-version: "lts/*"
           cache: 'npm'
           cache-dependency-path: build/release-config/package-lock.json
-      - name: Install semantic-release/exec
-        run: npm install @semantic-release/exec -D
+      - name: Install dependencies
+        working-directory: build/release-config
+        run: npm ci
       - name: Apply semantic release config
         run: sh build/release-config/config-apply.sh release
       - name: Create release
         id: create-release
+        working-directory: build/release-config
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release

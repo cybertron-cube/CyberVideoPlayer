@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/App/">
+    <Project Path="src/CyberPlayer.Player/CyberPlayer.Player.csproj" />
+  </Folder>
+  <Folder Name="/Generator/">
+    <Project Path="src/LibMpv.AutoGen.ClangMacroParser/LibMpv.AutoGen.ClangMacroParser.csproj" />
+    <Project Path="src/LibMpv.AutoGen.CppSharpUnsafeGenerator/LibMpv.AutoGen.CppSharpUnsafeGenerator.csproj" />
+  </Folder>
+  <Folder Name="/Wrapper/">
+    <Project Path="src/LibMpv.Client/LibMpv.Client.csproj" />
+    <Project Path="src/LibMpv.Context/LibMpv.Context.csproj" />
+  </Folder>
+  <Project Path="deps/cyber-lib/Common Libraries/Cybertron.csproj" />
+  <Project Path="deps/cyber-lib/UpdaterAvalonia/UpdaterAvalonia.csproj" />
+</Solution>

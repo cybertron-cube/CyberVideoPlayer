@@ -4,9 +4,6 @@
   "devDependencies": {
     "semantic-release": "*",
     "@semantic-release/exec": "*",
-    "@semantic-release/github": "*",
-    "@semantic-release/commit-analyzer": "*",
-    "@semantic-release/release-notes-generator": "*",
     "conventional-changelog-conventionalcommits": "*"
   }
 }

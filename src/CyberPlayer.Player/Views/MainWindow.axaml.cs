@@ -307,17 +307,17 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         var checkedBinding = new ReflectionBinding
         {
             Source = format,
-            Path = nameof(Activatable<TimeCodeFormat>.Activated)
+            Path = nameof(Activatable<>.Activated)
         };
         var commandParamBinding = new ReflectionBinding
         {
             Source = format,
-            Path = nameof(format.Entity)
+            Path = nameof(Activatable<>.Entity)
         };
         var commandBinding = new ReflectionBinding
         {
             Source = ViewModel!.MpvPlayer,
-            Path = nameof(ViewModel.MpvPlayer.TimeCodeFormatCommand)
+            Path = nameof(MainWindowViewModel.MpvPlayer.TimeCodeFormatCommand)
         };
         var item = new NativeMenuItem
         {
@@ -342,8 +342,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         {
             case SeekControlTypes.Normal:
                 newSlider = new CustomSlider { Margin = new Thickness(10, 0), DataContext = ViewModel!.MpvPlayer };
-                _currentSeekControlBindings.Add(newSlider.Bind(CustomSlider.ValueProperty, new ReflectionBinding(nameof(MpvPlayer.SeekValue))));
-                _currentSeekControlBindings.Add(newSlider.Bind(CustomSlider.MaximumProperty, new ReflectionBinding(nameof(MpvPlayer.Duration))));
+                _currentSeekControlBindings.Add(newSlider.Bind(CustomRangeBase.ValueProperty, new ReflectionBinding(nameof(MpvPlayer.SeekValue))));
+                _currentSeekControlBindings.Add(newSlider.Bind(RangeBase.MaximumProperty, new ReflectionBinding(nameof(MpvPlayer.Duration))));
                 _currentSeekControlBindings.Add(newSlider.Bind(CustomSlider.IsDraggingProperty, new ReflectionBinding(nameof(MpvPlayer.IsSeeking))));
                 break;
             case SeekControlTypes.Trim:

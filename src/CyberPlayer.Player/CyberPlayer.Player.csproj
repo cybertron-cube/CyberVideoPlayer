@@ -12,7 +12,7 @@
     <Configurations>Debug;Release;Release-portable</Configurations>
     <Platforms>AnyCPU</Platforms>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-    <RuntimeIdentifiers>win-x64;linux-x64;osx-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win-x64;linux-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
   </PropertyGroup>
   
   <PropertyGroup Condition=" '$(Configuration)' != 'Release-portable' ">

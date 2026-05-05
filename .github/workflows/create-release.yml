@@ -37,8 +37,6 @@ jobs:
       - name: Install dependencies
         working-directory: build/release-config
         run: npm ci
-      - name: Apply semantic release config
-        run: sh build/release-config/config-apply.sh release
       - name: Create release
         id: create-release
         working-directory: build/release-config

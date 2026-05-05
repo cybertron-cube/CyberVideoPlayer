@@ -160,10 +160,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         SetSeekControlType(SeekControlTypes.Normal);
         SetVideoRenderer(ViewModel!.Settings.Renderer);
         
-        // This is needed in order to dynamically create NativeMenuItems. The way timecode format menu items are
-        // handled in the normal MenuItem cannot be replicated for the NativeMenu
-        CreateTimeCodeFormatNativeMenuItems();
-        
         //This var isn't necessary, just makes it so that if you change the value in xaml you don't have to change here
         var foregroundBrush = VolumeSlider.Foreground;
         ViewModel!.WhenPropertyChanged(x => x.MpvPlayer.IsMuted).Subscribe(x =>
@@ -171,10 +167,13 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
             VolumeSlider.Foreground = x.Value ? Brushes.DarkSlateGray : foregroundBrush;
         });
         
-        if (OperatingSystem.IsMacOS())
-        {
-            ToggleMenuBar(false, false);
-        }
+        if (!OperatingSystem.IsMacOS()) return;
+        
+        // This is needed in order to dynamically create NativeMenuItems. The way timecode format menu items are
+        // handled in the normal MenuItem cannot be replicated for the NativeMenu
+        CreateTimeCodeFormatNativeMenuItems();
+        
+        ToggleMenuBar(false, false);
     }
 
     private void CreateTimeCodeFormatNativeMenuItems()

@@ -25,7 +25,7 @@
                 </ListBox>
             </TabItem>
             <TabItem Header="Transcode/Remux">
-                <TextBox Watermark="Extension" MaxLines="1" AcceptsReturn="False" Height="10" Text="{Binding Extension}" />
+                <TextBox PlaceholderText="Extension" MaxLines="1" AcceptsReturn="False" Height="10" Text="{Binding Extension}" />
             </TabItem>
         </TabControl>
         <DockPanel Grid.Row="1" LastChildFill="False" Margin="11, 10">

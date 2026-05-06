@@ -115,6 +115,8 @@ public static class Setup
         SplatRegistrations.RegisterLazySingleton<MediaInfoViewModel>();
         SplatRegistrations.RegisterLazySingleton<FFprobeInfoViewModel>();
         SplatRegistrations.RegisterLazySingleton<MpvInfoViewModel>();
+        SplatRegistrations.RegisterLazySingleton<SeekViewModel>();
+        SplatRegistrations.RegisterLazySingleton<TimelineViewModel>();
         
         SplatRegistrations.SetupIOC();
     }

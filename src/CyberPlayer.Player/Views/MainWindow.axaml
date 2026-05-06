@@ -5,6 +5,7 @@
         xmlns:services="clr-namespace:CyberPlayer.Player.Services"
 		xmlns:local="clr-namespace:CyberPlayer.Player"
         xmlns:converters="clr-namespace:CyberPlayer.Player.ValueConverters"
+        xmlns:controls="clr-namespace:CyberPlayer.Player.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:mpv="clr-namespace:LibMpv.Context;assembly=LibMpv.Context"
@@ -219,7 +220,31 @@
 		</Panel>
 		
 		<Grid Name="LowerGrid" Grid.Row="2" RowDefinitions="50, 40, 20" Background="DimGray">
-			<ContentControl Name="SeekContentControl" Grid.Row="0" Content="{Binding SeekContent}" />
+			<ContentControl 
+				Name="SeekContentControl"
+				Grid.Row="0"
+				Content="{Binding SeekContent}">
+				<ContentControl.DataTemplates>
+					<DataTemplate DataType="{x:Type vm:SeekViewModel}">
+						<controls:CustomSlider
+							Value="{Binding MpvPlayer.SeekValue}"
+							Maximum="{Binding MpvPlayer.Duration}"
+							IsDragging="{Binding MpvPlayer.IsSeeking}"
+							Focusable="False"
+							Margin="10,0" />
+					</DataTemplate>
+					<DataTemplate DataType="{x:Type vm:TimelineViewModel}">
+						<controls:TimelineControl
+							SeekValue="{Binding MpvPlayer.SeekValue}"
+							Maximum="{Binding MpvPlayer.Duration}"
+							IsSeekDragging="{Binding MpvPlayer.IsSeeking}"
+							LowerValue="{Binding MpvPlayer.TrimStartTime}"
+							UpperValue="{Binding MpvPlayer.TrimEndTime}" 
+							Focusable="False"
+							SnapThreshold="5" />
+					</DataTemplate>
+				</ContentControl.DataTemplates>
+			</ContentControl>
 			
 			<DockPanel Name="ControlsPanel" Grid.Row="1" LastChildFill="False" Margin="5, 0">
 				<Button

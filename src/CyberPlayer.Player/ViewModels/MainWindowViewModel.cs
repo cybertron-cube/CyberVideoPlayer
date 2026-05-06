@@ -55,7 +55,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public partial object? VideoContent { get; set; }
 
     [Reactive]
-    public partial object? SeekContent { get; set; }
+    private ViewModelBase _seekContent;
 
 #if DEBUG
     //For previewer

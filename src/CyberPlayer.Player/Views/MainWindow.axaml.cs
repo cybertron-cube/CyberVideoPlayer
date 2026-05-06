@@ -23,6 +23,8 @@ using CyberPlayer.Player.RendererVideoViews;
 using Serilog;
 using LibMpv.Context;
 using ReactiveUI.Avalonia;
+using Splat;
+using ILogger = Serilog.ILogger;
 using TimeCodeFormat = CyberPlayer.Player.Models.TimeCodeFormat;
 
 namespace CyberPlayer.Player.Views;
@@ -291,8 +293,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         }
     }
 
-    private readonly List<IDisposable> _currentSeekControlBindings = new(5);
-
     private enum SeekControlTypes
     {
         Normal,
@@ -331,41 +331,19 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         return item;
     }
 
-    [RequiresDynamicCode("Calls Avalonia.Data.ReflectionBinding.ReflectionBinding(String)")]
-    [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "<Pending>")]
     private void SetSeekControlType(SeekControlTypes type)
     {
-        _currentSeekControlBindings.DisposeAndClear();
-        TemplatedControl newSlider;
-        switch (type)
+        ViewModel!.SeekContent = type switch
         {
-            case SeekControlTypes.Normal:
-                newSlider = new CustomSlider { Margin = new Thickness(10, 0), DataContext = ViewModel!.MpvPlayer };
-                _currentSeekControlBindings.Add(newSlider.Bind(CustomRangeBase.ValueProperty, new ReflectionBinding(nameof(MpvPlayer.SeekValue))));
-                _currentSeekControlBindings.Add(newSlider.Bind(RangeBase.MaximumProperty, new ReflectionBinding(nameof(MpvPlayer.Duration))));
-                _currentSeekControlBindings.Add(newSlider.Bind(CustomSlider.IsDraggingProperty, new ReflectionBinding(nameof(MpvPlayer.IsSeeking))));
-                break;
-            case SeekControlTypes.Trim:
-                newSlider = new TimelineControl { DataContext = ViewModel!.MpvPlayer };
-                _currentSeekControlBindings.Add(newSlider.Bind(TimelineControl.SeekValueProperty, new ReflectionBinding(nameof(MpvPlayer.SeekValue))));
-                _currentSeekControlBindings.Add(newSlider.Bind(TimelineControl.MaximumProperty, new ReflectionBinding(nameof(MpvPlayer.Duration))));
-                _currentSeekControlBindings.Add(newSlider.Bind(TimelineControl.IsSeekDraggingProperty, new ReflectionBinding(nameof(MpvPlayer.IsSeeking))));
-                _currentSeekControlBindings.Add(newSlider.Bind(TimelineControl.LowerValueProperty, new ReflectionBinding(nameof(MpvPlayer.TrimStartTime))));
-                _currentSeekControlBindings.Add(newSlider.Bind(TimelineControl.UpperValueProperty, new ReflectionBinding(nameof(MpvPlayer.TrimEndTime))));
-                ((TimelineControl)newSlider).SnapThreshold = 5; //TODO Probably bind this and change depending on duration (or make setting)
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(type), type, null);
-        }
-
-        newSlider.Focusable = false;
-            
-        ViewModel!.SeekContent = newSlider;
+            SeekControlTypes.Normal => Locator.Current.GetService<SeekViewModel>()!,
+            SeekControlTypes.Trim => Locator.Current.GetService<TimelineViewModel>()!,
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+        };
     }
 
     private void InvertSeekControl()
     {
-        SetSeekControlType(ViewModel!.SeekContent is TimelineControl ? SeekControlTypes.Normal : SeekControlTypes.Trim);
+        SetSeekControlType(ViewModel!.SeekContent is TimelineViewModel ? SeekControlTypes.Normal : SeekControlTypes.Trim);
     }
         
     private void MainWindow_Loaded(object? sender, RoutedEventArgs e)

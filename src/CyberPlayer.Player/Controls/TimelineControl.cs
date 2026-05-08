@@ -32,7 +32,7 @@ public class TimelineControl : TemplatedControl
         nameof(IsUpperDragging), defaultBindingMode: BindingMode.Default);
 
     public static readonly StyledProperty<bool> IsSeekDraggingProperty = AvaloniaProperty.Register<TimelineControl, bool>(
-        nameof(IsSeekDragging), defaultBindingMode: BindingMode.Default);
+        nameof(IsSeekDragging), defaultBindingMode: BindingMode.OneWayToSource);
 
     public static readonly StyledProperty<double> SnapThresholdProperty = AvaloniaProperty.Register<TimelineControl, double>(
         nameof(SnapThreshold), double.NaN);

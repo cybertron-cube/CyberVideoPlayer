@@ -229,7 +229,7 @@
 						<controls:CustomSlider
 							Value="{Binding MpvPlayer.SeekValue}"
 							Maximum="{Binding MpvPlayer.Duration}"
-							IsDragging="{Binding MpvPlayer.IsSeeking}"
+							IsSeeking="{Binding MpvPlayer.IsSeeking}"
 							Focusable="False"
 							Margin="10,0" />
 					</DataTemplate>

@@ -10,13 +10,13 @@ public partial class MessagePopupViewModel : ViewModelBase, IDialogContent
     public IObservable<bool> CloseDialog { get; }
     
     [Reactive]
-    public partial bool Close { get; set; }
+    private bool _close;
 
     [Reactive]
-    public partial string? Message { get; set; }
+    private string? _message;
 
     [Reactive]
-    public partial string? Title { get; set; }
+    private string? _title;
 
     public MessagePopupViewModel()
     {

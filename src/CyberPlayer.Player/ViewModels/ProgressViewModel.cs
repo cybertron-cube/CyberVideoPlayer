@@ -9,13 +9,13 @@ public partial class ProgressViewModel : ViewModelBase, IDialogContent
     public IObservable<bool> CloseDialog { get; }
 
     [Reactive]
-    public partial bool Close { get; set; }
+    private bool _close;
 
     [Reactive]
-    public partial string? LabelText { get; set; }
+    private string? _labelText;
 
     [Reactive]
-    public partial double ProgressValue { get; set; }
+    private double _progressValue;
 
     public ProgressViewModel()
     {

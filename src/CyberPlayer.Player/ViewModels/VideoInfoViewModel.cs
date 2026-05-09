@@ -2,7 +2,6 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq.Expressions;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -25,15 +24,15 @@ public abstract partial class VideoInfoViewModel : ViewModelBase
     public VideoInfoType VideoInfoType { get; init; }
     
     [Reactive]
-    public partial string? RawText { get; set; }
+    private string? _rawText;
     
     [Reactive]
-    public partial bool JsonTreeView { get; set; }
+    private bool _jsonTreeView;
     
     public abstract IEnumerable<string> FormatOptions { get; }
     
     [Reactive]
-    public partial bool Sidecar { get; set; }
+    private bool _sidecar;
 
     private string _currentFormat;
 
@@ -50,8 +49,6 @@ public abstract partial class VideoInfoViewModel : ViewModelBase
             SetFormat();
         }
     }
-
-    public ReactiveCommand<Unit, Unit> ExportCommand { get; }
     
     public Subject<Unit> ExportFinished { get; }
 
@@ -66,7 +63,6 @@ public abstract partial class VideoInfoViewModel : ViewModelBase
     {
         //FormatOptions = new[] { "1", "2", "3" };
         _currentFormat = "1";
-        ExportCommand = ReactiveCommand.CreateFromTask(Export);
 
         RawText = BuildConfig.GetTestInfo("mediainfo-default-output.txt");
     }
@@ -81,7 +77,6 @@ public abstract partial class VideoInfoViewModel : ViewModelBase
         Settings = settings;
         Log = log;
 
-        ExportCommand = ReactiveCommand.CreateFromTask(Export);
         ExportFinished = new Subject<Unit>();
         
         if (_currentFormat.Equals("json", StringComparison.CurrentCultureIgnoreCase))
@@ -100,6 +95,7 @@ public abstract partial class VideoInfoViewModel : ViewModelBase
         }
     }
 
+    [ReactiveCommand]
     private async Task Export()
     {
         if (Sidecar)

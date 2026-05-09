@@ -35,10 +35,6 @@ public partial class MainWindowViewModel : ViewModelBase
     
     public MpvPlayer MpvPlayer { get; }
         
-    public ReactiveCommand<Unit, Unit> CheckForUpdatesCommand { get; }
-        
-    public ReactiveCommand<Unit, Unit> MediaPickerCommand { get; }
-        
     public ReactiveCommand<string, Unit> OpenWebLinkCommand { get; }
         
     public ReactiveCommand<EventArgs?, Unit> ExitAppCommand { get; }
@@ -50,9 +46,9 @@ public partial class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> CenterCommand { get; }
     
     public ReactiveCommand<Unit, Unit> ResizeCommand { get; }
-    
+
     [Reactive]
-    public partial object? VideoContent { get; set; }
+    private object? _videoContent;
 
     [Reactive]
     private ViewModelBase _seekContent;
@@ -75,9 +71,7 @@ public partial class MainWindowViewModel : ViewModelBase
             new TrackInfo() { Id = 2, Codec = "codec", AudioDemuxSampleRate = 2, AudioDemuxChannels = "channels" }
         };
         MpvPlayer.SelectedAudioTrack = selected;
-            
-        CheckForUpdatesCommand = ReactiveCommand.CreateFromTask(CheckForUpdates);
-        MediaPickerCommand = ReactiveCommand.CreateFromTask(MediaPicker);
+        
         //ExitAppCommand = ReactiveCommand.Create<EventArgs?>(ExitApp);
     }
 #endif
@@ -96,8 +90,6 @@ public partial class MainWindowViewModel : ViewModelBase
             Settings.Export(BuildConfig.SettingsPath);
         });
         
-        CheckForUpdatesCommand = ReactiveCommand.CreateFromTask(CheckForUpdates);
-        MediaPickerCommand = ReactiveCommand.CreateFromTask(MediaPicker);
         OpenWebLinkCommand = ReactiveCommand.Create<string>(GenStatic.OpenWebLink);
         ExitAppCommand = ReactiveCommand.Create<EventArgs?>(ExitApp);
         ViewVideoInfoCommand = ReactiveCommand.Create<VideoInfoType>(this.ShowVideoInfo);
@@ -125,6 +117,7 @@ public partial class MainWindowViewModel : ViewModelBase
                && !githubAsset.name.Contains("setup");
     }
     
+    [ReactiveCommand]
     private async Task CheckForUpdates()
     {
         _log.Information("Checking for updates...");
@@ -224,7 +217,8 @@ public partial class MainWindowViewModel : ViewModelBase
         //TODO show error if not zero
     }
 
-    public void ExportWindow()
+    [ReactiveCommand]
+    private void ExportWindow()
     {
         var viewModel = new ExportWindowViewModel(MpvPlayer, Settings);
         viewModel.AudioTrackInfos = MpvPlayer.AudioTrackInfos;
@@ -283,6 +277,7 @@ public partial class MainWindowViewModel : ViewModelBase
         //TODO show error if not zero
     }
 
+    [ReactiveCommand]
     private async Task MediaPicker()
     {
         var result = await this.OpenFileDialog(new FilePickerOpenOptions

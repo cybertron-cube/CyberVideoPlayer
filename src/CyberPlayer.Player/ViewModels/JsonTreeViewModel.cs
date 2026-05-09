@@ -18,7 +18,7 @@ public partial class JsonTreeViewModel : ViewModelBase
     private record ParentHeader(string Header, int NodeCount) { public int NodeCount { get; set; } = NodeCount; }
     
     [Reactive]
-    public partial string? Title { get; set; }
+    private string? _title;
 
     private string? _rawText = string.Empty;
 
@@ -38,7 +38,7 @@ public partial class JsonTreeViewModel : ViewModelBase
     }
     
     [Reactive]
-    public partial IEnumerable<Node>? Items { get; set; }
+    private IEnumerable<Node>? _items;
     
     public JsonTreeViewModel()
     {

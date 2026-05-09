@@ -72,10 +72,7 @@ public partial class MpvPlayer : ViewModelBase
         SeekTimeCodeString = _seekTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength);
         TimeCodeFormats.Single(x => x.Entity == TimeCodeFormat.Basic).Activated = true;
 
-        FrameStepCommand = ReactiveCommand.Create<string>(FrameStep);
-        SeekCommand = ReactiveCommand.Create<double>(Seek);
         VolumeCommand = ReactiveCommand.Create<int>(offset => VolumeValue += offset);
-        TimeCodeFormatCommand = ReactiveCommand.Create<TimeCodeFormat>(SetTimeCodeFormat);
     }
 
     private void ObserveProperties()
@@ -135,6 +132,7 @@ public partial class MpvPlayer : ViewModelBase
     // menu weirdly enough. Also GroupName is not a property on NativeMenuItem so radio button dots wouldn't change
     // properly without setting the Activated property manually. The property binded to IsChecked would be
     // automatically set/handled by Avalonia if this was a normal MenuItem with radio ToggleType and had a GroupName
+    [ReactiveCommand]
     private void SetTimeCodeFormat(TimeCodeFormat timeCodeFormat)
     {
         TimeCodeFormat = timeCodeFormat;
@@ -203,17 +201,11 @@ public partial class MpvPlayer : ViewModelBase
                 ResizeAndCenterWindow();
         }
     }
-
-    public ReactiveCommand<string, Unit> FrameStepCommand { get; }
-    
-    public ReactiveCommand<double, Unit> SeekCommand { get; }
     
     public ReactiveCommand<int, Unit> VolumeCommand { get; }
 
     [Reactive]
-    public partial Dictionary<string, object?>? VideoFrameInfo { get; set; }
-    
-    public ReactiveCommand<TimeCodeFormat, Unit> TimeCodeFormatCommand { get; }
+    private Dictionary<string, object?>? _videoFrameInfo;
     
     public FrozenSet<Activatable<TimeCodeFormat>> TimeCodeFormats { get; } = Enum.GetValues<TimeCodeFormat>()
         .Select(f => new Activatable<TimeCodeFormat> { Entity = f, Activated = false }).ToFrozenSet();
@@ -271,7 +263,7 @@ public partial class MpvPlayer : ViewModelBase
     public string TrimEndTimeCodeString => _trimEndTimeCode.FormattedString.Substring(_timeCodeStartIndex, _timeCodeLength);
 
     [Reactive]
-    public partial bool IsFileLoaded { get; set; }
+    private bool _isFileLoaded;
 
     private double _duration = 1;
     
@@ -382,10 +374,10 @@ public partial class MpvPlayer : ViewModelBase
     private readonly TimeCode _seekTimeCode;
 
     [Reactive]
-    public partial string SeekTimeCodeString { get; set; }
+    private string _seekTimeCodeString;
 
     [Reactive]
-    public partial TimeCodeFormat TimeCodeFormat { get; set; } = TimeCodeFormat.Basic;
+    private TimeCodeFormat _timeCodeFormat = TimeCodeFormat.Basic;
 
     private int _volumeValue;
 
@@ -418,7 +410,7 @@ public partial class MpvPlayer : ViewModelBase
     }
     
     [Reactive]
-    public partial IEnumerable<TrackInfo>? SubtitleTrackInfos { get; set; }
+    private IEnumerable<TrackInfo>? _subtitleTrackInfos;
 
     private TrackInfo? _selectedSubtitleTrack;
 
@@ -446,7 +438,7 @@ public partial class MpvPlayer : ViewModelBase
     }
 
     [Reactive]
-    public partial IEnumerable<TrackInfo>? AudioTrackInfos { get; set; }
+    private IEnumerable<TrackInfo>? _audioTrackInfos;
 
     private TrackInfo? _selectedAudioTrack;
 
@@ -468,7 +460,7 @@ public partial class MpvPlayer : ViewModelBase
     }
     
     [Reactive]
-    public partial IEnumerable<TrackInfo>? VideoTrackInfos { get; set; }
+    private IEnumerable<TrackInfo>? _videoTrackInfos;
 
     private TrackInfo? _selectedVideoTrack;
 
@@ -490,7 +482,7 @@ public partial class MpvPlayer : ViewModelBase
     }
     
     [Reactive]
-    public partial string TrackListJson { get; set; }
+    private string _trackListJson;
 
     public double VideoHeight { get; private set; }
 
@@ -584,6 +576,7 @@ public partial class MpvPlayer : ViewModelBase
             Dispatcher.UIThread.Post(ViewLocator.Main.Activate);
     }
 
+    [ReactiveCommand]
     private void FrameStep(string param)
     {
         Dispatcher.UIThread.Invoke(() =>
@@ -592,6 +585,7 @@ public partial class MpvPlayer : ViewModelBase
         });
     }
 
+    [ReactiveCommand]
     private void GetTracks()
     {
         TrackListJson = MpvContext.GetPropertyString(MpvProperties.TrackList);
@@ -643,6 +637,7 @@ public partial class MpvPlayer : ViewModelBase
         });
     }
     
+    [ReactiveCommand]
     private void Seek(double offset)
     {
         var newSeekValue = SeekValue + offset;

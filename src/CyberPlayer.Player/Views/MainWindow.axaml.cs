@@ -316,7 +316,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>, IParentPa
         var commandBinding = new ReflectionBinding
         {
             Source = ViewModel!.MpvPlayer,
-            Path = nameof(MainWindowViewModel.MpvPlayer.TimeCodeFormatCommand)
+            Path = nameof(MainWindowViewModel.MpvPlayer.SetTimeCodeFormatCommand)
         };
         var item = new NativeMenuItem
         {

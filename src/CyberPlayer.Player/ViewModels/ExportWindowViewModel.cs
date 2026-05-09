@@ -8,7 +8,6 @@ using Avalonia.Threading;
 using CyberPlayer.Player.AppSettings;
 using CyberPlayer.Player.Models;
 using Cybertron;
-using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 
 namespace CyberPlayer.Player.ViewModels;
@@ -16,14 +15,12 @@ namespace CyberPlayer.Player.ViewModels;
 public partial class ExportWindowViewModel : ViewModelBase
 {
     [Reactive]
-    public partial IEnumerable<TrackInfo>? AudioTrackInfos { get; set; }
+    private IEnumerable<TrackInfo>? _audioTrackInfos;
     
     [Reactive]
-    public partial string? Extension { get; set; }
+    private string? _extension;
     
     public IList<TrackInfo> AudioTrackSelection { get; } = new List<TrackInfo>();
-
-    public ReactiveCommand<Unit, Unit> ExportCommand { get; }
     
     public Subject<Unit> Close { get; }
 
@@ -195,10 +192,9 @@ public partial class ExportWindowViewModel : ViewModelBase
         AudioTrackInfos = _mpvPlayer.AudioTrackInfos;
 
         Close = new Subject<Unit>();
-        
-        ExportCommand = ReactiveCommand.Create(Export);
     }
 
+    [ReactiveCommand]
     public void Export()
     {
         var audioStreamArgs = "";
